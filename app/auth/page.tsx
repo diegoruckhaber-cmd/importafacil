@@ -17,11 +17,15 @@ export default function AuthPage() {
     try {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
-          email, password,
-          options: { data: { full_name: name } }
+          email,
+          password,
+          options: {
+            data: { full_name: name },
+            emailRedirectTo: `${window.location.origin}/auth`,
+          },
         });
         if (error) throw error;
-        setMessage("Conta criada. Se a confirmação por e-mail estiver ativa, verifique sua caixa de entrada.");
+        setMessage("Conta criada. Verifique seu e-mail para confirmar o cadastro.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
