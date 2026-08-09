@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { supabase } from "../lib/supabase";
 
 const br=(n:number)=>n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const initial={quantity:1000,fobUsd:10,fx:5.5,freightUsd:1200,insuranceUsd:100,otherBrl:3500,ii:12,ipi:0,pis:2.1,cofins:9.65,icms:17,margin:30};
@@ -16,15 +17,22 @@ function calc(s:any){
 }
 
 export default function Home(){
- const [s,setS]=useState(initial), [result,setResult]=useState<any>(null), [email,setEmail]=useState(""), [lead,setLead]=useState(""), [saving,setSaving]=useState(false);
+ const [s,setS]=useState(initial), [result,setResult]=useState<any>(null), [email,setEmail]=useState(""), [lead,setLead]=useState(""), [saving,setSaving]=useState(false), [saveMessage,setSaveMessage]=useState("");
  const r=useMemo(()=>calc(s),[s]);
  const change=(k:string,v:string)=>setS((x:any)=>({...x,[k]:Number(v)}));
- const calculate=()=>setResult(r);
+ const calculate=()=>{setResult(r); setSaveMessage("");};
+ const saveSimulation=async()=>{
+   setSaveMessage("");
+   const {data:{user}}=await supabase.auth.getUser();
+   if(!user){window.location.href="/auth";return;}
+   const {error}=await supabase.from("simulations").insert({user_id:user.id,name:"Simulação de importação",input:s,result:r});
+   setSaveMessage(error?"Não foi possível salvar agora.":"Simulação salva no seu histórico.");
+ };
  const capture=async(e:any)=>{e.preventDefault(); if(!email.includes("@")) return setLead("Digite um e-mail válido."); setSaving(true); setLead(""); try { const res=await fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,source:"landing_page"})}); const data=await res.json(); if(!res.ok) throw new Error(data.error||"Erro"); setLead("Cadastro recebido. Você está na lista de acesso antecipado."); setEmail(""); } catch { setLead("Não conseguimos concluir agora. Tente novamente em instantes."); } finally { setSaving(false); }};
 
  return <main>
   <header>
-   <div className="wrap nav"><b className="logo">ImportaFácil</b><a href="#pro">PRO</a></div>
+   <div className="wrap nav"><b className="logo">ImportaFácil</b><div style={{display:"flex",gap:16,alignItems:"center"}}><a href="/auth">Entrar</a><a href="#pro">PRO</a></div></div>
    <section className="wrap hero">
     <div><div className="eyebrow">PRÉ-ESTUDO DE IMPORTAÇÃO</div>
      <h1>Antes de importar, descubra se a conta fecha.</h1>
@@ -47,7 +55,7 @@ export default function Home(){
     <div className="card result">
      <div className="resultTop"><h3>Seu resultado</h3><span>Estimativa</span></div>
      {!result?<div className="empty">Preencha as premissas e clique em calcular.</div>:
-      <div className="metrics"><Metric t="Custo total" v={br(result.total)} hi/><Metric t="Custo por unidade" v={br(result.unit)}/><Metric t="Preço mínimo" v={br(result.sale)}/><Metric t="Lucro estimado" v={br(result.profit)}/><Metric t="Impostos estimados" v={br(result.tax)}/></div>}
+      <><div className="metrics"><Metric t="Custo total" v={br(result.total)} hi/><Metric t="Custo por unidade" v={br(result.unit)}/><Metric t="Preço mínimo" v={br(result.sale)}/><Metric t="Lucro estimado" v={br(result.profit)}/><Metric t="Impostos estimados" v={br(result.tax)}/></div><div style={{display:"flex",gap:10,alignItems:"center",marginTop:18,flexWrap:"wrap"}}><button className="secondaryBtn" onClick={saveSimulation}>Salvar simulação</button><small style={{color:"#666"}}>{saveMessage}</small></div></>}
     </div>
    </div>
   </section>
