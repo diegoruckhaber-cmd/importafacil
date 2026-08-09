@@ -6,4 +6,3 @@ Correções:
 - versões fixadas para evitar alterações inesperadas durante o build.
 
 O projeto Vercel `importafacil` já existe. Esta pasta deve ser enviada como novo deploy do mesmo projeto.
-Deploy V11
