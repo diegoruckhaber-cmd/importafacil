@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 
 const br=(n:number)=>n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const initial={quantity:1000,fobUsd:10,fx:5.5,freightUsd:1200,insuranceUsd:100,otherBrl:3500,ii:12,ipi:0,pis:2.1,cofins:9.65,icms:17,margin:30};
+const labels:Record<string,string>={quantity:"Quantidade",fobUsd:"Preço unitário FOB (US$)",fx:"Câmbio (R$/US$)",freightUsd:"Frete internacional (US$)",insuranceUsd:"Seguro internacional (US$)",otherBrl:"Outras despesas (R$)",ii:"II (%)",ipi:"IPI (%)",pis:"PIS (%)",cofins:"COFINS (%)",icms:"ICMS (%)",margin:"Margem desejada (%)"};
 
 function calc(s:any){
  const merchandise=s.quantity*s.fobUsd*s.fx, freight=s.freightUsd*s.fx, insurance=s.insuranceUsd*s.fx;
@@ -15,11 +16,11 @@ function calc(s:any){
 }
 
 export default function Home(){
- const [s,setS]=useState(initial), [result,setResult]=useState<any>(null), [email,setEmail]=useState(""), [lead,setLead]=useState("");
+ const [s,setS]=useState(initial), [result,setResult]=useState<any>(null), [email,setEmail]=useState(""), [lead,setLead]=useState(""), [saving,setSaving]=useState(false);
  const r=useMemo(()=>calc(s),[s]);
  const change=(k:string,v:string)=>setS((x:any)=>({...x,[k]:Number(v)}));
  const calculate=()=>setResult(r);
- const capture=(e:any)=>{e.preventDefault(); if(!email.includes("@")) return setLead("Digite um e-mail válido."); localStorage.setItem("if_lead",email); setLead("Cadastro recebido. Em breve você receberá novidades.");};
+ const capture=async(e:any)=>{e.preventDefault(); if(!email.includes("@")) return setLead("Digite um e-mail válido."); setSaving(true); setLead(""); try { const res=await fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,source:"landing_page"})}); const data=await res.json(); if(!res.ok) throw new Error(data.error||"Erro"); setLead("Cadastro recebido. Você está na lista de acesso antecipado."); setEmail(""); } catch { setLead("Não conseguimos concluir agora. Tente novamente em instantes."); } finally { setSaving(false); }};
 
  return <main>
   <header>
@@ -31,7 +32,7 @@ export default function Home(){
      <div className="heroActions"><a className="primary" href="#simulador">Simular gratuitamente</a><a className="ghost" href="#pro">Conhecer o PRO</a></div>
      <div className="proof"><span>✓ Sem cartão</span><span>✓ Resultado em segundos</span><span>✓ Premissas transparentes</span></div>
     </div>
-    <div className="heroPanel"><small>EXEMPLO</small><b>Importação de 1.000 unidades</b><div className="big">{br( calc(initial).unit )}<span>/un.</span></div><div className="mini"><span>Preço mínimo</span><strong>{br(calc(initial).sale)}</strong></div><div className="mini"><span>Lucro estimado</span><strong>{br(calc(initial).profit)}</strong></div></div>
+    <div className="heroPanel"><small>EXEMPLO</small><b>Importação de 1.000 unidades</b><div className="big">{br(calc(initial).unit)}<span>/un.</span></div><div className="mini"><span>Preço mínimo</span><strong>{br(calc(initial).sale)}</strong></div><div className="mini"><span>Lucro estimado</span><strong>{br(calc(initial).profit)}</strong></div></div>
    </section>
   </header>
 
@@ -39,7 +40,7 @@ export default function Home(){
    <div className="sectionHead"><div><div className="eyebrow dark">CALCULADORA GRATUITA</div><h2>Faça sua primeira simulação</h2><p>Use valores aproximados agora. Depois, valide NCM e tratamento tributário nas fontes oficiais.</p></div></div>
    <div className="grid">
     <div className="card">
-     <div className="fields">{Object.entries(s).map(([k,v])=><label key={k}>{k}<input type="number" value={v as number} onChange={e=>change(k,e.target.value)}/></label>)}</div>
+     <div className="fields">{Object.entries(s).map(([k,v])=><label key={k}>{labels[k]||k}<input aria-label={labels[k]||k} type="number" min="0" step="any" value={v as number} onChange={e=>change(k,e.target.value)}/></label>)}</div>
      <button className="primaryBtn" onClick={calculate}>Calcular agora</button>
      <p className="fine">Os resultados são estimativos e não substituem classificação fiscal, tratamento administrativo ou orientação profissional.</p>
     </div>
@@ -66,7 +67,7 @@ export default function Home(){
   </section>
 
   <section className="wrap lead" id="lead"><div><div className="eyebrow dark">PRIMEIROS USUÁRIOS</div><h2>Quer testar antes do lançamento?</h2><p>Entre na lista de acesso antecipado. Vamos usar os primeiros usuários para definir recursos e preço do PRO.</p></div>
-   <form onSubmit={capture}><input placeholder="seu@email.com" value={email} onChange={e=>setEmail(e.target.value)}/><button className="primaryBtn">Entrar na lista</button><small>{lead}</small></form>
+   <form onSubmit={capture}><input type="email" placeholder="seu@email.com" value={email} onChange={e=>setEmail(e.target.value)} required/><button className="primaryBtn" disabled={saving}>{saving?"Enviando...":"Entrar na lista"}</button><small>{lead}</small></form>
   </section>
 
   <footer><div className="wrap"><b>ImportaFácil</b><span>© 2026 • MVP em validação</span></div></footer>
