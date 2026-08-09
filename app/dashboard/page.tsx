@@ -1,0 +1,29 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabase";
+
+type Simulation = { id:string; name:string|null; input:Record<string,unknown>; result:Record<string,number>; created_at:string };
+const br=(n:number)=>Number(n||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+
+export default function Dashboard(){
+ const [email,setEmail]=useState(""); const [plan,setPlan]=useState("FREE"); const [items,setItems]=useState<Simulation[]>([]); const [loading,setLoading]=useState(true);
+ useEffect(()=>{(async()=>{
+   const {data:{user}}=await supabase.auth.getUser();
+   if(!user){window.location.href="/auth";return;}
+   setEmail(user.email||"");
+   const {data:profile}=await supabase.from("profiles").select("plan").eq("id",user.id).maybeSingle();
+   if(profile?.plan)setPlan(profile.plan);
+   const {data}=await supabase.from("simulations").select("id,name,input,result,created_at").order("created_at",{ascending:false}).limit(50);
+   setItems((data||[]) as Simulation[]); setLoading(false);
+ })()},[]);
+ async function logout(){await supabase.auth.signOut();window.location.href="/";}
+ return <main style={{minHeight:"100vh",background:"#f7f7f4"}}>
+  <header style={{background:"white",borderBottom:"1px solid #e7e7e2"}}><div style={{maxWidth:1100,margin:"auto",padding:"18px 24px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><a href="/" style={{fontWeight:800,color:"#111",textDecoration:"none"}}>ImportaFácil</a><div style={{display:"flex",gap:14,alignItems:"center"}}><span style={{fontSize:13,color:"#666"}}>{email} · {plan}</span><button onClick={logout} style={{border:0,background:"transparent",cursor:"pointer"}}>Sair</button></div></div></header>
+  <section style={{maxWidth:1100,margin:"auto",padding:"50px 24px"}}>
+   <div style={{display:"flex",justifyContent:"space-between",gap:20,alignItems:"end",marginBottom:30}}><div><small style={{letterSpacing:1,color:"#777"}}>MINHA CONTA</small><h1 style={{fontSize:40,margin:"8px 0"}}>Suas simulações</h1><p style={{color:"#666"}}>Tudo que você salvou no ImportaFácil, em um só lugar.</p></div><a href="/#simulador" style={{padding:"12px 16px",background:"#111",color:"white",borderRadius:10,textDecoration:"none",fontWeight:700}}>Nova simulação</a></div>
+   {loading?<p>Carregando...</p>:items.length===0?<div style={{background:"white",border:"1px solid #e5e5df",borderRadius:18,padding:40}}><h2>Seu histórico está vazio.</h2><p style={{color:"#666"}}>Faça uma simulação e salve o resultado para começar a construir seu histórico.</p></div>:<div style={{display:"grid",gap:12}}>{items.map(x=><article key={x.id} style={{background:"white",border:"1px solid #e5e5df",borderRadius:16,padding:20,display:"flex",justifyContent:"space-between",gap:20}}><div><b>{x.name||"Simulação de importação"}</b><small style={{display:"block",color:"#888",marginTop:5}}>{new Date(x.created_at).toLocaleString("pt-BR")}</small></div><div style={{textAlign:"right"}}><small style={{color:"#888"}}>Custo total</small><div style={{fontWeight:800,fontSize:20}}>{br(x.result.total)}</div></div></article>)}</div>}
+   <div style={{marginTop:32,padding:24,borderRadius:16,background:"#111",color:"white"}}><b>PRO</b><h2 style={{margin:"8px 0"}}>Mais decisões, menos planilhas.</h2><p style={{opacity:.75}}>Comparação de cenários, relatórios e recursos avançados estão sendo preparados.</p></div>
+  </section>
+ </main>
+}
