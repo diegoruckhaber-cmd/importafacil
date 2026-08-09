@@ -1,7 +1,9 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
+
+const AUTH_REDIRECT_URL = "https://importafacil-projetovendas.vercel.app/auth";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"login" | "signup">("signup");
@@ -10,6 +12,19 @@ export default function AuthPage() {
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const error = hash.get("error_description") || hash.get("error");
+
+    if (error) {
+      setMessage(
+        error.toLowerCase().includes("otp_expired") || error.toLowerCase().includes("expired")
+          ? "O link de confirmação expirou ou já foi utilizado. Crie a conta novamente para receber um novo link."
+          : decodeURIComponent(error.replace(/\+/g, " "))
+      );
+    }
+  }, []);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -21,7 +36,7 @@ export default function AuthPage() {
           password,
           options: {
             data: { full_name: name },
-            emailRedirectTo: `${window.location.origin}/auth`,
+            emailRedirectTo: AUTH_REDIRECT_URL,
           },
         });
         if (error) throw error;
