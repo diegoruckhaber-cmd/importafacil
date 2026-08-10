@@ -1,18 +1,28 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
 const PRICE_ID = process.env.STRIPE_PRO_PRICE_ID || "price_1U2fwM3Fg8OaACj8YADPcwaQ";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json().catch(() => ({}));
-    const email = String(body.email || "").trim();
-    const userId = String(body.userId || "").trim();
-    if (!email || !userId) return NextResponse.json({ error: "Usuário autenticado é obrigatório." }, { status: 400 });
+    const authHeader = req.headers.get("authorization") || "";
+    const accessToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    if (!accessToken) return NextResponse.json({ error: "Sessão autenticada é obrigatória." }, { status: 401 });
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseKey) return NextResponse.json({ error: "Autenticação do ambiente não está configurada." }, { status: 503 });
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    const { data: { user }, error: userError } = await supabase.auth.getUser(accessToken);
+    if (userError || !user) return NextResponse.json({ error: "Sua sessão expirou. Entre novamente." }, { status: 401 });
 
     const secret = process.env.STRIPE_SECRET_KEY;
     if (!secret) return NextResponse.json({ error: "Checkout ainda não configurado no ambiente." }, { status: 503 });
 
     const origin = new URL(req.url).origin;
+    const userId = user.id;
+    const email = user.email || "";
     const params = new URLSearchParams();
     params.set("mode", "subscription");
     params.set("line_items[0][price]", PRICE_ID);
