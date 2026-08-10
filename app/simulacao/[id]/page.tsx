@@ -1,0 +1,18 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { supabase } from "../../../lib/supabase";
+
+const br=(n:number)=>Number(n||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+type Sim={id:string;name:string|null;input:Record<string,number>;result:Record<string,number>;created_at:string};
+const labels:Record<string,string>={quantity:"Quantidade",fobUsd:"FOB unitário (US$)",fx:"Câmbio (R$/US$)",freightUsd:"Frete internacional (US$)",insuranceUsd:"Seguro internacional (US$)",otherBrl:"Outras despesas (R$)",ii:"II (%)",ipi:"IPI (%)",pis:"PIS (%)",cofins:"COFINS (%)",icms:"ICMS (%)",margin:"Margem desejada (%)"};
+
+export default function SimulationDetail(){
+ const params=useParams<{id:string}>();
+ const [sim,setSim]=useState<Sim|null>(null); const [loading,setLoading]=useState(true); const [error,setError]=useState("");
+ useEffect(()=>{(async()=>{const {data:{user}}=await supabase.auth.getUser();if(!user){location.href="/auth";return;}const {data,error}=await supabase.from("simulations").select("id,name,input,result,created_at").eq("id",params.id).eq("user_id",user.id).maybeSingle();if(error||!data)setError("Não foi possível encontrar esta simulação.");else setSim(data as Sim);setLoading(false);})()},[params.id]);
+ if(loading)return <main style={{padding:40}}>Carregando simulação...</main>;
+ if(error||!sim)return <main style={{minHeight:"100vh",background:"#f7f7f4",padding:"70px 24px"}}><div style={{maxWidth:700,margin:"auto",background:"white",padding:40,borderRadius:18}}><h1>Simulação não encontrada</h1><p>{error||"Esta simulação pode ter sido removida."}</p><a href="/dashboard">← Voltar ao painel</a></div></main>;
+ return <main style={{minHeight:"100vh",background:"#f7f7f4",padding:"40px 24px"}}><div style={{maxWidth:1000,margin:"auto"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}><a href="/dashboard" style={{color:"#111"}}>← Meu painel</a><button onClick={()=>window.print()} style={{padding:"10px 15px",borderRadius:9,border:"1px solid #ccc",background:"white",cursor:"pointer"}}>Imprimir / Salvar PDF</button></div><article style={{background:"white",padding:36,borderRadius:18,border:"1px solid #e5e5df"}}><small style={{letterSpacing:1,color:"#777"}}>IMPORTAFÁCIL · SIMULAÇÃO</small><h1 style={{fontSize:38,margin:"8px 0"}}>{sim.name||"Simulação de importação"}</h1><p style={{color:"#777"}}>Criada em {new Date(sim.created_at).toLocaleString("pt-BR")}</p><h2 style={{marginTop:30}}>Resultado</h2><div style={{display:"grid",gridTemplateColumns:"repeat(5,minmax(0,1fr))",gap:12}}>{[["Custo total",br(sim.result.total)],["Custo unitário",br(sim.result.unit)],["Preço mínimo",br(sim.result.sale)],["Lucro estimado",br(sim.result.profit)],["Impostos",br(sim.result.tax)]].map(([a,b])=><div key={a} style={{padding:16,border:"1px solid #eee",borderRadius:12}}><small style={{color:"#777"}}>{a}</small><div style={{fontSize:19,fontWeight:800,marginTop:5}}>{b}</div></div>)}</div><h2 style={{marginTop:32}}>Premissas</h2><div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:10}}>{Object.entries(sim.input).map(([key,value])=><div key={key} style={{padding:13,border:"1px solid #eee",borderRadius:10}}><small style={{color:"#777"}}>{labels[key]||key}</small><div style={{fontWeight:700,marginTop:4}}>{typeof value==="number"?value.toLocaleString("pt-BR"):String(value)}</div></div>)}</div><div style={{marginTop:28,padding:18,borderRadius:12,background:"#f7f7f4",color:"#555"}}>Os valores são estimativos. Valide NCM, tratamento tributário, despesas e demais premissas antes de comprometer capital.</div></article></div></main>;
+}
