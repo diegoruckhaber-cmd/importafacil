@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const PRICE_ID = process.env.STRIPE_PRO_PRICE_ID || "price_1U2fwM3Fg8OaACj8YADPcwaQ";
+const PRICE_ID = process.env.STRIPE_PRO_PRICE_ID || "price_1U3kAF3Fg8OaACj82FQd4FOv";
 
 export async function POST(req: Request) {
   try {
@@ -33,6 +33,9 @@ export async function POST(req: Request) {
     params.set("subscription_data[metadata][plan]", "PRO");
     params.set("metadata[user_id]", userId);
     params.set("metadata[plan]", "PRO");
+    params.set("billing_address_collection", "auto");
+    params.set("tax_id_collection[enabled]", "true");
+    params.set("allow_promotion_codes", "true");
     params.set("success_url", `${origin}/dashboard?checkout=success`);
     params.set("cancel_url", `${origin}/dashboard?checkout=cancelled`);
 
