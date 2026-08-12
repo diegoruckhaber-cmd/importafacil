@@ -67,19 +67,11 @@ function share(item: ImportItem, items: ImportItem[], method: FreightAllocationM
     if (method === "net-weight") return sum + n(current.netWeightKg);
     if (method === "quantity") return sum + n(current.quantity);
     if (method === "volume") return sum + n(current.volumeM3);
-    if (method === "custom") return sum + n(current.customAllocationPercent);
     return sum + n(current.quantity) * n(current.fobUsdUnit);
   }, 0);
   return total > 0 ? value / total : 0;
 }
 
-/**
- * Calculates a shipment containing multiple items/NCMs.
- * For the default legal-style allocation, international freight is allocated
- * by net weight and international insurance by FOB value, matching the
- * current DUIMP manual. Other allocation methods remain available for
- * analytical scenarios and must be labeled as such in the UI.
- */
 export function calculateMultiItemImport(operation: MultiItemImport): MultiItemResult {
   const exchangeRate = n(operation.exchangeRate);
   const items = operation.items ?? [];
