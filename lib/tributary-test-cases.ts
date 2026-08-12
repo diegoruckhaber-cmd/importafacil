@@ -1,4 +1,4 @@
-import { calculateTributaryOperation } from "./calculator";
+import { calculateTributaryOperation } from "./tributary-engine";
 
 export const BASELINE_CASE = {
   valorAduaneiro: 61_050,
@@ -15,8 +15,8 @@ export function runBaselineCase() {
 }
 
 /**
- * These cases are fixtures for later automated tests against authoritative
- * examples and client operations. They are not legal/tax opinions.
+ * Fixtures for automated tests against authoritative examples and client
+ * operations. These fixtures are mathematical test data, not legal opinions.
  */
 export const TEST_CASES = [
   { name: "baseline-general-import", operation: BASELINE_CASE },
