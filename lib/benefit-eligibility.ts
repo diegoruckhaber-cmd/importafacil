@@ -13,11 +13,7 @@ export type FiscalBenefitRule = {
   tax: "ICMS" | "II" | "IPI" | "PIS_IMPORT" | "COFINS_IMPORT";
   validFrom: string;
   validTo?: string;
-  legalSources: Array<{
-    title: string;
-    reference: string;
-    url?: string;
-  }>;
+  legalSources: Array<{ title: string; reference: string; url?: string }>;
   conditions: BenefitCondition[];
   effect: {
     type: "rateReduction" | "baseReduction" | "creditPresumed" | "deferral" | "exemption" | "suspension" | "other";
@@ -54,6 +50,8 @@ export function resolveBenefits(
       }
 
       const actual = context[condition.field];
+      const values = Array.isArray(condition.value) ? condition.value : undefined;
+
       if (condition.operator === "exists" && (actual === undefined || actual === null || actual === "")) {
         failed = true;
         break;
@@ -62,17 +60,18 @@ export function resolveBenefits(
         failed = true;
         break;
       }
-      if (condition.operator === "in" && !Array.isArray(condition.value) || (condition.operator === "in" && !condition.value.includes(String(actual)))) {
+      if (condition.operator === "in" && (!values || !values.includes(String(actual)))) {
         failed = true;
         break;
       }
-      if (condition.operator === "notIn" && Array.isArray(condition.value) && condition.value.includes(String(actual))) {
+      if (condition.operator === "notIn" && values?.includes(String(actual))) {
         failed = true;
         break;
       }
     }
 
     if (!failed) matched.push(rule);
+    if (conditional && !failed) warnings.push(`${rule.name}: aplicação depende de validação das condições/regime especial.`);
   }
 
   for (const rule of matched) {
