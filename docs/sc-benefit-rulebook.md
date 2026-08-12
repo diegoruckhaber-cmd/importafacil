@@ -1,4 +1,4 @@
-# SC — Rulebook inicial de benefícios de ICMS na importação
+# SC — Rulebook de benefícios de ICMS na importação
 
 ## Objetivo
 
@@ -6,12 +6,12 @@ Registrar benefícios de SC como regras jurídicas condicionais, e não como sim
 
 ## Regra de segurança
 
-Nenhum benefício abaixo deve ser apresentado ao usuário como automaticamente aplicável. O motor deve separar existência do benefício, elegibilidade e efeito financeiro.
+Nenhum benefício deve ser apresentado ao usuário como automaticamente aplicável. O motor deve separar existência do benefício, elegibilidade e efeito financeiro.
 
 ## TTD 409/410 — referência estrutural
 
-- Base normativa principal: art. 246 do Anexo 2 do RICMS/SC.
-- O tratamento envolve diferimento na importação e crédito presumido nas operações subsequentes, conforme o regime e suas condições.
+- Base normativa principal cadastrada: art. 246 do Anexo 2 do RICMS/SC.
+- O tratamento pode envolver diferimento na importação e crédito presumido nas operações subsequentes, conforme o regime e suas condições.
 - A existência de TTD/regime especial concedido ao contribuinte é condição relevante.
 - A aplicação pode depender de NCM, natureza/destinação da mercadoria, operação de saída, origem, local/via de desembaraço e outras condições do regime.
 - O motor deve consultar exceções e atos posteriores antes de concluir pela aplicabilidade.
@@ -28,15 +28,15 @@ Nenhum benefício abaixo deve ser apresentado ao usuário como automaticamente a
 
 Cada benefício deve ser armazenado com:
 
-- uf;
+- UF;
 - identificador do benefício/TTD;
 - tributo;
 - tipo de efeito (diferimento, crédito presumido, redução, isenção etc.);
 - fundamento principal;
 - fundamentos complementares;
 - data inicial e final de vigência;
-- exige_regime_especial;
-- ncm/posição/subposição abrangida ou excluída;
+- exigência de regime especial;
+- NCM/posição/subposição abrangida ou excluída;
 - origem relevante;
 - local de desembaraço relevante;
 - modal/via relevante;
@@ -49,6 +49,10 @@ Cada benefício deve ser armazenado com:
 - fonte oficial;
 - data da última verificação;
 - nível de confiança.
+
+## Critério de qualidade
+
+Regra concreta só pode ser marcada como `validated` após conferência da legislação vigente e das condições do benefício. Regra em pesquisa deve permanecer `candidate`/`needsReview` e não pode alimentar um cálculo definitivo.
 
 ## Estados futuros
 
