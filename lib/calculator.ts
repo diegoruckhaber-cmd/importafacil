@@ -17,6 +17,8 @@ export function calculate(s:SimulationInput) {
     pisImportRate:s.pis,
     cofinsImportRate:s.cofins,
     icmsRate:s.icms,
+    // Operational costs stay outside tax bases unless a future legal-rule
+    // layer explicitly classifies part of them as a taxable addition.
     otherBrl:s.otherBrl,
   });
   const total=cif+s.otherBrl+tax.totalTributos;
