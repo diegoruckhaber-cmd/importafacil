@@ -7,6 +7,14 @@ export type ItemTributaryInput = CostAllocationInput & {
   pisImportRate: number;
   cofinsImportRate: number;
   icmsRate: number;
+  importDate?: `${number}-${number}-${number}`;
+  iiLegalFoundation?: string;
+  iiBenefitKind?: "none" | "reduced_rate" | "exemption" | "suspension";
+  iiCoveredByLC224?: boolean;
+  iiExceptionToLC224?: boolean;
+  iiReducedRate?: number;
+  cofinsReducedBenefit?: boolean;
+  cofinsAdditional060?: boolean;
 };
 
 export type ItemImportExpense = {
@@ -98,13 +106,8 @@ function allocateExpense(
 }
 
 /**
- * Integrates shared/direct import expenses into the tributary calculation at item level.
+ * Integrates shared/direct import expenses into the item-level tax calculation.
  * Fiscal treatment and economic landed cost remain separate decisions.
- *
- * - customs_base: increases the item's customs value before II/IPI/PIS/COFINS/ICMS.
- * - icms_import_base: does not change customs value; it is added only to the ICMS import base.
- * - operational_cost: affects landed cost only.
- * - conditional: affects landed cost and generates a warning; it is excluded from tax bases.
  */
 export function calculateItemTributaryOperation(
   items: ItemTributaryInput[],
@@ -121,31 +124,19 @@ export function calculateItemTributaryOperation(
 
   const buckets = new Map<string, ExpenseBuckets>();
   for (const item of items) {
-    buckets.set(item.itemId, {
-      customsBase: 0,
-      icmsImportBase: 0,
-      operational: 0,
-      conditional: 0,
-    });
+    buckets.set(item.itemId, { customsBase: 0, icmsImportBase: 0, operational: 0, conditional: 0 });
   }
 
   const warnings: string[] = [];
 
   for (const expense of expenses) {
-    if (!Number.isFinite(expense.amount) || expense.amount < 0) {
-      throw new Error(`Despesa inválida: ${expense.id}`);
-    }
+    if (!Number.isFinite(expense.amount) || expense.amount < 0) throw new Error(`Despesa inválida: ${expense.id}`);
 
     const allocations = allocateExpense(expense, items);
-    for (const allocation of allocations) {
-      const bucket = buckets.get(allocation.itemId)!;
-      addBucket(bucket, expense.treatment, allocation.amount);
-    }
+    for (const allocation of allocations) addBucket(buckets.get(allocation.itemId)!, expense.treatment, allocation.amount);
 
     if (expense.treatment === "conditional") {
-      warnings.push(
-        `Despesa ${expense.id} (${expense.description}) requer validação antes de integrar qualquer base tributária.`,
-      );
+      warnings.push(`Despesa ${expense.id} (${expense.description}) requer validação antes de integrar qualquer base tributária.`);
     }
   }
 
@@ -162,10 +153,17 @@ export function calculateItemTributaryOperation(
       icmsRate: item.icmsRate,
       icmsTaxableAdditionsBrl: bucket.icmsImportBase,
       otherBrl: bucket.operational + bucket.conditional,
+      importDate: item.importDate,
+      iiLegalFoundation: item.iiLegalFoundation,
+      iiBenefitKind: item.iiBenefitKind,
+      iiCoveredByLC224: item.iiCoveredByLC224,
+      iiExceptionToLC224: item.iiExceptionToLC224,
+      iiReducedRate: item.iiReducedRate,
+      cofinsReducedBenefit: item.cofinsReducedBenefit,
+      cofinsAdditional060: item.cofinsAdditional060,
     });
 
-    const totalAllocatedExpenses =
-      bucket.customsBase + bucket.icmsImportBase + bucket.operational + bucket.conditional;
+    const totalAllocatedExpenses = bucket.customsBase + bucket.icmsImportBase + bucket.operational + bucket.conditional;
     const landedCost = item.customsValue + totalAllocatedExpenses + taxes.totalTributos;
     const quantity = item.quantity ?? 0;
 
@@ -181,13 +179,7 @@ export function calculateItemTributaryOperation(
       taxes,
       landedCost,
       landedCostPerUnit: quantity > 0 ? landedCost / quantity : landedCost,
-      taxLines: {
-        ii: taxes.ii,
-        ipi: taxes.ipi,
-        pisImport: taxes.pisImport,
-        cofinsImport: taxes.cofinsImport,
-        icms: taxes.icms,
-      },
+      taxLines: { ii: taxes.ii, ipi: taxes.ipi, pisImport: taxes.pisImport, cofinsImport: taxes.cofinsImport, icms: taxes.icms },
     } satisfies ItemTributaryResult;
   });
 
