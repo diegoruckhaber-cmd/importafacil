@@ -1,5 +1,6 @@
 import { validateTributaryInput } from "./tributary-validation.ts";
 import { resolveCofinsImport2026 } from "./federal-2026-import-rules.ts";
+import { resolveFederalII2026, type FederalIIResolution } from "./federal-ii-2026-rules.ts";
 
 export type TributaryOperation = {
   valorAduaneiro: number;
@@ -13,6 +14,11 @@ export type TributaryOperation = {
   importDate?: `${number}-${number}-${number}`;
   cofinsReducedBenefit?: boolean;
   cofinsAdditional060?: boolean;
+  iiLegalFoundation?: string;
+  iiBenefitKind?: "none" | "reduced_rate" | "exemption" | "suspension";
+  iiCoveredByLC224?: boolean;
+  iiExceptionToLC224?: boolean;
+  iiReducedRate?: number;
 };
 
 export type TaxLine = {
@@ -35,7 +41,12 @@ export type TributaryResult = {
   icmsTaxableAdditions: number;
   totalTributos: number;
   desembolsoTributario: number;
-  federal2026?: { cofinsEffectiveRate: number; cofinsDisplayRate: number; cofinsRule: string };
+  federal2026?: {
+    cofinsEffectiveRate: number;
+    cofinsDisplayRate: number;
+    cofinsRule: string;
+    ii?: FederalIIResolution;
+  };
 };
 
 const pct = (value: number) => value / 100;
@@ -50,7 +61,19 @@ export function calculateTributaryOperation(o: TributaryOperation): TributaryRes
   const other = o.otherBrl ?? 0;
   const icmsTaxableAdditions = o.icmsTaxableAdditionsBrl ?? 0;
 
-  const iiRate = pct(o.iiRate);
+  const iiResolution = o.importDate
+    ? resolveFederalII2026({
+        date: o.importDate,
+        statutoryRate: o.iiRate,
+        legalFoundation: o.iiLegalFoundation,
+        benefitKind: o.iiBenefitKind ?? "none",
+        coveredByLC224: o.iiCoveredByLC224,
+        exceptionToLC224: o.iiExceptionToLC224,
+        reducedRate: o.iiReducedRate,
+      })
+    : null;
+  const iiRatePercent = iiResolution?.effectiveRate ?? o.iiRate;
+  const iiRate = pct(iiRatePercent);
   const iiValue = valorAduaneiro * iiRate;
   const ii: TaxLine = { base: valorAduaneiro, rate: iiRate, calculated: iiValue, due: iiValue, payable: iiValue };
 
@@ -82,6 +105,13 @@ export function calculateTributaryOperation(o: TributaryOperation): TributaryRes
   return {
     valorAduaneiro, ii, ipi, pisImport, cofinsImport, icms, other, icmsTaxableAdditions,
     totalTributos, desembolsoTributario: totalTributos,
-    federal2026: o.importDate ? { cofinsEffectiveRate: cofinsRule.effectiveRate, cofinsDisplayRate: cofinsRule.displayRate, cofinsRule: cofinsRule.reason } : undefined,
+    federal2026: o.importDate
+      ? {
+          cofinsEffectiveRate: cofinsRule.effectiveRate,
+          cofinsDisplayRate: cofinsRule.displayRate,
+          cofinsRule: cofinsRule.reason,
+          ii: iiResolution ?? undefined,
+        }
+      : undefined,
   };
 }
