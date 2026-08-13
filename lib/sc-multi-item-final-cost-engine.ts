@@ -24,7 +24,7 @@ export type SCMultiItemFinalCostItem = {
   landedCostAfterBenefit: number;
   landedCostPerUnitAfterBenefit: number;
   taxLines: {
-    ii: ItemTributaryInput extends never ? never : ReturnType<typeof calculateItemTributaryOperation>["items"][number]["taxLines"]["ii"];
+    ii: ReturnType<typeof calculateItemTributaryOperation>["items"][number]["taxLines"]["ii"];
     ipi: ReturnType<typeof calculateItemTributaryOperation>["items"][number]["taxLines"]["ipi"];
     pisImport: ReturnType<typeof calculateItemTributaryOperation>["items"][number]["taxLines"]["pisImport"];
     cofinsImport: ReturnType<typeof calculateItemTributaryOperation>["items"][number]["taxLines"]["cofinsImport"];
@@ -32,6 +32,10 @@ export type SCMultiItemFinalCostItem = {
   };
   benefit: ItemSCBenefitResult;
   warnings: string[];
+
+  /** Backward-compatible aliases consumed by the current operation memory UI. */
+  customsValue: number;
+  allocatedExpensesTotal: number;
 };
 
 export type SCMultiItemFinalCostResult = {
@@ -94,6 +98,8 @@ export function calculateSCMultiItemFinalCost(input: SCMultiItemFinalCostInput):
       taxLines: item.taxLines,
       benefit,
       warnings: benefit.warnings,
+      customsValue: item.effectiveCustomsValue,
+      allocatedExpensesTotal: item.totalAllocatedExpenses,
     } satisfies SCMultiItemFinalCostItem;
   });
 
