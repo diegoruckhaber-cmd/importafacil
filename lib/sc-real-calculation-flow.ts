@@ -25,11 +25,6 @@ export type SCRealCalculationResult = {
   warnings: string[];
 };
 
-/**
- * End-to-end bridge for one SC import operation using the current contracts
- * of the import engine, SC eligibility engine and TTD 409/410 output engine.
- * Tax rates are expressed in percentage points (e.g. 17 for 17%).
- */
 export function calculateSCRealOperation(input: SCRealCalculationInput): SCRealCalculationResult {
   const importCalculation = calculateSCImportOperation(input);
   const decision = decideSCItem({
@@ -62,7 +57,7 @@ export function calculateSCRealOperation(input: SCRealCalculationInput): SCRealC
     };
   }
 
-  if (!Number.isFinite(input.outputValue) || !Number.isFinite(input.outputICMSRate)) {
+  if (typeof input.outputValue !== "number" || !Number.isFinite(input.outputValue) || typeof input.outputICMSRate !== "number" || !Number.isFinite(input.outputICMSRate)) {
     return {
       status: "conditional",
       importCalculation,
@@ -72,12 +67,15 @@ export function calculateSCRealOperation(input: SCRealCalculationInput): SCRealC
     };
   }
 
+  const outputValue = input.outputValue;
+  const outputICMSRate = input.outputICMSRate;
+
   const benefit = calculateTTD409410Benefit({
-    outputTaxBase: input.outputValue,
-    normalOutputICMS: input.outputValue * (input.outputICMSRate / 100),
+    outputTaxBase: outputValue,
+    normalOutputICMS: outputValue * (outputICMSRate / 100),
     destination: input.destination,
     operation: input.operation ?? "internal",
-    aliquotaPercent: input.outputICMSRate,
+    aliquotaPercent: outputICMSRate,
     continuousTTDMonths: input.regimeHolderMonths ?? 0,
     authorizedEarlyFullBenefit: input.specialAuthorizationForInitialPeriod ?? false,
     productClass: input.specialProductRate ? "steel_copper_coke_aluminum_silver" : "other",
