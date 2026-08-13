@@ -28,7 +28,7 @@ type ExpenseState = {
   description: string;
   amount: number;
   treatment: "operational_cost" | "icms_import_base" | "conditional";
-  allocation: "item_value" | "quantity" | "weight" | "volume" | "manual";
+  allocation: "item_value" | "quantity" | "weight" | "volume";
 };
 
 const money = (n: number | null) => n == null ? "—" : n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -198,7 +198,7 @@ export default function SCOperationPage() {
             <td><input value={expense.description} onChange={(e) => updateExpense(expense.id, "description", e.target.value)} /></td>
             <td><input type="number" min="0" step="any" value={expense.amount} onChange={(e) => updateExpense(expense.id, "amount", Number(e.target.value))} /></td>
             <td><select value={expense.treatment} onChange={(e) => updateExpense(expense.id, "treatment", e.target.value as ExpenseState["treatment"])}><option value="operational_cost">Custo operacional</option><option value="icms_import_base">Acréscimo base ICMS</option><option value="conditional">Condicional</option></select></td>
-            <td><select value={expense.allocation} onChange={(e) => updateExpense(expense.id, "allocation", e.target.value as ExpenseState["allocation"])}><option value="item_value">Valor aduaneiro</option><option value="quantity">Quantidade</option><option value="weight">Peso</option><option value="volume">Cubagem</option><option value="manual">Manual</option></select></td>
+            <td><select value={expense.allocation} onChange={(e) => updateExpense(expense.id, "allocation", e.target.value as ExpenseState["allocation"])}><option value="item_value">Valor aduaneiro</option><option value="quantity">Quantidade</option><option value="weight">Peso</option><option value="volume">Cubagem</option></select></td>
           </tr>)}</tbody>
         </table>
       </div>
