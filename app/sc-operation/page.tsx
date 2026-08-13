@@ -80,20 +80,8 @@ export default function SCOperationPage() {
       }));
 
       const engineExpenses = [
-        {
-          id: "FREIGHT",
-          description: "Frete internacional",
-          amount: freightUsd * exchangeRate,
-          treatment: "customs_base" as const,
-          allocation: "item_value" as const,
-        },
-        {
-          id: "INSURANCE",
-          description: "Seguro internacional",
-          amount: insuranceUsd * exchangeRate,
-          treatment: "customs_base" as const,
-          allocation: "item_value" as const,
-        },
+        { id: "FREIGHT", description: "Frete internacional", amount: freightUsd * exchangeRate, treatment: "customs_base" as const, allocation: "item_value" as const },
+        { id: "INSURANCE", description: "Seguro internacional", amount: insuranceUsd * exchangeRate, treatment: "customs_base" as const, allocation: "item_value" as const },
         ...expenses.map((expense) => ({ ...expense })),
       ];
 
@@ -111,7 +99,19 @@ export default function SCOperationPage() {
           sameNcmPositionAfterFractionation: true,
         });
 
-        if (decision.decision !== "apply") return;
+        if (decision.decision !== "apply") {
+          benefitsByItem[item.id] = {
+            decision: decision.decision,
+            importDeferred: false,
+            outputPresumedCredit: false,
+            benefitICMS: null,
+            estimatedSavings: null,
+            reasons: decision.reasons,
+            blockingIssues: decision.blockingIssues,
+            source: "SC decision engine",
+          };
+          return;
+        }
 
         benefitsByItem[item.id] = resolveSCBenefit({
           ttd: Number(item.ttd) as 409 | 410,
