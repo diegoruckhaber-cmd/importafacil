@@ -46,6 +46,8 @@ export type ItemTributaryResult = {
     cofinsImport: TaxLine;
     icms: TaxLine;
   };
+  /** Versioned federal-rule metadata used by the audit/memory layer. */
+  federal2026?: TributaryResult["federal2026"];
 };
 
 export type ItemTributaryOperationResult = {
@@ -180,6 +182,7 @@ export function calculateItemTributaryOperation(
       landedCost,
       landedCostPerUnit: quantity > 0 ? landedCost / quantity : landedCost,
       taxLines: { ii: taxes.ii, ipi: taxes.ipi, pisImport: taxes.pisImport, cofinsImport: taxes.cofinsImport, icms: taxes.icms },
+      federal2026: taxes.federal2026,
     } satisfies ItemTributaryResult;
   });
 
