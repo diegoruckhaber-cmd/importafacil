@@ -7,7 +7,8 @@
     "start": "next start",
     "test:engine": "node --experimental-strip-types scripts/test-tributary-engine.mjs",
     "test:item-tributary-expenses": "node --experimental-strip-types scripts/test-item-tributary-expense-engine.mjs",
-    "test:item-sc-benefit": "node --experimental-strip-types scripts/test-item-sc-benefit-bridge.mjs"
+    "test:item-sc-benefit": "node --experimental-strip-types scripts/test-item-sc-benefit-bridge.mjs",
+    "test:sc-multi-item-final-cost": "node --experimental-strip-types scripts/test-sc-multi-item-final-cost-engine.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",
