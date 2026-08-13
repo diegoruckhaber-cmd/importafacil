@@ -1,10 +1,11 @@
-import { calculateImportOperation, type ImportOperationInput } from "./sc-import-operation";
+import { calculateSCImportOperation, type SCImportOperationInput } from "./sc-import-operation";
 import { decideSCItem } from "./sc-decision-engine";
 import { calculateTTD409410Benefit } from "./sc-ttd409-410-benefit-calculator";
 
-export type SCRealCalculationInput = ImportOperationInput & {
+export type SCRealCalculationInput = SCImportOperationInput & {
   ttd?: 409 | 410;
   destination?: "commercial_resale" | "industrialization";
+  operation?: "internal" | "interstate";
   validConcession?: boolean;
   importEntryInSC?: boolean;
   decree2128Prohibited?: boolean;
@@ -18,14 +19,19 @@ export type SCRealCalculationInput = ImportOperationInput & {
 
 export type SCRealCalculationResult = {
   status: "calculated" | "conditional" | "denied";
-  importCalculation: ReturnType<typeof calculateImportOperation>;
+  importCalculation: ReturnType<typeof calculateSCImportOperation>;
   decision: ReturnType<typeof decideSCItem>;
   benefit: ReturnType<typeof calculateTTD409410Benefit> | null;
   warnings: string[];
 };
 
+/**
+ * End-to-end bridge for one SC import operation using the current contracts
+ * of the import engine, SC eligibility engine and TTD 409/410 output engine.
+ * Tax rates are expressed in percentage points (e.g. 17 for 17%).
+ */
 export function calculateSCRealOperation(input: SCRealCalculationInput): SCRealCalculationResult {
-  const importCalculation = calculateImportOperation(input);
+  const importCalculation = calculateSCImportOperation(input);
   const decision = decideSCItem({
     id: "operation",
     ttd: input.ttd,
@@ -67,18 +73,22 @@ export function calculateSCRealOperation(input: SCRealCalculationInput): SCRealC
   }
 
   const benefit = calculateTTD409410Benefit({
-    outputValue: input.outputValue,
-    outputICMSRate: input.outputICMSRate,
-    regimeHolderMonths: input.regimeHolderMonths ?? 0,
-    specialAuthorizationForInitialPeriod: input.specialAuthorizationForInitialPeriod ?? false,
-    specialProductRate: input.specialProductRate ?? false,
+    outputTaxBase: input.outputValue,
+    normalOutputICMS: input.outputValue * (input.outputICMSRate / 100),
+    destination: input.destination,
+    operation: input.operation ?? "internal",
+    aliquotaPercent: input.outputICMSRate,
+    continuousTTDMonths: input.regimeHolderMonths ?? 0,
+    authorizedEarlyFullBenefit: input.specialAuthorizationForInitialPeriod ?? false,
+    productClass: input.specialProductRate ? "steel_copper_coke_aluminum_silver" : "other",
+    sameNcmPosition: input.sameNcmPositionAfterFractionation,
   });
 
   return {
-    status: "calculated",
+    status: benefit.status === "calculated" ? "calculated" : "conditional",
     importCalculation,
     decision,
     benefit,
-    warnings: [],
+    warnings: benefit.warnings,
   };
 }
