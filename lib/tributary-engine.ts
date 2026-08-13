@@ -1,6 +1,7 @@
 import { validateTributaryInput } from "./tributary-validation.ts";
 import { resolveCofinsImport2026 } from "./federal-2026-import-rules.ts";
 import { resolveFederalII2026, type FederalIIResolution } from "./federal-ii-2026-rules.ts";
+import { validateFederal2026Foundation } from "./federal-2026-foundation-catalog.ts";
 
 export type TributaryOperation = {
   valorAduaneiro: number;
@@ -19,6 +20,8 @@ export type TributaryOperation = {
   iiCoveredByLC224?: boolean;
   iiExceptionToLC224?: boolean;
   iiReducedRate?: number;
+  federalLegalFoundation?: string;
+  federalForProfit?: boolean;
 };
 
 export type TaxLine = {
@@ -46,6 +49,7 @@ export type TributaryResult = {
     cofinsDisplayRate: number;
     cofinsRule: string;
     ii?: FederalIIResolution;
+    foundation?: { code: string; warnings: string[] };
   };
 };
 
@@ -101,6 +105,9 @@ export function calculateTributaryOperation(o: TributaryOperation): TributaryRes
   const icms: TaxLine = { base: icmsBase, rate: icmsRate, calculated: icmsValue, due: icmsValue, payable: icmsValue };
 
   const totalTributos = ii.payable + ipi.payable + pisImport.payable + cofinsImport.payable + icms.payable;
+  const foundationValidation = o.federalLegalFoundation
+    ? validateFederal2026Foundation({ code: o.federalLegalFoundation, forProfit: o.federalForProfit, tax: "IPI" })
+    : undefined;
 
   return {
     valorAduaneiro, ii, ipi, pisImport, cofinsImport, icms, other, icmsTaxableAdditions,
@@ -111,6 +118,9 @@ export function calculateTributaryOperation(o: TributaryOperation): TributaryRes
           cofinsDisplayRate: cofinsRule.displayRate,
           cofinsRule: cofinsRule.reason,
           ii: iiResolution ?? undefined,
+          foundation: foundationValidation && o.federalLegalFoundation
+            ? { code: o.federalLegalFoundation, warnings: foundationValidation.warnings }
+            : undefined,
         }
       : undefined,
   };
