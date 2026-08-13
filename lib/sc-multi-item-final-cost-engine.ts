@@ -10,12 +10,26 @@ export type SCMultiItemFinalCostInput = {
 
 export type SCMultiItemFinalCostItem = {
   itemId: string;
+  baseCustomsValue: number;
+  effectiveCustomsValue: number;
+  allocatedCustomsBaseExpenses: number;
+  allocatedIcmsImportBaseExpenses: number;
+  allocatedOperationalExpenses: number;
+  allocatedConditionalExpenses: number;
+  totalAllocatedExpenses: number;
   normalTaxTotal: number;
   benefitTaxTotal: number;
   importICMSSavings: number;
   landedCostBeforeBenefit: number;
   landedCostAfterBenefit: number;
   landedCostPerUnitAfterBenefit: number;
+  taxLines: {
+    ii: ItemTributaryInput extends never ? never : ReturnType<typeof calculateItemTributaryOperation>["items"][number]["taxLines"]["ii"];
+    ipi: ReturnType<typeof calculateItemTributaryOperation>["items"][number]["taxLines"]["ipi"];
+    pisImport: ReturnType<typeof calculateItemTributaryOperation>["items"][number]["taxLines"]["pisImport"];
+    cofinsImport: ReturnType<typeof calculateItemTributaryOperation>["items"][number]["taxLines"]["cofinsImport"];
+    icms: ReturnType<typeof calculateItemTributaryOperation>["items"][number]["taxLines"]["icms"];
+  };
   benefit: ItemSCBenefitResult;
   warnings: string[];
 };
@@ -64,12 +78,20 @@ export function calculateSCMultiItemFinalCost(input: SCMultiItemFinalCostInput):
 
     return {
       itemId: item.itemId,
+      baseCustomsValue: item.baseCustomsValue,
+      effectiveCustomsValue: item.effectiveCustomsValue,
+      allocatedCustomsBaseExpenses: item.allocatedCustomsBaseExpenses,
+      allocatedIcmsImportBaseExpenses: item.allocatedIcmsImportBaseExpenses,
+      allocatedOperationalExpenses: item.allocatedOperationalExpenses,
+      allocatedConditionalExpenses: item.allocatedConditionalExpenses,
+      totalAllocatedExpenses: item.totalAllocatedExpenses,
       normalTaxTotal,
       benefitTaxTotal,
       importICMSSavings: benefit.importICMSSavings,
       landedCostBeforeBenefit,
       landedCostAfterBenefit,
       landedCostPerUnitAfterBenefit: quantity > 0 ? landedCostAfterBenefit / quantity : landedCostAfterBenefit,
+      taxLines: item.taxLines,
       benefit,
       warnings: benefit.warnings,
     } satisfies SCMultiItemFinalCostItem;
