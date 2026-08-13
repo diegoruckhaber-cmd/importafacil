@@ -2,7 +2,7 @@ import { getSCBenefitCatalogRule } from "./sc-benefit-catalog";
 import { decideTTD409410Output } from "./sc-ttd409-410-output-rules";
 
 export type SCBenefitResolutionInput = {
-  ttd: 409 | 410;
+  ttd: 77 | 409 | 410;
   destination: "commercial_resale" | "industrialization" | "same_holder_transfer";
   taxableOutput?: boolean;
   industrializationInSC?: boolean;
@@ -25,11 +25,6 @@ export type SCBenefitResolution = {
   source: string;
 };
 
-/**
- * Resolves the legal treatment first and leaves the monetary percentage to the
- * validated concessive-act layer. This prevents the UI from treating a test
- * amount as if it were a statutory rate.
- */
 export function resolveSCBenefit(input: SCBenefitResolutionInput): SCBenefitResolution {
   if (!Number.isFinite(input.normalOutputICMS) || input.normalOutputICMS < 0) {
     throw new Error("normalOutputICMS inválido");
@@ -46,6 +41,24 @@ export function resolveSCBenefit(input: SCBenefitResolutionInput): SCBenefitReso
       reasons: ["Regra do TTD não encontrada no catálogo jurídico parametrizado."],
       blockingIssues: ["benefit_catalog_rule_missing"],
       source: "SC benefit catalog",
+    };
+  }
+
+  // TTD 77 is an import-stage industrialization deferral. It does not inherit
+  // the TTD 409/410 presumed-credit logic at the output stage.
+  if (input.ttd === 77) {
+    const eligible = input.industrializationInSC === true;
+    return {
+      decision: eligible ? "apply" : "conditional",
+      importDeferred: eligible,
+      outputPresumedCredit: false,
+      benefitICMS: null,
+      estimatedSavings: null,
+      reasons: eligible
+        ? [...catalog.notes, "Industrialização em território catarinense comprovada; diferimento de entrada aplicável."]
+        : [...catalog.notes, "O TTD 77 exige comprovação de destinação à industrialização em território catarinense."],
+      blockingIssues: eligible ? [] : ["ttd77_industrialization_in_sc_required"],
+      source: catalog.source,
     };
   }
 
@@ -81,10 +94,7 @@ export function resolveSCBenefit(input: SCBenefitResolutionInput): SCBenefitReso
     outputPresumedCredit: catalog.outputPresumedCredit && output.presumedCreditEligible,
     benefitICMS: null,
     estimatedSavings: null,
-    reasons: [
-      ...reasons,
-      "Elegibilidade jurídica identificada. O valor monetário do crédito presumido depende do ato concessivo/regra econômica validada e ainda não foi inventado pelo sistema.",
-    ],
+    reasons: [...reasons, "Elegibilidade jurídica identificada. O valor monetário do crédito presumido depende do ato concessivo/regra econômica validada."],
     blockingIssues: [],
     source: catalog.source,
   };
