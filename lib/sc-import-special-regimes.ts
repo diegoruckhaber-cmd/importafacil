@@ -1,4 +1,4 @@
-import type { RuleCondition } from './rule-engine';
+type RuleCondition = { field: string; operator: string; value?: unknown };
 
 export type ScSpecialImportRule = {
   id: string;
