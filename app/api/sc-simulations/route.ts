@@ -25,6 +25,22 @@ export async function POST(req: Request) {
     const name = typeof body.name === "string" && body.name.trim() ? body.name.trim() : "Simulação SC";
     if (!body.input || !body.result) return NextResponse.json({ error: "Dados da simulação incompletos." }, { status: 400 });
 
+    const { data: profile } = await supabase.from("profiles").select("plan").eq("id", userData.user.id).maybeSingle();
+    const plan = String(profile?.plan || "FREE").toUpperCase();
+    if (plan === "FREE") {
+      const { count, error: countError } = await supabase
+        .from("simulations")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userData.user.id);
+      if (countError) {
+        console.error("sc simulation limit check error", countError);
+        return NextResponse.json({ error: "Não foi possível validar o limite do plano." }, { status: 500 });
+      }
+      if ((count ?? 0) >= 3) {
+        return NextResponse.json({ error: "Você atingiu o limite de 3 simulações do plano FREE. Assine o PRO para salvar novas simulações." }, { status: 403 });
+      }
+    }
+
     const { data, error } = await supabase.from("simulations").insert({
       user_id: userData.user.id,
       name,
