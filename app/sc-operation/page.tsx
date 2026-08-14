@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { supabase } from "../../lib/supabase";
 import { calculateSCMultiItemFinalCost } from "../../lib/sc-multi-item-final-cost-engine";
 import { decideSCItem } from "../../lib/sc-decision-engine";
 import { resolveSCBenefit } from "../../lib/sc-benefit-resolution";
@@ -76,6 +77,8 @@ export default function SCOperationPage() {
     { id: "ARM-001", description: "Armazenagem", amount: 3500, treatment: "operational_cost", allocation: "weight" },
   ]);
   const [submitted, setSubmitted] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
 
   const calculation = useMemo(() => {
     if (!submitted) return null;
@@ -146,14 +149,49 @@ export default function SCOperationPage() {
   const updateItem = <K extends keyof ItemState>(id: string, key: K, value: ItemState[K]) => {
     setItems((current) => current.map((item) => item.id === id ? { ...item, [key]: value } : item));
     setSubmitted(false);
+    setSaveMessage("");
   };
   const updateExpense = <K extends keyof ExpenseState>(id: string, key: K, value: ExpenseState[K]) => {
     setExpenses((current) => current.map((expense) => expense.id === id ? { ...expense, [key]: value } : expense));
     setSubmitted(false);
+    setSaveMessage("");
   };
-  const addItem = () => setItems((current) => [...current, makeItem(current.length + 1)]);
-  const removeItem = (id: string) => setItems((current) => current.length > 1 ? current.filter((item) => item.id !== id) : current);
-  const addExpense = () => setExpenses((current) => [...current, { id: `EXP-${current.length + 1}`, description: "Nova despesa", amount: 0, treatment: "operational_cost", allocation: "item_value" }]);
+  const addItem = () => { setItems((current) => [...current, makeItem(current.length + 1)]); setSaveMessage(""); };
+  const removeItem = (id: string) => { setItems((current) => current.length > 1 ? current.filter((item) => item.id !== id) : current); setSaveMessage(""); };
+  const addExpense = () => { setExpenses((current) => [...current, { id: `EXP-${current.length + 1}`, description: "Nova despesa", amount: 0, treatment: "operational_cost", allocation: "item_value" }]); setSaveMessage(""); };
+
+  const saveSimulation = async () => {
+    if (!calculation || "error" in calculation) return;
+    setSaving(true);
+    setSaveMessage("");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = "/auth?next=/sc-operation";
+        return;
+      }
+
+      const response = await fetch("/api/sc-simulations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({
+          name: operationName,
+          input: { operationName, importDate, importer, state, exchangeRate, freightUsd, insuranceUsd, items, expenses },
+          result: calculation,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setSaveMessage(data.error || `Não foi possível salvar (HTTP ${response.status}).`);
+        return;
+      }
+      setSaveMessage(`Simulação salva com sucesso. ID: ${data.id}`);
+    } catch {
+      setSaveMessage("Não foi possível salvar a simulação. Verifique sua conexão e tente novamente.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <main className="wrap scTest">
@@ -167,7 +205,7 @@ export default function SCOperationPage() {
       </header>
 
       <section className="card" style={{ marginBottom: 18 }}>
-        <div className="sectionTitle"><span className="step">1</span><div><h2>Dados da operação</h2><p>Informações globais que serão compartilhadas por todos os itens.</p></div></div>
+        <SectionTitle step="1" title="Dados da operação" description="Informações globais que serão compartilhadas por todos os itens." />
         <div className="fields four">
           <Field label="Nome da simulação" value={operationName} onChange={setOperationName} text />
           <Field label="Data da importação" value={importDate} onChange={setImportDate} text type="date" />
@@ -181,7 +219,7 @@ export default function SCOperationPage() {
 
       <section className="card" style={{ marginBottom: 18 }}>
         <div className="resultTop">
-          <div className="sectionTitle"><span className="step">2</span><div><h2>Produtos da importação</h2><p>NCM, origem, valor, peso, destinação e tratamento tributário por item.</p></div></div>
+          <SectionTitle step="2" title="Produtos da importação" description="NCM, origem, valor, peso, destinação e tratamento tributário por item." />
           <button className="secondaryBtn" onClick={addItem}>+ Adicionar item</button>
         </div>
         <div style={{ overflowX: "auto" }}>
@@ -199,8 +237,7 @@ export default function SCOperationPage() {
               <td><select value={item.ttd} onChange={(e) => updateItem(item.id, "ttd", e.target.value as TTD)}><option value="none">Normal</option><option value="409">TTD 409</option><option value="410">TTD 410</option><option value="77">TTD 77</option></select></td>
               <td><input aria-label={`Ato concessivo ${item.id}`} type="checkbox" checked={item.validConcession} onChange={(e) => updateItem(item.id, "validConcession", e.target.checked)} /></td>
               <td><button className="secondaryBtn" onClick={() => removeItem(item.id)}>Excluir</button></td>
-            </tr>)}
-            </tbody>
+            </tr>)}</tbody>
           </table>
         </div>
         <div className="itemAdvancedGrid">
@@ -220,7 +257,7 @@ export default function SCOperationPage() {
       </section>
 
       <section className="card" style={{ marginBottom: 18 }}>
-        <div className="resultTop"><div className="sectionTitle"><span className="step">3</span><div><h2>Despesas e rateio</h2><p>Cada despesa pode ter tratamento e critério de rateio próprios.</p></div></div><button className="secondaryBtn" onClick={addExpense}>+ Adicionar despesa</button></div>
+        <div className="resultTop"><SectionTitle step="3" title="Despesas e rateio" description="Cada despesa pode ter tratamento e critério de rateio próprios." /><button className="secondaryBtn" onClick={addExpense}>+ Adicionar despesa</button></div>
         <div style={{ overflowX: "auto" }}>
           <table className="importTable expenseTable"><thead><tr><th>Despesa</th><th>Valor R$</th><th>Tratamento</th><th>Critério de rateio</th></tr></thead>
             <tbody>{expenses.map((expense) => <tr key={expense.id}>
@@ -234,18 +271,21 @@ export default function SCOperationPage() {
         <div className="allocationSummary"><span>Frete: <b>{money(freightUsd * exchangeRate)}</b></span><span>Seguro: <b>{money(insuranceUsd * exchangeRate)}</b></span><span>Despesas adicionais: <b>{money(expenses.reduce((sum, e) => sum + e.amount, 0))}</b></span></div>
       </section>
 
-      <button className="primaryBtn calculateBtn" onClick={() => setSubmitted(true)}>Calcular operação completa</button>
+      <button className="primaryBtn calculateBtn" onClick={() => { setSubmitted(true); setSaveMessage(""); }}>Calcular operação completa</button>
 
       {calculation && "error" in calculation && <section className="card" style={{ marginTop: 18 }}><div className="warning">⚠ {calculation.error}</div></section>}
-
-      {calculation && !("error" in calculation) && <ResultView calculation={calculation} items={items} />}
+      {calculation && !("error" in calculation) && <ResultView calculation={calculation} items={items} onSave={saveSimulation} saving={saving} saveMessage={saveMessage} />}
     </main>
   );
 }
 
-function ResultView({ calculation, items }: { calculation: any; items: ItemState[] }) {
+function SectionTitle({ step, title, description }: { step: string; title: string; description: string }) {
+  return <div className="sectionTitle"><span className="step">{step}</span><div><h2>{title}</h2><p>{description}</p></div></div>;
+}
+
+function ResultView({ calculation, items, onSave, saving, saveMessage }: { calculation: any; items: ItemState[]; onSave: () => void; saving: boolean; saveMessage: string }) {
   return <section className="card scResult" style={{ marginTop: 18 }}>
-    <div className="resultTop"><div className="sectionTitle"><span className="step">4</span><div><div className="eyebrow dark">RESULTADO</div><h2>Custo final por item</h2><p>O cálculo mantém o caminho da despesa até o custo final.</p></div></div><Status status={calculation.status} /></div>
+    <div className="resultTop"><SectionTitle step="4" title="Custo final por item" description="O cálculo mantém o caminho da despesa até o custo final." /><Status status={calculation.status} /></div>
     <div className="metrics">
       <Metric t="Valor aduaneiro total" v={money(calculation.totalCustomsValue)} />
       <Metric t="Despesas rateadas" v={money(calculation.totalAllocatedExpenses)} />
@@ -254,25 +294,27 @@ function ResultView({ calculation, items }: { calculation: any; items: ItemState
       <Metric t="Custo antes do benefício" v={money(calculation.totalLandedCostBeforeBenefit)} />
       <Metric t="Custo final" v={money(calculation.totalLandedCostAfterBenefit)} hi />
     </div>
-    <div className="memoryList">
-      {calculation.items.map((result: any) => {
-        const source = items.find((item) => item.id === result.itemId);
-        return <details className="memoryItem" key={result.itemId}>
-          <summary><span><b>{result.itemId}</b> · {source?.name} · NCM {source?.ncm}</span><span><b>{money(result.landedCostAfterBenefit)}</b> · <Status status={result.benefit.decision} /></span></summary>
-          <div className="memoryGrid">
-            <div><span>Valor aduaneiro</span><b>{money(result.customsValue)}</b></div>
-            <div><span>Despesas rateadas</span><b>{money(result.allocatedExpensesTotal)}</b></div>
-            <div><span>Tributos normais</span><b>{money(result.normalTaxTotal)}</b></div>
-            <div><span>ICMS economizado</span><b>{money(result.importICMSSavings)}</b></div>
-            <div><span>Custo antes do benefício</span><b>{money(result.landedCostBeforeBenefit)}</b></div>
-            <div><span>Custo final</span><b>{money(result.landedCostAfterBenefit)}</b></div>
-          </div>
-          <div className="memoryNotes"><b>Tratamento:</b> {source?.ttd === "none" ? "Regime normal" : `TTD ${source?.ttd}`} · <b>Origem:</b> {source?.origin} · <b>Destinação:</b> {source?.destination === "industrialization" ? "Industrialização SC" : "Revenda"}</div>
-        </details>;
-      })}
-    </div>
+    <div className="memoryList">{calculation.items.map((result: any) => {
+      const source = items.find((item) => item.id === result.itemId);
+      return <details className="memoryItem" key={result.itemId}>
+        <summary><span><b>{result.itemId}</b> · {source?.name} · NCM {source?.ncm}</span><span><b>{money(result.landedCostAfterBenefit)}</b> · <Status status={result.benefit.decision} /></span></summary>
+        <div className="memoryGrid">
+          <div><span>Valor aduaneiro</span><b>{money(result.customsValue)}</b></div>
+          <div><span>Despesas rateadas</span><b>{money(result.allocatedExpensesTotal)}</b></div>
+          <div><span>Tributos normais</span><b>{money(result.normalTaxTotal)}</b></div>
+          <div><span>ICMS economizado</span><b>{money(result.importICMSSavings)}</b></div>
+          <div><span>Custo antes do benefício</span><b>{money(result.landedCostBeforeBenefit)}</b></div>
+          <div><span>Custo final</span><b>{money(result.landedCostAfterBenefit)}</b></div>
+        </div>
+        <div className="memoryNotes"><b>Tratamento:</b> {source?.ttd === "none" ? "Regime normal" : `TTD ${source?.ttd}`} · <b>Origem:</b> {source?.origin} · <b>Destinação:</b> {source?.destination === "industrialization" ? "Industrialização SC" : "Revenda"}</div>
+      </details>;
+    })}</div>
     {calculation.warnings.length > 0 && <div className="warning" style={{ marginTop: 18 }}>⚠️ {calculation.warnings.join(" ")}</div>}
     <div className="infoNote" style={{ marginTop: 12 }}>O crédito presumido da saída não é descontado neste custo de importação. A etapa de venda/saída será calculada separadamente.</div>
+    <div style={{ marginTop: 18, display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+      <button className="primaryBtn" onClick={onSave} disabled={saving}>{saving ? "Salvando…" : "Salvar simulação"}</button>
+      {saveMessage && <span style={{ color: saveMessage.includes("sucesso") ? "#176b3a" : "#a33", fontWeight: 700 }}>{saveMessage}</span>}
+    </div>
   </section>;
 }
 
