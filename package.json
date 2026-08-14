@@ -14,7 +14,8 @@
     "test:golden-import": "node --experimental-strip-types scripts/test-golden-import-operation.mjs",
     "test:final-cost-memory": "node --experimental-strip-types scripts/test-final-cost-memory-regression.mjs",
     "test:mvp-sc-operation": "node --experimental-strip-types scripts/test-mvp-sc-operation.mjs",
-    "test:federal-mvp": "node --experimental-strip-types scripts/test-federal-mvp-acceptance.mjs"
+    "test:federal-mvp": "node --experimental-strip-types scripts/test-federal-mvp-acceptance.mjs",
+    "test:mvp-scope": "node --experimental-strip-types scripts/test-mvp-scope.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",
