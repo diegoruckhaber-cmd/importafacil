@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { supabase } from "../../lib/supabase";
 import { calculateSCMultiItemFinalCost } from "../../lib/sc-multi-item-final-cost-engine";
 import { decideSCItem } from "../../lib/sc-decision-engine";
 import { resolveSCBenefit } from "../../lib/sc-benefit-resolution";
@@ -76,6 +77,8 @@ export default function SCOperationPage() {
     { id: "ARM-001", description: "Armazenagem", amount: 3500, treatment: "operational_cost", allocation: "weight" },
   ]);
   const [submitted, setSubmitted] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
 
   const calculation = useMemo(() => {
     if (!submitted) return null;
@@ -146,14 +149,63 @@ export default function SCOperationPage() {
   const updateItem = <K extends keyof ItemState>(id: string, key: K, value: ItemState[K]) => {
     setItems((current) => current.map((item) => item.id === id ? { ...item, [key]: value } : item));
     setSubmitted(false);
+    setSaveMessage("");
   };
   const updateExpense = <K extends keyof ExpenseState>(id: string, key: K, value: ExpenseState[K]) => {
     setExpenses((current) => current.map((expense) => expense.id === id ? { ...expense, [key]: value } : expense));
     setSubmitted(false);
+    setSaveMessage("");
   };
-  const addItem = () => setItems((current) => [...current, makeItem(current.length + 1)]);
-  const removeItem = (id: string) => setItems((current) => current.length > 1 ? current.filter((item) => item.id !== id) : current);
-  const addExpense = () => setExpenses((current) => [...current, { id: `EXP-${current.length + 1}`, description: "Nova despesa", amount: 0, treatment: "operational_cost", allocation: "item_value" }]);
+  const addItem = () => { setItems((current) => [...current, makeItem(current.length + 1)]); setSaveMessage(""); };
+  const removeItem = (id: string) => { setItems((current) => current.length > 1 ? current.filter((item) => item.id !== id) : current); setSaveMessage(""); };
+  const addExpense = () => { setExpenses((current) => [...current, { id: `EXP-${current.length + 1}`, description: "Nova despesa", amount: 0, treatment: "operational_cost", allocation: "item_value" }]); setSaveMessage(""); };
+
+  const saveSimulation = async () => {
+    if (!calculation || "error" in calculation) return;
+    setSaving(true);
+    setSaveMessage("");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = "/auth?next=/sc-operation";
+        return;
+      }
+
+      const response = await fetch("/api/simulations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          mode: "sc",
+          name: operationName,
+          input: {
+            operationName,
+            importDate,
+            importer,
+            state,
+            exchangeRate,
+            freightUsd,
+            insuranceUsd,
+            items,
+            expenses,
+          },
+          result: calculation,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setSaveMessage(data.error || `Não foi possível salvar (HTTP ${response.status}).`);
+        return;
+      }
+      setSaveMessage(`Simulação salva com sucesso. ID: ${data.id}`);
+    } catch {
+      setSaveMessage("Não foi possível salvar a simulação. Verifique sua conexão e tente novamente.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <main className="wrap scTest">
@@ -238,12 +290,12 @@ export default function SCOperationPage() {
 
       {calculation && "error" in calculation && <section className="card" style={{ marginTop: 18 }}><div className="warning">⚠ {calculation.error}</div></section>}
 
-      {calculation && !("error" in calculation) && <ResultView calculation={calculation} items={items} />}
+      {calculation && !("error" in calculation) && <ResultView calculation={calculation} items={items} onSave={saveSimulation} saving={saving} saveMessage={saveMessage} />}
     </main>
   );
 }
 
-function ResultView({ calculation, items }: { calculation: any; items: ItemState[] }) {
+function ResultView({ calculation, items, onSave, saving, saveMessage }: { calculation: any; items: ItemState[]; onSave: () => void; saving: boolean; saveMessage: string }) {
   return <section className="card scResult" style={{ marginTop: 18 }}>
     <div className="resultTop"><div className="sectionTitle"><span className="step">4</span><div><div className="eyebrow dark">RESULTADO</div><h2>Custo final por item</h2><p>O cálculo mantém o caminho da despesa até o custo final.</p></div></div><Status status={calculation.status} /></div>
     <div className="metrics">
@@ -273,6 +325,10 @@ function ResultView({ calculation, items }: { calculation: any; items: ItemState
     </div>
     {calculation.warnings.length > 0 && <div className="warning" style={{ marginTop: 18 }}>⚠️ {calculation.warnings.join(" ")}</div>}
     <div className="infoNote" style={{ marginTop: 12 }}>O crédito presumido da saída não é descontado neste custo de importação. A etapa de venda/saída será calculada separadamente.</div>
+    <div style={{ marginTop: 18, display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+      <button className="primaryBtn" onClick={onSave} disabled={saving}>{saving ? "Salvando…" : "Salvar simulação"}</button>
+      {saveMessage && <span style={{ color: saveMessage.includes("sucesso") ? "#176b3a" : "#a33", fontWeight: 700 }}>{saveMessage}</span>}
+    </div>
   </section>;
 }
 
