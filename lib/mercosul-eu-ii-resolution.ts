@@ -56,7 +56,7 @@ export function resolveMercosulEuIi(input: MercosulEuIiInput): MercosulEuIiResol
   const rawRate = selectedBaseRate * (1 - input.reductionPercent / 100);
   const payableRate = truncateOneDecimal(rawRate);
   const preferenceRate = selectedBaseRate === 0 ? 100 : (1 - payableRate / selectedBaseRate) * 100;
-  const usable = input.proofOfOriginAvailable && (!input.quotaApplicable || input.quotaAuthorizationAvailable);
+  const usable = !!input.proofOfOriginAvailable && (!input.quotaApplicable || !!input.quotaAuthorizationAvailable);
 
   return {
     eligible: true,
