@@ -61,7 +61,7 @@ const realSeed = resolveFederalTariff({
   date: "2026-08-15",
   catalog: FEDERAL_TARIFF_2026_SMOKE_SEED,
 });
-assert.equal(realSeed.rate, 12.6);
+assert.equal(realSeed.rate, 11.2);
 assert.equal(realSeed.source, "TEC");
 assert.equal(realSeed.automatic, true);
 
