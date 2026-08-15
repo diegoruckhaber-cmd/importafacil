@@ -38,10 +38,10 @@ export const FEDERAL_TARIFF_SOURCE_URL = "https://www.gov.br/mdic/pt-br/assuntos
 export const FEDERAL_TARIFF_CATALOG: FederalTariffEntry[] = [
   {
     ncm: "32081020",
-    rate: 12.6,
+    rate: 11.2,
     source: "TEC",
     validFrom: "2022-01-01",
-    legalBasis: "Resolução Gecex nº 391/2022; base consolidada de Tarifas Vigentes do MDIC",
+    legalBasis: "Resolução Gecex nº 391/2022, Anexo II; base consolidada de Tarifas Vigentes do MDIC",
     priority: 100,
   },
 ];
