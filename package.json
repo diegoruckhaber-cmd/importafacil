@@ -18,7 +18,8 @@
     "test:sc-federal-live": "node --experimental-strip-types scripts/test-sc-federal-live-adapter.mjs",
     "test:mercosul-eu-ii": "node --experimental-strip-types scripts/test-mercosul-eu-ii-resolution.mjs",
     "test:federal-tariff-catalog": "node --experimental-strip-types scripts/test-federal-tariff-catalog.mjs",
-    "test:federal-ncm-auto": "node --experimental-strip-types scripts/test-federal-ncm-auto-resolution.mjs"
+    "test:federal-ncm-auto": "node --experimental-strip-types scripts/test-federal-ncm-auto-resolution.mjs",
+    "test:sc-ttd-2026": "node --experimental-strip-types scripts/test-sc-ttd-rule-catalog-2026.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",
