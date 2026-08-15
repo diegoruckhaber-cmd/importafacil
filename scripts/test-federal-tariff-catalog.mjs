@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { normalizeFederalTariffRows, resolveFederalTariff } from "../lib/federal-tariff-catalog.ts";
+import { FEDERAL_TARIFF_2026_SMOKE_SEED } from "../lib/federal-tariff-catalog-2026-seed.ts";
 
 const catalog = normalizeFederalTariffRows([
   {
@@ -54,5 +55,14 @@ const ambiguousCatalog = normalizeFederalTariffRows([
 const ambiguous = resolveFederalTariff({ ncm: "1234.56.78", date: "2026-07-01", catalog: ambiguousCatalog });
 assert.equal(ambiguous.rate, null);
 assert.equal(ambiguous.automatic, false);
+
+const realSeed = resolveFederalTariff({
+  ncm: "3208.10.20",
+  date: "2026-08-15",
+  catalog: FEDERAL_TARIFF_2026_SMOKE_SEED,
+});
+assert.equal(realSeed.rate, 12.6);
+assert.equal(realSeed.source, "TEC");
+assert.equal(realSeed.automatic, true);
 
 console.log("Federal tariff catalog acceptance: OK");
