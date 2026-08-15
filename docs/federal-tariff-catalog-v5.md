@@ -1,0 +1,1 @@
+Catalog architecture targets the MDIC tariff dataset updated 24/07/2026 and Receita Federal TIPI updated 13/02/2026; the live production calculator must refresh these datasets rather than hard-code rates in calculation logic.

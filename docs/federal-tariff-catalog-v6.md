@@ -1,0 +1,1 @@
+Milestone: versioned tariff catalog types, precedence resolver, fail-closed behavior, normalization helper and acceptance coverage are now isolated from the existing SC calculation engine.

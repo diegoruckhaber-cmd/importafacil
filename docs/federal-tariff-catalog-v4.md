@@ -1,0 +1,1 @@
+Official tariff inputs are the MDIC current tariff workbook for II and the Receita Federal current TIPI workbook for IPI. Mercosul-EU preference data remains a separate agreement resolver.
