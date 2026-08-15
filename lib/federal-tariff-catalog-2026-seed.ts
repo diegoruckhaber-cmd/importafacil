@@ -11,10 +11,10 @@ import type { FederalTariffEntry } from "./federal-tariff-catalog.ts";
 export const FEDERAL_TARIFF_2026_SMOKE_SEED: FederalTariffEntry[] = [
   {
     ncm: "3208.10.20",
-    rate: 12.6,
+    rate: 11.2,
     source: "TEC",
-    validFrom: "2021-11-12",
-    legalBasis: "Resolução Gecex nº 269/2021 — alíquota brasileira de 12,6% para a NCM 3208.10.20; confirmar eventual medida superveniente na base oficial vigente.",
+    validFrom: "2022-01-01",
+    legalBasis: "Resolução Gecex nº 391/2022, Anexo II; conferência com a base consolidada de Tarifas Vigentes do MDIC.",
     priority: 100,
   },
 ];
