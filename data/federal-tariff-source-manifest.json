@@ -1,0 +1,12 @@
+{
+  "dataset": "MDIC Tarifas Vigentes — Anexos I a X da Resolução Gecex 272/2021",
+  "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/camex/se-camex/strat/tarifas/vigentes",
+  "pageLastUpdated": "2026-08-12",
+  "workbookLastUpdated": "2026-08-03",
+  "status": "seed-catalog",
+  "notes": [
+    "The resolver is wired for NCM lookup, but the complete official workbook is not yet embedded in the application.",
+    "Do not treat a missing NCM as zero II.",
+    "The workbook covers TEC and Brazilian exceptions/temporary mechanisms; preference agreements are resolved separately."
+  ]
+}
