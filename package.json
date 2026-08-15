@@ -20,7 +20,8 @@
     "test:federal-tariff-catalog": "node --experimental-strip-types scripts/test-federal-tariff-catalog.mjs",
     "test:federal-ncm-auto": "node --experimental-strip-types scripts/test-federal-ncm-auto-resolution.mjs",
     "test:sc-ttd-2026": "node --experimental-strip-types scripts/test-sc-ttd-rule-catalog-2026.mjs",
-    "test:sc-ttd-integration": "node --experimental-strip-types scripts/test-sc-ttd-guardrail-integration.mjs"
+    "test:sc-ttd-integration": "node --experimental-strip-types scripts/test-sc-ttd-guardrail-integration.mjs",
+    "test:federal-tariff-sources": "node --experimental-strip-types scripts/test-federal-tariff-source-manifest.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",
