@@ -41,7 +41,7 @@ export function calculateSCRealOperation(input: SCRealCalculationInput): SCRealC
     specialRegimeContext: input.specialRegimeContext,
   });
 
-  if (decision.decision !== "apply" || input.ttd === undefined) {
+  if (decision.decision === "deny" || decision.decision === "conditional") {
     return {
       status: decision.decision === "deny" ? "denied" : "conditional",
       importCalculation,
@@ -50,6 +50,18 @@ export function calculateSCRealOperation(input: SCRealCalculationInput): SCRealC
       warnings: decision.blockingIssues.length
         ? decision.blockingIssues.map((issue) => `Elegibilidade SC: ${issue}.`)
         : ["O cálculo do benefício não foi executado porque a elegibilidade ainda não está confirmada."],
+    };
+  }
+
+  // A special regime may resolve the import treatment without a TTD 409/410
+  // output calculation. Keep the legal decision and import calculation intact.
+  if (input.ttd === undefined) {
+    return {
+      status: "calculated",
+      importCalculation,
+      decision,
+      benefit: null,
+      warnings: ["Regime especial de importação aplicado. Não foi executado cálculo de crédito presumido de saída TTD 409/410."] ,
     };
   }
 
