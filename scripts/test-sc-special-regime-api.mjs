@@ -22,7 +22,6 @@ const conditional = decideSCItem({
     operation: { kind: "import_entry" },
     specialRegime: { art10: true },
     purpose: "industrialization",
-    industrializationState: "SC",
     customs: { entryState: "SC" },
   },
 });
@@ -32,6 +31,22 @@ if (conditional.decision !== "conditional") {
 }
 if (!conditional.blockingIssues.includes("condition_required:industrializationState")) {
   throw new Error("Missing evidence was not surfaced as a blocking condition.");
+}
+
+const applied = decideSCItem({
+  id: "API-TEST-2",
+  specialRegimeIds: [industrial.id],
+  specialRegimeContext: {
+    operation: { kind: "import_entry" },
+    specialRegime: { art10: true },
+    purpose: "industrialization",
+    industrializationState: "SC",
+    customs: { entryState: "SC" },
+  },
+});
+
+if (applied.decision !== "apply") {
+  throw new Error(`Expected apply decision with complete evidence, got ${applied.decision}.`);
 }
 
 console.log("SC special regime API integration test: PASS");
