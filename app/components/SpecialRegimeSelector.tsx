@@ -11,6 +11,15 @@ type Rule = {
   treatment: { notes?: string[] };
 };
 
+type Candidate = {
+  id: string;
+  title: string;
+  legalBasis: string;
+  status: string;
+  confidence: "high" | "medium";
+  reasons: string[];
+};
+
 type Props = {
   selectedId: string;
   onSelect: (id: string) => void;
@@ -18,6 +27,7 @@ type Props = {
   onContextChange: (context: Record<string, unknown>) => void;
   ncm: string;
   destination: "commercial_resale" | "industrialization";
+  origin?: string;
 };
 
 const readPath = (obj: Record<string, unknown>, path: string) => path.split(".").reduce<unknown>((v, key) => (v && typeof v === "object" ? (v as Record<string, unknown>)[key] : undefined), obj);
@@ -46,8 +56,9 @@ function autoValue(field: string, ncm: string, destination: Props["destination"]
   return undefined;
 }
 
-export default function SpecialRegimeSelector({ selectedId, onSelect, context, onContextChange, ncm, destination }: Props) {
+export default function SpecialRegimeSelector({ selectedId, onSelect, context, onContextChange, ncm, destination, origin = "" }: Props) {
   const [rules, setRules] = useState<Rule[]>([]);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -56,6 +67,20 @@ export default function SpecialRegimeSelector({ selectedId, onSelect, context, o
       .then((data) => setRules(Array.isArray(data.regimes) ? data.regimes : []))
       .catch(() => setRules([]));
   }, []);
+
+  useEffect(() => {
+    if (ncm.replace(/\D/g, "").length !== 8) {
+      setCandidates([]);
+      return;
+    }
+    const controller = new AbortController();
+    const query = new URLSearchParams({ ncm, destination, origin });
+    fetch(`/api/sc-treatment-discovery?${query.toString()}`, { cache: "no-store", signal: controller.signal })
+      .then((r) => r.json())
+      .then((data) => setCandidates(Array.isArray(data.candidates) ? data.candidates : []))
+      .catch((error) => { if (error?.name !== "AbortError") setCandidates([]); });
+    return () => controller.abort();
+  }, [ncm, destination, origin]);
 
   const selected = useMemo(() => rules.find((rule) => rule.id === selectedId), [rules, selectedId]);
 
@@ -73,11 +98,27 @@ export default function SpecialRegimeSelector({ selectedId, onSelect, context, o
     <div className="auditBox" style={{ marginTop: 18 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
         <div>
-          <h4 style={{ marginBottom: 4 }}>Regime especial de SC</h4>
-          <small>Selecione uma regra específica. O motor só aplica o tratamento após validar as condições.</small>
+          <h4 style={{ marginBottom: 4 }}>Descoberta de tratamentos SC</h4>
+          <small>O sistema procura regimes que podem fazer sentido para a NCM e a destinação informadas.</small>
         </div>
         <button type="button" className="secondaryBtn" onClick={() => setOpen((v) => !v)}>{open ? "Fechar" : "Selecionar"}</button>
       </div>
+
+      {candidates.length > 0 && (
+        <div style={{ display: "grid", gap: 9, marginTop: 12 }}>
+          <strong style={{ fontSize: 13 }}>Possíveis tratamentos encontrados</strong>
+          {candidates.map((candidate) => (
+            <button key={candidate.id} type="button" onClick={() => { onSelect(candidate.id); setOpen(true); }} style={{ textAlign: "left", padding: 12, borderRadius: 10, border: "1px solid #deded7", background: candidate.id === selectedId ? "#f0f0eb" : "white", cursor: "pointer" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                <strong>{candidate.title}</strong><small>{candidate.confidence === "high" ? "NCM exata" : "triagem"}</small>
+              </div>
+              <small>{candidate.legalBasis}</small>
+              <div style={{ marginTop: 5, fontSize: 12 }}>{candidate.reasons.join(" ")}</div>
+            </button>
+          ))}
+          <small>Triagem automática: nenhum benefício é aplicado só porque apareceu nesta lista.</small>
+        </div>
+      )}
 
       {selected && (
         <div className="notice" style={{ marginTop: 12 }}>
