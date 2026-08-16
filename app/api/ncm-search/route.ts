@@ -11,6 +11,23 @@ type NCMRow = {
 
 let cache: { expiresAt: number; rows: NCMRow[] } | null = null;
 
+function extractRows(payload: unknown): NCMRow[] {
+  if (Array.isArray(payload)) return payload as NCMRow[];
+  if (!payload || typeof payload !== "object") return [];
+
+  const candidates = Object.values(payload as Record<string, unknown>);
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) return candidate as NCMRow[];
+  }
+
+  for (const candidate of candidates) {
+    const nested = extractRows(candidate);
+    if (nested.length) return nested;
+  }
+
+  return [];
+}
+
 async function loadNCMs() {
   if (cache && cache.expiresAt > Date.now()) return cache.rows;
 
@@ -21,7 +38,10 @@ async function loadNCMs() {
 
   if (!response.ok) throw new Error(`Falha ao consultar a tabela NCM oficial (${response.status}).`);
 
-  const rows = (await response.json()) as NCMRow[];
+  const payload = await response.json();
+  const rows = extractRows(payload);
+  if (!rows.length) throw new Error("A tabela NCM oficial foi recebida, mas seu formato não pôde ser interpretado.");
+
   cache = { expiresAt: Date.now() + 60 * 60 * 1000, rows };
   return rows;
 }
@@ -30,6 +50,7 @@ export async function GET(request: Request) {
   try {
     const query = new URL(request.url).searchParams.get("q")?.trim().toLowerCase() ?? "";
     const rows = await loadNCMs();
+    const normalizedQuery = query.replace(/\D/g, "");
 
     const normalized = rows
       .filter((row) => row.Codigo && row.Descricao)
@@ -37,7 +58,7 @@ export async function GET(request: Request) {
         if (!query) return true;
         const code = row.Codigo!.replace(/\D/g, "");
         const description = row.Descricao!.replace(/<[^>]*>/g, "").toLowerCase();
-        return code.includes(query.replace(/\D/g, "")) || description.includes(query);
+        return (normalizedQuery && code.includes(normalizedQuery)) || description.includes(query);
       })
       .slice(0, 30)
       .map((row) => ({
