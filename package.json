@@ -27,7 +27,8 @@
     "test:federal-workbook-contract": "node scripts/test-federal-workbook-transform-contract.mjs",
     "test:legal-foundation-2026": "node --experimental-strip-types scripts/test-legal-foundation-registry-2026.mjs",
     "test:sc-special-regimes": "node --experimental-strip-types --experimental-specifier-resolution=node scripts/test-sc-special-regime-integration.mjs",
-    "test:sc-special-regime-api": "node --experimental-strip-types --experimental-specifier-resolution=node scripts/test-sc-special-regime-api.mjs"
+    "test:sc-special-regime-api": "node --experimental-strip-types --experimental-specifier-resolution=node scripts/test-sc-special-regime-api.mjs",
+    "test:sc-treatment-discovery": "node --experimental-strip-types --experimental-specifier-resolution=node scripts/test-sc-treatment-discovery.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",
