@@ -1,7 +1,7 @@
-import { resolveCofinsImport2026 } from "./federal-2026-import-rules";
-import { resolveFederalII2026 } from "./federal-ii-2026-rules";
-import { resolveFederalTariff } from "./federal-tariff-catalog";
-import { resolveFederalIpi } from "./federal-ipi-catalog";
+import { resolveCofinsImport2026 } from "./federal-2026-import-rules.ts";
+import { resolveFederalII2026 } from "./federal-ii-2026-rules.ts";
+import { resolveFederalTariff } from "./federal-tariff-catalog.ts";
+import { resolveFederalIpi } from "./federal-ipi-catalog.ts";
 
 export type FederalTaxResolution = {
   pisImportRate: number; cofinsImportRate: number; cofinsDisplayRate: number; iiRate: number | null; ipiRate: number | null;
