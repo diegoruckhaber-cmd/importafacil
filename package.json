@@ -30,7 +30,8 @@
     "test:sc-special-regime-api": "node --experimental-strip-types scripts/test-sc-special-regime-api-contract.mjs",
     "test:sc-treatment-discovery": "node --experimental-strip-types scripts/test-sc-treatment-discovery.mjs",
     "test:import-scenario-comparator": "node --experimental-strip-types scripts/test-import-scenario-comparator.mjs",
-    "test:import-scenario-legal-memory": "node --experimental-strip-types scripts/test-import-scenario-legal-memory.mjs"
+    "test:import-scenario-legal-memory": "node --experimental-strip-types scripts/test-import-scenario-legal-memory.mjs",
+    "test:import-scenario-recommendation": "node --experimental-strip-types scripts/test-import-scenario-recommendation.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",
