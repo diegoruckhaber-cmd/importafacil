@@ -110,7 +110,7 @@ export function calculateSCMultiItemFinalCost(input: SCMultiItemFinalCostInput):
       taxLines: item.taxLines,
       benefit,
       warnings: benefit.warnings,
-      customsValue: item.effectiveCustomsValue,
+      customsValue: item.baseCustomsValue,
       allocatedExpensesTotal: item.totalAllocatedExpenses,
     } satisfies SCMultiItemFinalCostItem;
   });
