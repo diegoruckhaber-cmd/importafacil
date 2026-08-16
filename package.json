@@ -26,7 +26,8 @@
     "test:tipi-source": "node --experimental-strip-types scripts/test-tipi-source-manifest.mjs",
     "test:federal-workbook-contract": "node scripts/test-federal-workbook-transform-contract.mjs",
     "test:legal-foundation-2026": "node --experimental-strip-types scripts/test-legal-foundation-registry-2026.mjs",
-    "test:sc-special-regimes": "node --experimental-strip-types scripts/test-sc-special-regime-integration.mjs"
+    "test:sc-special-regimes": "node --experimental-strip-types scripts/test-sc-special-regime-integration.mjs",
+    "test:sc-special-regime-api": "node --experimental-strip-types scripts/test-sc-special-regime-api.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",
