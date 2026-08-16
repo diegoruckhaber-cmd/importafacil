@@ -3,83 +3,317 @@
 import { useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 
-const br=(n:number)=>n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-const initial={quantity:1000,fobUsd:10,fx:5.5,freightUsd:1200,insuranceUsd:100,otherBrl:3500,ii:12,ipi:0,pis:2.1,cofins:9.65,icms:17,margin:30};
-const labels:Record<string,string>={quantity:"Quantidade",fobUsd:"Preço unitário FOB (US$)",fx:"Câmbio (R$/US$)",freightUsd:"Frete internacional (US$)",insuranceUsd:"Seguro internacional (US$)",otherBrl:"Outras despesas (R$)",ii:"II (%)",ipi:"IPI (%)",pis:"PIS (%)",cofins:"COFINS (%)",icms:"ICMS (%)",margin:"Margem desejada (%)"};
+const br = (n: number | null | undefined) =>
+  Number(n ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-function calc(s:any){
- const merchandise=s.quantity*s.fobUsd*s.fx, freight=s.freightUsd*s.fx, insurance=s.insuranceUsd*s.fx;
- const cif=merchandise+freight+insurance, ii=cif*s.ii/100, ipi=(cif+ii)*s.ipi/100;
- const pis=cif*s.pis/100, cofins=cif*s.cofins/100, base=cif+ii+ipi+pis+cofins+s.otherBrl;
- const icms=s.icms>=100?0:base*(s.icms/100)/(1-s.icms/100), total=base+icms;
- const unit=total/s.quantity, sale=s.margin>=100?0:unit/(1-s.margin/100);
- return {total,unit,sale,profit:sale*s.quantity-total,tax:ii+ipi+pis+cofins+icms};
+const pct = (n: number | null | undefined) => `${Number(n ?? 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
+
+const today = new Date().toISOString().slice(0, 10);
+
+const initial = {
+  ncm: "",
+  date: today,
+  origin: "",
+  quantity: 1000,
+  fobUnit: 10,
+  exchange: 5.5,
+  freight: 1200,
+  insurance: 100,
+  storage: 3500,
+  otherBrl: 0,
+  icms: 17,
+  ttd: "none",
+  destination: "commercial_resale",
+  validConcession: false,
+  importEntryInSC: true,
+  industrializationInSC: false,
+  sameNcmPositionAfterFractionation: true,
+  decree2128Prohibited: false,
+};
+
+type SimulationInput = typeof initial;
+type ApiResult = any;
+
+export default function Home() {
+  const [s, setS] = useState<SimulationInput>(initial);
+  const [result, setResult] = useState<ApiResult>(null);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [email, setEmail] = useState("");
+  const [lead, setLead] = useState("");
+  const [savingLead, setSavingLead] = useState(false);
+
+  const update = <K extends keyof SimulationInput>(key: K, value: SimulationInput[K]) => {
+    setS((current) => ({ ...current, [key]: value }));
+  };
+
+  const canUseSC = s.ttd !== "none";
+
+  const preview = useMemo(() => {
+    const merchandise = s.quantity * s.fobUnit * s.exchange;
+    const freight = s.freight * s.exchange;
+    const insurance = s.insurance * s.exchange;
+    return { merchandise, freight, insurance, cif: merchandise + freight + insurance };
+  }, [s]);
+
+  const calculate = async () => {
+    setLoading(true);
+    setMessage("");
+    setResult(null);
+    try {
+      const response = await fetch("/api/sc-federal-calculate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(s),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Não foi possível calcular a operação.");
+      setResult(data);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Não foi possível calcular a operação.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveSimulation = async () => {
+    setMessage("");
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      window.location.href = "/auth";
+      return;
+    }
+
+    const response = await fetch("/api/sc-simulations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ name: `Importação ${s.ncm || "sem NCM"}`, input: s, result }),
+    });
+    const data = await response.json();
+    setMessage(response.ok ? "Simulação salva no seu histórico." : (data.error || "Não foi possível salvar agora."));
+  };
+
+  const capture = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!email.includes("@")) return setLead("Digite um e-mail válido.");
+    setSavingLead(true);
+    setLead("");
+    try {
+      const response = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, source: "landing_page" }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Erro");
+      setLead("Cadastro recebido. Você está na lista de acesso antecipado.");
+      setEmail("");
+    } catch {
+      setLead("Não conseguimos concluir agora. Tente novamente em instantes.");
+    } finally {
+      setSavingLead(false);
+    }
+  };
+
+  const item = result?.calculation?.items?.[0];
+  const isConditional = result?.sc?.decision === "conditional" || result?.sc?.benefitDecision === "conditional";
+  const isBlocked = result?.calculation?.status === "blocked" || result?.sc?.benefitDecision === "deny";
+
+  return (
+    <main>
+      <header>
+        <div className="wrap nav">
+          <b className="logo">ImportaFácil</b>
+          <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+            <a href="/auth">Entrar</a>
+            <a href="#pro">PRO</a>
+          </div>
+        </div>
+
+        <section className="wrap hero">
+          <div>
+            <div className="eyebrow">PRÉ-ESTUDO DE IMPORTAÇÃO</div>
+            <h1>Antes de importar, descubra se a conta fecha.</h1>
+            <p>
+              Agora o simulador usa a arquitetura tributária e jurídica do ImportaFácil:
+              NCM, fontes federais, regras de SC, elegibilidade e custo nacionalizado em um único fluxo.
+            </p>
+            <div className="heroActions">
+              <a className="primary" href="#simulador">Simular gratuitamente</a>
+              <a className="ghost" href="#pro">Conhecer o PRO</a>
+            </div>
+            <div className="proof"><span>✓ Alíquotas federais automáticas</span><span>✓ Regras conservadoras</span><span>✓ Premissas auditáveis</span></div>
+          </div>
+
+          <div className="heroPanel">
+            <small>ARQUITETURA RECUPERADA</small>
+            <b>Decisão → Tributos → Custo</b>
+            <div className="big">{br(preview.cif)}<span> CIF estimado</span></div>
+            <div className="mini"><span>Frete convertido</span><strong>{br(preview.freight)}</strong></div>
+            <div className="mini"><span>Seguro convertido</span><strong>{br(preview.insurance)}</strong></div>
+          </div>
+        </section>
+      </header>
+
+      <section className="wrap section" id="simulador">
+        <div className="sectionHead">
+          <div>
+            <div className="eyebrow dark">MOTOR OFICIAL DE SIMULAÇÃO</div>
+            <h2>Faça sua simulação com premissas reais</h2>
+            <p>
+              Informe a operação. O sistema consulta o snapshot fiscal, resolve o tratamento e só aplica benefício quando as condições informadas sustentam a decisão.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid">
+          <div className="card">
+            <h3>1. Operação</h3>
+            <div className="fields">
+              <label>NCM<input aria-label="NCM" inputMode="numeric" placeholder="Ex.: 32081020" value={s.ncm} onChange={(e) => update("ncm", e.target.value.replace(/\D/g, "").slice(0, 8))} /></label>
+              <label>Data da importação<input type="date" value={s.date} onChange={(e) => update("date", e.target.value)} /></label>
+              <label>País de origem<input aria-label="País de origem" placeholder="Ex.: México" value={s.origin} onChange={(e) => update("origin", e.target.value)} /></label>
+              <label>Quantidade<input type="number" min="0" step="any" value={s.quantity} onChange={(e) => update("quantity", Number(e.target.value))} /></label>
+              <label>FOB unitário (US$)<input type="number" min="0" step="any" value={s.fobUnit} onChange={(e) => update("fobUnit", Number(e.target.value))} /></label>
+              <label>Câmbio (R$/US$)<input type="number" min="0" step="any" value={s.exchange} onChange={(e) => update("exchange", Number(e.target.value))} /></label>
+              <label>Frete internacional (US$)<input type="number" min="0" step="any" value={s.freight} onChange={(e) => update("freight", Number(e.target.value))} /></label>
+              <label>Seguro internacional (US$)<input type="number" min="0" step="any" value={s.insurance} onChange={(e) => update("insurance", Number(e.target.value))} /></label>
+              <label>Armazenagem (R$)<input type="number" min="0" step="any" value={s.storage} onChange={(e) => update("storage", Number(e.target.value))} /></label>
+              <label>Outras despesas (R$)<input type="number" min="0" step="any" value={s.otherBrl} onChange={(e) => update("otherBrl", Number(e.target.value))} /></label>
+              <label>ICMS normal (%)<input type="number" min="0" max="99.99" step="any" value={s.icms} onChange={(e) => update("icms", Number(e.target.value))} /></label>
+            </div>
+
+            <h3 style={{ marginTop: 28 }}>2. Tratamento tributário</h3>
+            <div className="fields">
+              <label>Regime SC
+                <select value={s.ttd} onChange={(e) => update("ttd", e.target.value)}>
+                  <option value="none">Sem TTD — tributação normal</option>
+                  <option value="77">TTD 77</option>
+                  <option value="409">TTD 409</option>
+                  <option value="410">TTD 410</option>
+                </select>
+              </label>
+              <label>Destinação
+                <select value={s.destination} onChange={(e) => update("destination", e.target.value)}>
+                  <option value="commercial_resale">Revenda/comercialização</option>
+                  <option value="industrialization">Industrialização</option>
+                </select>
+              </label>
+            </div>
+
+            {canUseSC && (
+              <div className="checks">
+                <label><input type="checkbox" checked={s.validConcession} onChange={(e) => update("validConcession", e.target.checked)} /> Tenho ato concessivo válido para o TTD</label>
+                <label><input type="checkbox" checked={s.importEntryInSC} onChange={(e) => update("importEntryInSC", e.target.checked)} /> A entrada/importação ocorre em SC</label>
+                {s.destination === "industrialization" && <label><input type="checkbox" checked={s.industrializationInSC} onChange={(e) => update("industrializationInSC", e.target.checked)} /> A industrialização ocorre em SC</label>}
+                <label><input type="checkbox" checked={s.sameNcmPositionAfterFractionation} onChange={(e) => update("sameNcmPositionAfterFractionation", e.target.checked)} /> A mercadoria mantém a mesma posição da NCM após eventual fracionamento</label>
+                <label><input type="checkbox" checked={s.decree2128Prohibited} onChange={(e) => update("decree2128Prohibited", e.target.checked)} /> Estou informando que existe vedação conhecida pelo Decreto SC 2.128/2009</label>
+              </div>
+            )}
+
+            <button className="primaryBtn" onClick={calculate} disabled={loading || s.ncm.length !== 8}>
+              {loading ? "Calculando..." : "Calcular operação"}
+            </button>
+            <p className="fine">A ausência de evidência jurídica não vira benefício automaticamente. Resultados condicionais permanecem sinalizados.</p>
+            {message && <div className="notice">{message}</div>}
+          </div>
+
+          <div className="card result">
+            <div className="resultTop"><h3>Resultado auditável</h3><span>{result ? "Calculado" : "Aguardando"}</span></div>
+
+            {!result ? (
+              <div className="empty">
+                Informe a NCM e as premissas da operação. O resultado aparecerá aqui com tributos, custo e tratamento jurídico.
+              </div>
+            ) : (
+              <>
+                <div className={`decision ${isBlocked ? "blocked" : isConditional ? "conditional" : "applied"}`}>
+                  <strong>{isBlocked ? "Tratamento bloqueado" : isConditional ? "Tratamento condicional" : s.ttd === "none" ? "Tributação normal" : `TTD ${s.ttd} aplicável`}</strong>
+                  <span>{result.sc?.benefitReasons?.[0] || result.sc?.decisionReasons?.[0]}</span>
+                </div>
+
+                <div className="metrics">
+                  <Metric t="Custo nacionalizado" v={br(item?.landedCostAfterBenefit)} hi />
+                  <Metric t="Custo por unidade" v={br(item?.landedCostPerUnitAfterBenefit)} />
+                  <Metric t="ICMS normal" v={br(item?.normalImportICMS)} />
+                  <Metric t="ICMS efetivo na importação" v={br(item?.benefitImportICMS)} />
+                  <Metric t="Economia de ICMS na importação" v={br(item?.importICMSSavings)} />
+                  <Metric t="Total de tributos" v={br(item?.benefitTaxTotal)} />
+                </div>
+
+                <div className="auditBox">
+                  <h4>Composição tributária</h4>
+                  <Line label="II" value={`${pct(result.federal?.ii?.rate)} · ${br(item?.taxLines?.ii?.amount)}`} />
+                  <Line label="IPI" value={`${pct(result.federal?.ipi?.rate)} · ${br(item?.taxLines?.ipi?.amount)}`} />
+                  <Line label="PIS-Importação" value={`${pct(result.federal?.pisImport?.rate)} · ${br(item?.taxLines?.pisImport?.amount)}`} />
+                  <Line label="COFINS-Importação" value={`${pct(result.federal?.cofinsImport?.rate)} · ${br(item?.taxLines?.cofinsImport?.amount)}`} />
+                  <Line label="ICMS" value={`${pct(result.sc?.icmsNormalRate)} · ${br(item?.taxLines?.icms?.amount)}`} />
+                </div>
+
+                <div className="auditBox">
+                  <h4>Fundamentação e rastreabilidade</h4>
+                  <p>{result.sc?.decisionReasons?.join(" ")}</p>
+                  {result.sc?.benefitReasons?.length > 0 && <p>{result.sc.benefitReasons.join(" ")}</p>}
+                  <small>Snapshot MDIC: {result.federal?.snapshot?.mdicPublished || "não informado"} · TIPI/RFB: {result.federal?.snapshot?.tipiUpdated || "não informado"}</small>
+                  {result.sc?.blockingIssues?.length > 0 && <small>Bloqueios/condições: {result.sc.blockingIssues.join(", ")}</small>}
+                </div>
+
+                <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 18, flexWrap: "wrap" }}>
+                  <button className="secondaryBtn" onClick={saveSimulation}>Salvar simulação</button>
+                  <a className="secondaryBtn" href="/relatorio">Abrir relatório</a>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="darkSection">
+        <div className="wrap two">
+          <div>
+            <div className="eyebrow">NÃO É SÓ UMA CALCULADORA</div>
+            <h2>Uma camada de decisão para quem importa.</h2>
+            <p>O ImportaFácil agora separa elegibilidade jurídica, cálculo tributário e impacto econômico — exatamente como a arquitetura original foi desenhada.</p>
+          </div>
+          <div className="features">
+            <Feature n="01" t="Classificação" d="NCM e fontes fiscais oficiais antes de aplicar alíquotas." />
+            <Feature n="02" t="Decisão jurídica" d="Benefícios só entram quando as condições informadas permitem." />
+            <Feature n="03" t="Custo real" d="Frete, seguro, armazenagem, despesas e tributos em visão única." />
+            <Feature n="04" t="Auditoria" d="Cada resultado explica premissas, decisões, bloqueios e fontes." />
+          </div>
+        </div>
+      </section>
+
+      <section className="wrap section" id="pro">
+        <div className="sectionHead"><div><div className="eyebrow dark">PLANO PRO</div><h2>Quando importar deixa de ser uma aposta.</h2><p>Histórico, cenários e relatórios para transformar o pré-estudo em processo de decisão.</p></div></div>
+        <div className="priceGrid">
+          <div className="priceCard"><small>GRÁTIS</small><h3>Para testar</h3><b>R$ 0</b><ul><li>Motor tributário</li><li>Pré-estudo de custo</li><li>Validação de NCM</li><li>Resultado auditável</li></ul><a className="secondaryBtn" href="#simulador">Começar grátis</a></div>
+          <div className="priceCard featured"><div className="tag">OFERTA DE VALIDAÇÃO</div><small>PRO</small><h3>Para quem importa</h3><b>R$ 29,90<em>/mês</em></b><ul><li>Histórico na nuvem</li><li>Comparação de cenários</li><li>Relatórios profissionais</li><li>NCMs monitoradas</li><li>Indicadores de margem e ROI</li></ul><button className="secondaryBtn" onClick={() => document.getElementById("lead")?.scrollIntoView({ behavior: "smooth" })}>Quero ser avisado</button></div>
+          <div className="priceCard"><small>EMPRESA</small><h3>Para equipes</h3><b>Em breve</b><ul><li>Múltiplos usuários</li><li>Dashboard</li><li>Várias NCMs</li><li>Alertas</li><li>Controle por empresa</li></ul><button className="secondaryBtn" onClick={() => document.getElementById("lead")?.scrollIntoView({ behavior: "smooth" })}>Entrar na lista</button></div>
+        </div>
+      </section>
+
+      <section className="wrap lead" id="lead">
+        <div><div className="eyebrow dark">PRIMEIROS USUÁRIOS</div><h2>Quer testar antes do lançamento?</h2><p>Entre na lista de acesso antecipado. Vamos usar os primeiros usuários para definir recursos e preço do PRO.</p></div>
+        <form onSubmit={capture}><input type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required /><button className="primaryBtn" disabled={savingLead}>{savingLead ? "Enviando..." : "Entrar na lista"}</button><small>{lead}</small></form>
+      </section>
+
+      <footer><div className="wrap"><b>ImportaFácil</b><span>© 2026 • Motor jurídico e tributário em evolução</span></div></footer>
+    </main>
+  );
 }
 
-export default function Home(){
- const [s,setS]=useState(initial), [result,setResult]=useState<any>(null), [email,setEmail]=useState(""), [lead,setLead]=useState(""), [saving,setSaving]=useState(false), [saveMessage,setSaveMessage]=useState("");
- const r=useMemo(()=>calc(s),[s]);
- const change=(k:string,v:string)=>setS((x:any)=>({...x,[k]:Number(v)}));
- const calculate=()=>{setResult(r); setSaveMessage("");};
- const saveSimulation=async()=>{
-   setSaveMessage("");
-   const {data:{user}}=await supabase.auth.getUser();
-   if(!user){window.location.href="/auth";return;}
-   const {error}=await supabase.from("simulations").insert({user_id:user.id,name:"Simulação de importação",input:s,result:r});
-   setSaveMessage(error?"Não foi possível salvar agora.":"Simulação salva no seu histórico.");
- };
- const capture=async(e:any)=>{e.preventDefault(); if(!email.includes("@")) return setLead("Digite um e-mail válido."); setSaving(true); setLead(""); try { const res=await fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,source:"landing_page"})}); const data=await res.json(); if(!res.ok) throw new Error(data.error||"Erro"); setLead("Cadastro recebido. Você está na lista de acesso antecipado."); setEmail(""); } catch { setLead("Não conseguimos concluir agora. Tente novamente em instantes."); } finally { setSaving(false); }};
-
- return <main>
-  <header>
-   <div className="wrap nav"><b className="logo">ImportaFácil</b><div style={{display:"flex",gap:16,alignItems:"center"}}><a href="/auth">Entrar</a><a href="#pro">PRO</a></div></div>
-   <section className="wrap hero">
-    <div><div className="eyebrow">PRÉ-ESTUDO DE IMPORTAÇÃO</div>
-     <h1>Antes de importar, descubra se a conta fecha.</h1>
-     <p>Calcule custo nacionalizado, preço mínimo e lucro estimado — e compare decisões de compra com muito mais clareza.</p>
-     <div className="heroActions"><a className="primary" href="#simulador">Simular gratuitamente</a><a className="ghost" href="#pro">Conhecer o PRO</a></div>
-     <div className="proof"><span>✓ Sem cartão</span><span>✓ Resultado em segundos</span><span>✓ Premissas transparentes</span></div>
-    </div>
-    <div className="heroPanel"><small>EXEMPLO</small><b>Importação de 1.000 unidades</b><div className="big">{br(calc(initial).unit)}<span>/un.</span></div><div className="mini"><span>Preço mínimo</span><strong>{br(calc(initial).sale)}</strong></div><div className="mini"><span>Lucro estimado</span><strong>{br(calc(initial).profit)}</strong></div></div>
-   </section>
-  </header>
-
-  <section className="wrap section" id="simulador">
-   <div className="sectionHead"><div><div className="eyebrow dark">CALCULADORA GRATUITA</div><h2>Faça sua primeira simulação</h2><p>Use valores aproximados agora. Depois, valide NCM e tratamento tributário nas fontes oficiais.</p></div></div>
-   <div className="grid">
-    <div className="card">
-     <div className="fields">{Object.entries(s).map(([k,v])=><label key={k}>{labels[k]||k}<input aria-label={labels[k]||k} type="number" min="0" step="any" value={v as number} onChange={e=>change(k,e.target.value)}/></label>)}</div>
-     <button className="primaryBtn" onClick={calculate}>Calcular agora</button>
-     <p className="fine">Os resultados são estimativos e não substituem classificação fiscal, tratamento administrativo ou orientação profissional.</p>
-    </div>
-    <div className="card result">
-     <div className="resultTop"><h3>Seu resultado</h3><span>Estimativa</span></div>
-     {!result?<div className="empty">Preencha as premissas e clique em calcular.</div>:
-      <><div className="metrics"><Metric t="Custo total" v={br(result.total)} hi/><Metric t="Custo por unidade" v={br(result.unit)}/><Metric t="Preço mínimo" v={br(result.sale)}/><Metric t="Lucro estimado" v={br(result.profit)}/><Metric t="Impostos estimados" v={br(result.tax)}/></div><div style={{display:"flex",gap:10,alignItems:"center",marginTop:18,flexWrap:"wrap"}}><button className="secondaryBtn" onClick={saveSimulation}>Salvar simulação</button><small style={{color:"#666"}}>{saveMessage}</small></div></>}
-    </div>
-   </div>
-  </section>
-
-  <section className="darkSection">
-   <div className="wrap two"><div><div className="eyebrow">NÃO É SÓ UMA CALCULADORA</div><h2>Uma camada de decisão para quem importa.</h2><p>O objetivo é transformar dados dispersos em uma resposta simples: quanto custa, quanto preciso vender e se essa operação merece meu capital.</p></div>
-   <div className="features"><Feature n="01" t="Custo real" d="Mercadoria, logística, tributos e despesas em uma visão única."/><Feature n="02" t="Cenários" d="Compare fornecedores, lotes e premissas antes de decidir."/><Feature n="03" t="Risco" d="Valide NCM e acompanhe pontos regulatórios relevantes."/><Feature n="04" t="Rentabilidade" d="Preço mínimo, margem, lucro e capital necessário." /></div></div>
-  </section>
-
-  <section className="wrap section" id="pro">
-   <div className="sectionHead"><div><div className="eyebrow dark">PLANO PRO</div><h2>Quando importar deixa de ser uma aposta.</h2><p>Estamos validando a disposição de pagamento antes de conectar o checkout.</p></div></div>
-   <div className="priceGrid">
-    <div className="priceCard"><small>GRÁTIS</small><h3>Para testar</h3><b>R$ 0</b><ul><li>Calculadora básica</li><li>Pré-estudo de custo</li><li>Preço mínimo estimado</li><li>Teste sem cartão</li></ul><a className="secondaryBtn" href="#simulador">Começar grátis</a></div>
-    <div className="priceCard featured"><div className="tag">OFERTA DE VALIDAÇÃO</div><small>PRO</small><h3>Para quem importa</h3><b>R$ 29,90<em>/mês</em></b><ul><li>Histórico na nuvem</li><li>Comparação de cenários</li><li>Relatórios profissionais</li><li>NCMs monitoradas</li><li>Indicadores de margem e ROI</li></ul><button className="secondaryBtn" onClick={()=>document.getElementById("lead")?.scrollIntoView({behavior:"smooth"})}>Quero ser avisado</button></div>
-    <div className="priceCard"><small>EMPRESA</small><h3>Para equipes</h3><b>Em breve</b><ul><li>Múltiplos usuários</li><li>Dashboard</li><li>Várias NCMs</li><li>Alertas</li><li>Controle por empresa</li></ul><button className="secondaryBtn" onClick={()=>document.getElementById("lead")?.scrollIntoView({behavior:"smooth"})}>Entrar na lista</button></div>
-   </div>
-  </section>
-
-  <section className="wrap lead" id="lead"><div><div className="eyebrow dark">PRIMEIROS USUÁRIOS</div><h2>Quer testar antes do lançamento?</h2><p>Entre na lista de acesso antecipado. Vamos usar os primeiros usuários para definir recursos e preço do PRO.</p></div>
-   <form onSubmit={capture}><input type="email" placeholder="seu@email.com" value={email} onChange={e=>setEmail(e.target.value)} required/><button className="primaryBtn" disabled={saving}>{saving?"Enviando...":"Entrar na lista"}</button><small>{lead}</small></form>
-  </section>
-
-  <footer><div className="wrap"><b>ImportaFácil</b><span>© 2026 • MVP em validação</span></div></footer>
- </main>
+function Metric({ t, v, hi }: { t: string; v: string; hi?: boolean }) {
+  return <div className={`metric ${hi ? "hi" : ""}`}><small>{t}</small><b>{v}</b></div>;
 }
-function Metric({t,v,hi}:{t:string,v:string,hi?:boolean}){return <div className={"metric "+(hi?"hi":"")}><small>{t}</small><b>{v}</b></div>}
-function Feature({n,t,d}:{n:string,t:string,d:string}){return <div className="feature"><span>{n}</span><div><b>{t}</b><p>{d}</p></div></div>}
+
+function Line({ label, value }: { label: string; value: string }) {
+  return <div className="line"><span>{label}</span><strong>{value}</strong></div>;
+}
+
+function Feature({ n, t, d }: { n: string; t: string; d: string }) {
+  return <div className="feature"><span>{n}</span><div><b>{t}</b><p>{d}</p></div></div>;
+}
