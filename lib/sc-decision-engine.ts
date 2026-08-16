@@ -1,4 +1,4 @@
-import { SC_IMPORT_SPECIAL_REGIMES_2026 } from "./sc-import-special-regimes";
+import { SC_IMPORT_SPECIAL_REGIMES_2026 } from "./sc-import-special-regimes.ts";
 
 export type SCItemDecisionInput = {
   id: string;
@@ -114,8 +114,6 @@ function resolveSelectedSpecialRegimes(input: SCItemDecisionInput): SCDecision |
  * Special import regimes are resolved only when explicitly selected by rule ID.
  */
 export function decideSCItem(input: SCItemDecisionInput): SCDecision {
-  const reasons: string[] = [];
-
   const specialDecision = resolveSelectedSpecialRegimes(input);
   if (specialDecision) return specialDecision;
 
