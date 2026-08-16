@@ -52,6 +52,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const ncm = normalizeNcm(String(body.ncm ?? ""));
     const date = String(body.date ?? "");
+    const origin = String(body.origin ?? "");
     const quantity = Number(body.quantity);
     const fobUnit = Number(body.fobUnit);
     const exchange = Number(body.exchange);
@@ -72,7 +73,7 @@ export async function POST(request: Request) {
       ["Frete", freight],
       ["Seguro", insurance],
       ["Armazenagem", storage],
-      ["ICMS", icms],
+      ["ICMS normal", icms],
     ];
     for (const [label, value] of numericInputs) {
       if (!Number.isFinite(value) || value < 0) throw new Error(`${label} inválido.`);
@@ -100,6 +101,7 @@ export async function POST(request: Request) {
       benefitsByItem[itemId] = resolveSCBenefit({
         ttd: Number(ttd) as 409 | 410,
         destination,
+        ncm,
         normalOutputICMS: 0,
         taxableOutput: true,
         industrializationInSC: destination === "industrialization",
@@ -141,9 +143,16 @@ export async function POST(request: Request) {
     return NextResponse.json({
       federal: {
         ncm,
+        origin,
         ii: { rate: federal.iiRate, automatic: true },
         ipi: { rate: federal.ipiRate, automatic: true },
         snapshot: federal.snapshot,
+      },
+      sc: {
+        ttd,
+        icmsNormalRate: icms,
+        icmsImportEffectiveRate: (ttd === "409" || ttd === "410") ? 0 : icms,
+        importICMSSavings: calculation.totalImportICMSSavings,
       },
       calculation,
     }, { headers: { "Cache-Control": "no-store" } });
