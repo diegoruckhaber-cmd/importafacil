@@ -1,6 +1,6 @@
-import { calculateSCImportOperation, type SCImportOperationInput } from "./sc-import-operation";
-import { decideSCItem } from "./sc-decision-engine";
-import { calculateTTD409410Benefit } from "./sc-ttd409-410-benefit-calculator";
+import { calculateSCImportOperation, type SCImportOperationInput } from "./sc-import-operation.ts";
+import { decideSCItem } from "./sc-decision-engine.ts";
+import { calculateTTD409410Benefit } from "./sc-ttd409-410-benefit-calculator.ts";
 
 export type SCRealCalculationInput = SCImportOperationInput & {
   ttd?: 409 | 410;
@@ -53,15 +53,13 @@ export function calculateSCRealOperation(input: SCRealCalculationInput): SCRealC
     };
   }
 
-  // A special regime may resolve the import treatment without a TTD 409/410
-  // output calculation. Keep the legal decision and import calculation intact.
   if (input.ttd === undefined) {
     return {
       status: "calculated",
       importCalculation,
       decision,
       benefit: null,
-      warnings: ["Regime especial de importação aplicado. Não foi executado cálculo de crédito presumido de saída TTD 409/410."] ,
+      warnings: ["Regime especial de importação aplicado. Não foi executado cálculo de crédito presumido de saída TTD 409/410."],
     };
   }
 
