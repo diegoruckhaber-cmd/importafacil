@@ -28,6 +28,8 @@ export type TaxLine = {
   base: number;
   rate: number;
   calculated: number;
+  /** Backward-compatible monetary alias consumed by the memory/UI layer. */
+  value: number;
   due: number;
   payable: number;
   displayRate?: number;
@@ -55,6 +57,16 @@ export type TributaryResult = {
 
 const pct = (value: number) => value / 100;
 
+const taxLine = (base: number, rate: number, calculated: number, displayRate?: number): TaxLine => ({
+  base,
+  rate,
+  calculated,
+  value: calculated,
+  due: calculated,
+  payable: calculated,
+  ...(displayRate === undefined ? {} : { displayRate }),
+});
+
 export function calculateTributaryOperation(o: TributaryOperation): TributaryResult {
   const validation = validateTributaryInput(o);
   if (!validation.valid) {
@@ -79,30 +91,30 @@ export function calculateTributaryOperation(o: TributaryOperation): TributaryRes
   const iiRatePercent = iiResolution?.effectiveRate ?? o.iiRate;
   const iiRate = pct(iiRatePercent);
   const iiValue = valorAduaneiro * iiRate;
-  const ii: TaxLine = { base: valorAduaneiro, rate: iiRate, calculated: iiValue, due: iiValue, payable: iiValue };
+  const ii = taxLine(valorAduaneiro, iiRate, iiValue);
 
   const ipiBase = valorAduaneiro + iiValue;
   const ipiRate = pct(o.ipiRate);
   const ipiValue = ipiBase * ipiRate;
-  const ipi: TaxLine = { base: ipiBase, rate: ipiRate, calculated: ipiValue, due: ipiValue, payable: ipiValue };
+  const ipi = taxLine(ipiBase, ipiRate, ipiValue);
 
   const pisCofinsBase = valorAduaneiro;
   const pisRate = pct(o.pisImportRate);
   const pisValue = pisCofinsBase * pisRate;
-  const pisImport: TaxLine = { base: pisCofinsBase, rate: pisRate, calculated: pisValue, due: pisValue, payable: pisValue };
+  const pisImport = taxLine(pisCofinsBase, pisRate, pisValue);
 
   const cofinsRule = o.importDate
     ? resolveCofinsImport2026({ date: o.importDate, standardRate: o.cofinsImportRate, reducedBenefit: o.cofinsReducedBenefit, additional060: o.cofinsAdditional060 })
     : { effectiveRate: o.cofinsImportRate, displayRate: o.cofinsImportRate, reason: "standard" as const };
   const cofinsRate = pct(cofinsRule.effectiveRate);
   const cofinsValue = pisCofinsBase * cofinsRate;
-  const cofinsImport: TaxLine = { base: pisCofinsBase, rate: cofinsRate, displayRate: cofinsRule.displayRate, calculated: cofinsValue, due: cofinsValue, payable: cofinsValue };
+  const cofinsImport = taxLine(pisCofinsBase, cofinsRate, cofinsValue, cofinsRule.displayRate);
 
   const icmsRate = pct(o.icmsRate);
   const icmsPreBase = valorAduaneiro + iiValue + ipiValue + pisValue + cofinsValue + icmsTaxableAdditions;
   const icmsBase = icmsPreBase / (1 - icmsRate);
   const icmsValue = icmsBase * icmsRate;
-  const icms: TaxLine = { base: icmsBase, rate: icmsRate, calculated: icmsValue, due: icmsValue, payable: icmsValue };
+  const icms = taxLine(icmsBase, icmsRate, icmsValue);
 
   const totalTributos = ii.payable + ipi.payable + pisImport.payable + cofinsImport.payable + icms.payable;
   const foundationValidation = o.federalLegalFoundation
