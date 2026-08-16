@@ -13,10 +13,9 @@ const industrial = decideSCItem({
     customs: { entryState: "SC" },
   },
 });
-assert.equal(industrial.decision, "conditional");
+assert.equal(industrial.decision, "apply");
 assert.equal(industrial.ruleIds?.[0], "SC-AN3-ART10-II-INDUSTRIAL");
-assert.ok(industrial.blockingIssues.includes("condition_required:importer.isRegisteredInSC") === false);
-assert.ok(industrial.blockingIssues.length === 0 || industrial.blockingIssues.some((x) => x.startsWith("condition_required:")));
+assert.equal(industrial.blockingIssues.length, 0);
 
 const mismatch = decideSCItem({
   id: "item-2",
@@ -49,14 +48,14 @@ assert.ok(lookup.blockingIssues.includes("special_regime_requires_lookup"));
 const endToEnd = calculateSCRealOperation({
   ncm: "32081020",
   quantity: 1,
-  fobUnit: 100,
+  unitFobUsd: 100,
   exchangeRate: 5,
   freightUsd: 10,
   insuranceUsd: 0,
   iiRate: 10,
   ipiRate: 0,
-  pisRate: 2.1,
-  cofinsRate: 9.65,
+  pisImportRate: 2.1,
+  cofinsImportRate: 9.65,
   icmsRate: 17,
   specialRegimeIds: ["SC-AN3-ART10-II-INDUSTRIAL"],
   specialRegimeContext: {
@@ -67,8 +66,9 @@ const endToEnd = calculateSCRealOperation({
     customs: { entryState: "SC" },
   },
 });
-assert.equal(endToEnd.status, "conditional");
+assert.equal(endToEnd.status, "calculated");
 assert.equal(endToEnd.benefit, null);
+assert.equal(endToEnd.decision.decision, "apply");
 assert.ok(endToEnd.decision.ruleIds?.includes("SC-AN3-ART10-II-INDUSTRIAL"));
 
 console.log("SC special regime integration tests passed");
