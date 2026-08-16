@@ -19,6 +19,10 @@ export type SCMultiItemFinalCostItem = {
   totalAllocatedExpenses: number;
   normalTaxTotal: number;
   benefitTaxTotal: number;
+  icmsNormalRate: number;
+  icmsImportEffectiveRate: number;
+  normalImportICMS: number;
+  benefitImportICMS: number;
   importICMSSavings: number;
   landedCostBeforeBenefit: number;
   landedCostAfterBenefit: number;
@@ -44,6 +48,8 @@ export type SCMultiItemFinalCostResult = {
   totalAllocatedExpenses: number;
   totalNormalTaxes: number;
   totalBenefitTaxes: number;
+  totalNormalImportICMS: number;
+  totalEffectiveImportICMS: number;
   totalImportICMSSavings: number;
   totalLandedCostBeforeBenefit: number;
   totalLandedCostAfterBenefit: number;
@@ -79,6 +85,8 @@ export function calculateSCMultiItemFinalCost(input: SCMultiItemFinalCostInput):
     const landedCostBeforeBenefit = item.landedCost;
     const landedCostAfterBenefit = Math.max(0, landedCostBeforeBenefit - benefit.importICMSSavings);
     const quantity = input.items.find((source) => source.itemId === item.itemId)?.quantity ?? 0;
+    const icmsNormalRate = input.items.find((source) => source.itemId === item.itemId)?.icmsRate ?? 0;
+    const icmsImportEffectiveRate = benefit.importDeferred ? 0 : icmsNormalRate;
 
     return {
       itemId: item.itemId,
@@ -91,6 +99,10 @@ export function calculateSCMultiItemFinalCost(input: SCMultiItemFinalCostInput):
       totalAllocatedExpenses: item.totalAllocatedExpenses,
       normalTaxTotal,
       benefitTaxTotal,
+      icmsNormalRate,
+      icmsImportEffectiveRate,
+      normalImportICMS: benefit.normalImportICMS,
+      benefitImportICMS: benefit.benefitImportICMS,
       importICMSSavings: benefit.importICMSSavings,
       landedCostBeforeBenefit,
       landedCostAfterBenefit,
@@ -113,6 +125,8 @@ export function calculateSCMultiItemFinalCost(input: SCMultiItemFinalCostInput):
     totalAllocatedExpenses: taxResult.totalAllocatedExpenses,
     totalNormalTaxes: items.reduce((sum, item) => sum + item.normalTaxTotal, 0),
     totalBenefitTaxes: items.reduce((sum, item) => sum + item.benefitTaxTotal, 0),
+    totalNormalImportICMS: items.reduce((sum, item) => sum + item.normalImportICMS, 0),
+    totalEffectiveImportICMS: items.reduce((sum, item) => sum + item.benefitImportICMS, 0),
     totalImportICMSSavings: items.reduce((sum, item) => sum + item.importICMSSavings, 0),
     totalLandedCostBeforeBenefit: items.reduce((sum, item) => sum + item.landedCostBeforeBenefit, 0),
     totalLandedCostAfterBenefit: items.reduce((sum, item) => sum + item.landedCostAfterBenefit, 0),
