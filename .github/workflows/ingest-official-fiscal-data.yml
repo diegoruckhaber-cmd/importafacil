@@ -1,0 +1,59 @@
+name: Ingest official fiscal data
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/ingest-official-fiscal-data.py'
+      - '.github/workflows/ingest-official-fiscal-data.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install parser dependency
+        run: python -m pip install openpyxl
+
+      - name: Download official MDIC tariff workbook
+        run: |
+          mkdir -p /tmp/fiscal
+          curl -fL --retry 4 --retry-delay 3 \
+            'https://www.gov.br/mdic/pt-br/assuntos/camex/estrategia-comercial/arquivos-listas/24-07-2026-anexos-i-a-x-resolucao-gecex-272-21.xlsx/@@download/file' \
+            -o /tmp/fiscal/mdic.xlsx
+          test -s /tmp/fiscal/mdic.xlsx
+
+      - name: Download official TIPI workbook
+        run: |
+          curl -fL --retry 4 --retry-delay 3 \
+            'https://www.gov.br/receitafederal/pt-br/acesso-a-informacao/legislacao/documentos-e-arquivos/tipi.xlsx/@@download/file' \
+            -o /tmp/fiscal/tipi.xlsx
+          test -s /tmp/fiscal/tipi.xlsx
+
+      - name: Generate candidate catalogs
+        run: |
+          python scripts/ingest-official-fiscal-data.py \
+            --mdic /tmp/fiscal/mdic.xlsx \
+            --tipi /tmp/fiscal/tipi.xlsx \
+            --output data/federal/official-snapshot-2026-07.json
+
+      - name: Show ingestion summary
+        run: cat data/federal/official-snapshot-2026-07.json
+
+      - name: Commit generated snapshot
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/federal/official-snapshot-2026-07.json
+          git diff --cached --quiet || git commit -m 'chore: ingest official 2026 federal fiscal snapshot'
+          git push
