@@ -59,9 +59,18 @@ export async function POST(request: Request) {
     const freight = Number(body.freight);
     const insurance = Number(body.insurance);
     const storage = Number(body.storage);
+    const otherBrl = Number(body.otherBrl ?? 0);
     const icms = Number(body.icms);
     const ttd = String(body.ttd ?? "none");
     const destination = body.destination === "industrialization" ? "industrialization" : "commercial_resale";
+
+    const evidence = {
+      validConcession: body.validConcession === true,
+      importEntryInSC: body.importEntryInSC === true,
+      sameNcmPositionAfterFractionation: body.sameNcmPositionAfterFractionation !== false,
+      decree2128Prohibited: body.decree2128Prohibited === true,
+      industrializationInSC: destination === "industrialization" && body.industrializationInSC === true,
+    };
 
     if (ncm.length !== 8) throw new Error("Informe uma NCM válida com 8 dígitos.");
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error("Informe uma data de importação válida.");
@@ -73,6 +82,7 @@ export async function POST(request: Request) {
       ["Frete", freight],
       ["Seguro", insurance],
       ["Armazenagem", storage],
+      ["Outras despesas", otherBrl],
       ["ICMS normal", icms],
     ];
     for (const [label, value] of numericInputs) {
@@ -84,35 +94,38 @@ export async function POST(request: Request) {
     const customsValue = quantity * fobUnit * exchange;
     const itemId = "ITEM-001";
     const benefitsByItem: Record<string, ReturnType<typeof resolveSCBenefit>> = {};
+    let scDecision: ReturnType<typeof decideSCItem> | null = null;
 
-    if (ttd === "409" || ttd === "410") {
-      const decision = decideSCItem({
+    if (["77", "409", "410"].includes(ttd)) {
+      scDecision = decideSCItem({
         id: itemId,
-        ttd: Number(ttd) as 409 | 410,
+        ttd: Number(ttd) as 77 | 409 | 410,
         destination,
-        validConcession: true,
-        importEntryInSC: true,
-        sameNcmPositionAfterFractionation: true,
+        validConcession: evidence.validConcession,
+        importEntryInSC: evidence.importEntryInSC,
+        decree2128Prohibited: evidence.decree2128Prohibited,
+        sameNcmPositionAfterFractionation: evidence.sameNcmPositionAfterFractionation,
       });
-      if (decision.decision !== "apply") {
-        throw new Error(`TTD ${ttd} bloqueado: ${decision.reasons.join(" ")}`);
+
+      if (scDecision.decision === "deny") {
+        throw new Error(`TTD ${ttd} bloqueado: ${scDecision.reasons.join(" ")}`);
       }
 
       benefitsByItem[itemId] = resolveSCBenefit({
-        ttd: Number(ttd) as 409 | 410,
+        ttd: Number(ttd) as 77 | 409 | 410,
         destination,
         ncm,
         normalOutputICMS: 0,
         taxableOutput: true,
-        industrializationInSC: destination === "industrialization",
-        preservesOriginalCharacteristics: true,
-        sameNcmPosition: true,
+        industrializationInSC: evidence.industrializationInSC,
+        preservesOriginalCharacteristics: evidence.sameNcmPositionAfterFractionation,
+        sameNcmPosition: evidence.sameNcmPositionAfterFractionation,
         otherDeferment: false,
         paragraph23Or24: false,
         equivalentTaxableEventElection: false,
       });
 
-      if (benefitsByItem[itemId].decision !== "apply") {
+      if (benefitsByItem[itemId].decision === "deny") {
         throw new Error(`TTD ${ttd} não passou na validação jurídica: ${benefitsByItem[itemId].reasons.join(" ")}`);
       }
     }
@@ -136,6 +149,7 @@ export async function POST(request: Request) {
         { id: "FREIGHT", description: "Frete internacional", amount: freight * exchange, treatment: "customs_base", allocation: "item_value" },
         { id: "INSURANCE", description: "Seguro internacional", amount: insurance * exchange, treatment: "customs_base", allocation: "item_value" },
         { id: "STORAGE", description: "Armazenagem", amount: storage, treatment: "operational_cost", allocation: "item_value" },
+        { id: "OTHER", description: "Outras despesas", amount: otherBrl, treatment: "operational_cost", allocation: "item_value" },
       ],
       benefitsByItem,
     });
@@ -148,10 +162,17 @@ export async function POST(request: Request) {
         origin,
         ii: { rate: federal.iiRate, automatic: true },
         ipi: { rate: federal.ipiRate, automatic: true },
+        pisImport: { rate: 2.1, automatic: true },
+        cofinsImport: { rate: 9.65, automatic: true },
         snapshot: federal.snapshot,
       },
       sc: {
         ttd,
+        decision: scDecision?.decision ?? "normal",
+        decisionReasons: scDecision?.reasons ?? ["Nenhum TTD informado; tributação normal preservada."],
+        benefitDecision: benefitsByItem[itemId]?.decision ?? "normal",
+        benefitReasons: benefitsByItem[itemId]?.reasons ?? [],
+        blockingIssues: benefitsByItem[itemId]?.blockingIssues ?? [],
         icmsNormalRate: scItem.icmsNormalRate,
         icmsImportEffectiveRate: scItem.icmsImportEffectiveRate,
         normalImportICMS: scItem.normalImportICMS,
