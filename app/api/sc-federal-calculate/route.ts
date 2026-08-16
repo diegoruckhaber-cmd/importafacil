@@ -63,6 +63,12 @@ export async function POST(request: Request) {
     const icms = Number(body.icms);
     const ttd = String(body.ttd ?? "none");
     const destination = body.destination === "industrialization" ? "industrialization" : "commercial_resale";
+    const specialRegimeIds = Array.isArray(body.specialRegimeIds)
+      ? body.specialRegimeIds.filter((value: unknown): value is string => typeof value === "string")
+      : [];
+    const specialRegimeContext = body.specialRegimeContext && typeof body.specialRegimeContext === "object"
+      ? body.specialRegimeContext as Record<string, unknown>
+      : {};
 
     const evidence = {
       validConcession: body.validConcession === true,
@@ -96,37 +102,47 @@ export async function POST(request: Request) {
     const benefitsByItem: Record<string, ReturnType<typeof resolveSCBenefit>> = {};
     let scDecision: ReturnType<typeof decideSCItem> | null = null;
 
-    if (["77", "409", "410"].includes(ttd)) {
+    if (["77", "409", "410"].includes(ttd) || specialRegimeIds.length > 0) {
       scDecision = decideSCItem({
         id: itemId,
-        ttd: Number(ttd) as 77 | 409 | 410,
+        ttd: ["77", "409", "410"].includes(ttd) ? Number(ttd) as 77 | 409 | 410 : undefined,
         destination,
         validConcession: evidence.validConcession,
         importEntryInSC: evidence.importEntryInSC,
         decree2128Prohibited: evidence.decree2128Prohibited,
         sameNcmPositionAfterFractionation: evidence.sameNcmPositionAfterFractionation,
+        specialRegimeIds,
+        specialRegimeContext: {
+          ...specialRegimeContext,
+          product: {
+            ...(specialRegimeContext.product as Record<string, unknown> | undefined),
+            ncm,
+          },
+        },
       });
 
       if (scDecision.decision === "deny") {
-        throw new Error(`TTD ${ttd} bloqueado: ${scDecision.reasons.join(" ")}`);
+        throw new Error(`Regra SC bloqueada: ${scDecision.reasons.join(" ")}`);
       }
 
-      benefitsByItem[itemId] = resolveSCBenefit({
-        ttd: Number(ttd) as 77 | 409 | 410,
-        destination,
-        ncm,
-        normalOutputICMS: 0,
-        taxableOutput: true,
-        industrializationInSC: evidence.industrializationInSC,
-        preservesOriginalCharacteristics: evidence.sameNcmPositionAfterFractionation,
-        sameNcmPosition: evidence.sameNcmPositionAfterFractionation,
-        otherDeferment: false,
-        paragraph23Or24: false,
-        equivalentTaxableEventElection: false,
-      });
+      if (["77", "409", "410"].includes(ttd)) {
+        benefitsByItem[itemId] = resolveSCBenefit({
+          ttd: Number(ttd) as 77 | 409 | 410,
+          destination,
+          ncm,
+          normalOutputICMS: 0,
+          taxableOutput: true,
+          industrializationInSC: evidence.industrializationInSC,
+          preservesOriginalCharacteristics: evidence.sameNcmPositionAfterFractionation,
+          sameNcmPosition: evidence.sameNcmPositionAfterFractionation,
+          otherDeferment: false,
+          paragraph23Or24: false,
+          equivalentTaxableEventElection: false,
+        });
 
-      if (benefitsByItem[itemId].decision === "deny") {
-        throw new Error(`TTD ${ttd} não passou na validação jurídica: ${benefitsByItem[itemId].reasons.join(" ")}`);
+        if (benefitsByItem[itemId].decision === "deny") {
+          throw new Error(`TTD ${ttd} não passou na validação jurídica: ${benefitsByItem[itemId].reasons.join(" ")}`);
+        }
       }
     }
 
@@ -168,11 +184,13 @@ export async function POST(request: Request) {
       },
       sc: {
         ttd,
+        specialRegimeIds,
         decision: scDecision?.decision ?? "normal",
-        decisionReasons: scDecision?.reasons ?? ["Nenhum TTD informado; tributação normal preservada."],
+        decisionReasons: scDecision?.reasons ?? ["Nenhum TTD/regime especial informado; tributação normal preservada."],
+        ruleIds: scDecision?.ruleIds ?? [],
         benefitDecision: benefitsByItem[itemId]?.decision ?? "normal",
         benefitReasons: benefitsByItem[itemId]?.reasons ?? [],
-        blockingIssues: benefitsByItem[itemId]?.blockingIssues ?? [],
+        blockingIssues: [...new Set([...(scDecision?.blockingIssues ?? []), ...(benefitsByItem[itemId]?.blockingIssues ?? [])])],
         icmsNormalRate: scItem.icmsNormalRate,
         icmsImportEffectiveRate: scItem.icmsImportEffectiveRate,
         normalImportICMS: scItem.normalImportICMS,
