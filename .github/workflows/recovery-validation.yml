@@ -52,6 +52,7 @@ jobs:
           npm run test:sc-ttd-integration
           npm run test:sc-special-regimes
           npm run test:sc-special-regime-api
+          npm run test:sc-treatment-discovery
           node --experimental-strip-types scripts/test-sc-ttd409-410-output-rate.mjs
 
       - name: Run cost and regression tests
