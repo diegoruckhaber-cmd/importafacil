@@ -15,6 +15,8 @@ export type SCRealCalculationInput = SCImportOperationInput & {
   regimeHolderMonths?: number;
   specialAuthorizationForInitialPeriod?: boolean;
   specialProductRate?: boolean;
+  specialRegimeIds?: string[];
+  specialRegimeContext?: Record<string, unknown>;
 };
 
 export type SCRealCalculationResult = {
@@ -35,6 +37,8 @@ export function calculateSCRealOperation(input: SCRealCalculationInput): SCRealC
     importEntryInSC: input.importEntryInSC,
     decree2128Prohibited: input.decree2128Prohibited,
     sameNcmPositionAfterFractionation: input.sameNcmPositionAfterFractionation,
+    specialRegimeIds: input.specialRegimeIds,
+    specialRegimeContext: input.specialRegimeContext,
   });
 
   if (decision.decision !== "apply" || input.ttd === undefined) {
@@ -43,7 +47,9 @@ export function calculateSCRealOperation(input: SCRealCalculationInput): SCRealC
       importCalculation,
       decision,
       benefit: null,
-      warnings: ["O cálculo do benefício não foi executado porque a elegibilidade ainda não está confirmada."],
+      warnings: decision.blockingIssues.length
+        ? decision.blockingIssues.map((issue) => `Elegibilidade SC: ${issue}.`)
+        : ["O cálculo do benefício não foi executado porque a elegibilidade ainda não está confirmada."],
     };
   }
 
