@@ -1,6 +1,6 @@
-import { getSCBenefitCatalogRule } from "./sc-benefit-catalog";
-import { decideTTD409410Output } from "./sc-ttd409-410-output-rules";
-import { resolveScTtd } from "./sc-ttd-rule-catalog-2026";
+import { getSCBenefitCatalogRule } from "./sc-benefit-catalog.ts";
+import { decideTTD409410Output } from "./sc-ttd409-410-output-rules.ts";
+import { resolveScTtd } from "./sc-ttd-rule-catalog-2026.ts";
 
 export type SCBenefitResolutionInput = {
   ttd: 77 | 409 | 410;
