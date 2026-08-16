@@ -24,6 +24,38 @@ if (initial.status !== "calculated" || initial.targetTaxLoadPercent !== 2.6 || M
   throw new Error(`Falha no cenário 2,6%: ${JSON.stringify(initial)}`);
 }
 
+// Regression: authorization alone must NOT bypass the annual threshold.
+const unauthorizedThresholdBypass = resolveTTD409410OutputRate({
+  destination: "commercial_resale",
+  operation: "internal",
+  aliquotaPercent: 17,
+  productClass: "other",
+  continuousTTDMonths: 12,
+  authorizedEarlyFullBenefit: true,
+  annualQualifiedOutputBrl: 100_000_000,
+  requiredAnnualThresholdBrl: 280_000_000,
+});
+
+if (unauthorizedThresholdBypass.targetTaxLoadPercent !== 2.6) {
+  throw new Error(`Falha no guardrail de autorização sem threshold: ${JSON.stringify(unauthorizedThresholdBypass)}`);
+}
+
+// Positive case: threshold + authorization can unlock the early branch.
+const authorizedEarly = resolveTTD409410OutputRate({
+  destination: "commercial_resale",
+  operation: "internal",
+  aliquotaPercent: 17,
+  productClass: "other",
+  continuousTTDMonths: 12,
+  authorizedEarlyFullBenefit: true,
+  annualQualifiedOutputBrl: 300_000_000,
+  requiredAnnualThresholdBrl: 280_000_000,
+});
+
+if (authorizedEarly.targetTaxLoadPercent !== 1) {
+  throw new Error(`Falha no cenário de exceção autorizada: ${JSON.stringify(authorizedEarly)}`);
+}
+
 const metal = resolveTTD409410OutputRate({
   destination: "commercial_resale",
   operation: "internal",
