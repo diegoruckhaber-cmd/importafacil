@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
+import SCOutputBenefitPanel from "./components/SCOutputBenefitPanel";
 
 const br = (n: number | null | undefined) =>
   Number(n ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -260,6 +261,16 @@ export default function Home() {
                   <small>Snapshot MDIC: {result.federal?.snapshot?.mdicPublished || "não informado"} · TIPI/RFB: {result.federal?.snapshot?.tipiUpdated || "não informado"}</small>
                   {result.sc?.blockingIssues?.length > 0 && <small>Bloqueios/condições: {result.sc.blockingIssues.join(", ")}</small>}
                 </div>
+
+                <SCOutputBenefitPanel
+                  ttd={s.ttd as "409" | "410" | "77" | "none"}
+                  destination={s.destination as "commercial_resale" | "industrialization"}
+                  validConcession={s.validConcession}
+                  importEntryInSC={s.importEntryInSC}
+                  industrializationInSC={s.industrializationInSC}
+                  sameNcmPositionAfterFractionation={s.sameNcmPositionAfterFractionation}
+                  decree2128Prohibited={s.decree2128Prohibited}
+                />
 
                 <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 18, flexWrap: "wrap" }}>
                   <button className="secondaryBtn" onClick={saveSimulation}>Salvar simulação</button>
