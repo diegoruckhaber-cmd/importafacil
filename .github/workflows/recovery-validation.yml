@@ -1,0 +1,65 @@
+name: Recovery architecture validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - recover/original-architecture
+    paths-ignore:
+      - '**/*.md'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run engine and tax tests
+        run: |
+          npm run test:engine
+          npm run test:federal-2026
+          npm run test:federal-ii-2026
+          npm run test:federal-tax-resolution
+          npm run test:mercosul-eu-ii
+          npm run test:federal-tariff-catalog
+          npm run test:federal-ncm-auto
+
+      - name: Run SC and benefit tests
+        run: |
+          npm run test:item-sc-benefit
+          npm run test:sc-multi-item-final-cost
+          npm run test:sc-import-icms-ttd
+          npm run test:sc-ttd-2026
+          npm run test:sc-ttd-integration
+          node --experimental-strip-types scripts/test-sc-ttd409-410-output-rate.mjs
+
+      - name: Run cost and regression tests
+        run: |
+          npm run test:item-tributary-expenses
+          npm run test:golden-import
+          npm run test:final-cost-memory
+          npm run test:mvp-sc-operation
+          npm run test:sc-federal-live
+
+      - name: Run source and data contract tests
+        run: |
+          npm run test:federal-tariff-sources
+          npm run test:tipi-source
+          npm run test:federal-workbook-contract
+
+      - name: Build production bundle
+        run: npm run build
