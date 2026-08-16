@@ -140,6 +140,8 @@ export async function POST(request: Request) {
       benefitsByItem,
     });
 
+    const scItem = calculation.items[0];
+
     return NextResponse.json({
       federal: {
         ncm,
@@ -150,9 +152,11 @@ export async function POST(request: Request) {
       },
       sc: {
         ttd,
-        icmsNormalRate: icms,
-        icmsImportEffectiveRate: (ttd === "409" || ttd === "410") ? 0 : icms,
-        importICMSSavings: calculation.totalImportICMSSavings,
+        icmsNormalRate: scItem.icmsNormalRate,
+        icmsImportEffectiveRate: scItem.icmsImportEffectiveRate,
+        normalImportICMS: scItem.normalImportICMS,
+        effectiveImportICMS: scItem.benefitImportICMS,
+        importICMSSavings: scItem.importICMSSavings,
       },
       calculation,
     }, { headers: { "Cache-Control": "no-store" } });
