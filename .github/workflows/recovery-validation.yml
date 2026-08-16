@@ -48,6 +48,7 @@ jobs:
           npm run test:sc-special-regime-api
           npm run test:sc-treatment-discovery
           npm run test:import-scenario-comparator
+          npm run test:import-scenario-legal-memory
           node --experimental-strip-types scripts/test-sc-ttd409-410-output-rate.mjs
       - name: Run cost and regression tests
         run: |
