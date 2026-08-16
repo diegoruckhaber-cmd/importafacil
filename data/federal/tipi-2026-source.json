@@ -1,0 +1,10 @@
+{
+  "sourceType": "TIPI",
+  "sourceVersion": "2026-02-13",
+  "publisher": "Receita Federal do Brasil",
+  "officialPage": "https://www.gov.br/receitafederal/pt-br/acesso-a-informacao/legislacao/tipi-tabela-de-incidencia-do-imposto-sobre-produtos-industrializados",
+  "workbookPage": "https://www.gov.br/receitafederal/pt-br/acesso-a-informacao/legislacao/documentos-e-arquivos/tipi.xlsx/view",
+  "publicationStatus": "candidate",
+  "productionReady": false,
+  "reason": "The official workbook must be downloaded, structurally inspected and validated before the complete TIPI catalog is published."
+}
