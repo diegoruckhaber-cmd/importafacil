@@ -7,6 +7,9 @@ on:
       - recover/original-architecture
     paths-ignore:
       - '**/*.md'
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -28,7 +31,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run engine and tax tests
+      - name: Run engine and federal tax tests
         run: |
           npm run test:engine
           npm run test:federal-2026
@@ -38,7 +41,7 @@ jobs:
           npm run test:federal-tariff-catalog
           npm run test:federal-ncm-auto
 
-      - name: Run SC and benefit tests
+      - name: Run SC benefit and TTD tests
         run: |
           npm run test:item-sc-benefit
           npm run test:sc-multi-item-final-cost
