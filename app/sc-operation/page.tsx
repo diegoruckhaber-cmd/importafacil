@@ -43,6 +43,9 @@ type ExpenseState = {
 const money = (n: number | null | undefined) =>
   n == null ? "—" : n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+const pct = (n: number | null | undefined) =>
+  n == null ? "—" : `${Number(n).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
+
 const makeItem = (index: number): ItemState => ({
   id: `ITEM-${index}`,
   ncm: index === 1 ? "3907.60.00" : "2915.90.90",
@@ -286,31 +289,47 @@ function SectionTitle({ step, title, description }: { step: string; title: strin
 function ResultView({ calculation, items, onSave, saving, saveMessage }: { calculation: any; items: ItemState[]; onSave: () => void; saving: boolean; saveMessage: string }) {
   return <section className="card scResult" style={{ marginTop: 18 }}>
     <div className="resultTop"><SectionTitle step="4" title="Custo final por item" description="O cálculo mantém o caminho da despesa até o custo final." /><Status status={calculation.status} /></div>
+
+    <div className="icmsExplanation">
+      <div><b>ICMS normal</b><span>Alíquota de referência da importação.</span></div>
+      <div><b>ICMS efetivo na importação</b><span>O que efetivamente entra como ICMS devido nesta etapa.</span></div>
+      <div><b>Economia / diferimento</b><span>Diferença monetária entre o ICMS normal e o efetivo.</span></div>
+    </div>
+
     <div className="metrics">
+      <Metric t="ICMS normal — total" v={money(calculation.totalNormalImportICMS)} />
+      <Metric t="ICMS efetivo na importação — total" v={money(calculation.totalEffectiveImportICMS)} />
+      <Metric t="Economia / diferimento ICMS-importação" v={money(calculation.totalImportICMSSavings)} hi />
       <Metric t="Valor aduaneiro total" v={money(calculation.totalCustomsValue)} />
       <Metric t="Despesas rateadas" v={money(calculation.totalAllocatedExpenses)} />
       <Metric t="Tributos normais" v={money(calculation.totalNormalTaxes)} />
-      <Metric t="Economia ICMS-importação" v={money(calculation.totalImportICMSSavings)} hi />
       <Metric t="Custo antes do benefício" v={money(calculation.totalLandedCostBeforeBenefit)} />
       <Metric t="Custo final" v={money(calculation.totalLandedCostAfterBenefit)} hi />
     </div>
+
     <div className="memoryList">{calculation.items.map((result: any) => {
       const source = items.find((item) => item.id === result.itemId);
       return <details className="memoryItem" key={result.itemId}>
         <summary><span><b>{result.itemId}</b> · {source?.name} · NCM {source?.ncm}</span><span><b>{money(result.landedCostAfterBenefit)}</b> · <Status status={result.benefit.decision} /></span></summary>
         <div className="memoryGrid">
+          <div><span>ICMS normal</span><b>{pct(result.icmsNormalRate)}</b></div>
+          <div><span>ICMS efetivo na importação</span><b>{pct(result.icmsImportEffectiveRate)}</b></div>
+          <div><span>ICMS normal — valor</span><b>{money(result.normalImportICMS)}</b></div>
+          <div><span>ICMS efetivo — valor</span><b>{money(result.benefitImportICMS)}</b></div>
+          <div><span>Economia / diferimento</span><b>{money(result.importICMSSavings)}</b></div>
           <div><span>Valor aduaneiro</span><b>{money(result.customsValue)}</b></div>
           <div><span>Despesas rateadas</span><b>{money(result.allocatedExpensesTotal)}</b></div>
           <div><span>Tributos normais</span><b>{money(result.normalTaxTotal)}</b></div>
-          <div><span>ICMS economizado</span><b>{money(result.importICMSSavings)}</b></div>
           <div><span>Custo antes do benefício</span><b>{money(result.landedCostBeforeBenefit)}</b></div>
           <div><span>Custo final</span><b>{money(result.landedCostAfterBenefit)}</b></div>
         </div>
         <div className="memoryNotes"><b>Tratamento:</b> {source?.ttd === "none" ? "Regime normal" : `TTD ${source?.ttd}`} · <b>Origem:</b> {source?.origin} · <b>Destinação:</b> {source?.destination === "industrialization" ? "Industrialização SC" : "Revenda"}</div>
+        <div className="memoryNotes"><b>Regra da etapa:</b> {result.benefit.importDeferred ? "Diferimento na importação aplicado; ICMS efetivo da entrada = 0%." : "Sem diferimento de importação; ICMS efetivo permanece igual ao ICMS normal."}</div>
+        {result.benefit.outputPresumedCredit && <div className="memoryNotes"><b>Saída subsequente:</b> crédito presumido/tratamento de saída permanece separado e não foi abatido deste custo de importação.</div>}
       </details>;
     })}</div>
     {calculation.warnings.length > 0 && <div className="warning" style={{ marginTop: 18 }}>⚠️ {calculation.warnings.join(" ")}</div>}
-    <div className="infoNote" style={{ marginTop: 12 }}>O crédito presumido da saída não é descontado neste custo de importação. A etapa de venda/saída será calculada separadamente.</div>
+    <div className="infoNote" style={{ marginTop: 12 }}>Importante: o benefício da importação e o tratamento tributário da saída subsequente são etapas distintas. O crédito presumido da saída não é descontado neste custo de importação; a etapa de venda/saída será calculada separadamente.</div>
     <div style={{ marginTop: 18, display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
       <button className="primaryBtn" onClick={onSave} disabled={saving}>{saving ? "Salvando…" : "Salvar simulação"}</button>
       {saveMessage && <span style={{ color: saveMessage.includes("sucesso") ? "#176b3a" : "#a33", fontWeight: 700 }}>{saveMessage}</span>}
