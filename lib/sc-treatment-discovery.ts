@@ -1,4 +1,4 @@
-import { SC_IMPORT_SPECIAL_REGIMES_2026 } from "./sc-import-special-regimes";
+import { SC_IMPORT_SPECIAL_REGIMES_2026 } from "./sc-import-special-regimes.ts";
 
 type Candidate = {
   id: string;
