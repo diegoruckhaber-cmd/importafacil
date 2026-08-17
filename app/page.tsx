@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import SCOutputBenefitPanel from "./components/SCOutputBenefitPanel";
 import SpecialRegimeSelector from "./components/SpecialRegimeSelector";
@@ -8,6 +8,10 @@ import SpecialRegimeSelector from "./components/SpecialRegimeSelector";
 const br = (n: number | null | undefined) => Number(n ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const pct = (n: number | null | undefined) => `${Number(n ?? 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
 const today = new Date().toISOString().slice(0, 10);
+
+const COUNTRIES = [
+  "Afeganistão", "África do Sul", "Albânia", "Alemanha", "Andorra", "Angola", "Antígua e Barbuda", "Arábia Saudita", "Argélia", "Argentina", "Armênia", "Austrália", "Áustria", "Azerbaijão", "Bahamas", "Bahrein", "Bangladesh", "Barbados", "Belarus", "Bélgica", "Belize", "Benin", "Bolívia", "Bósnia e Herzegovina", "Botsuana", "Brasil", "Brunei", "Bulgária", "Burkina Faso", "Burundi", "Butão", "Cabo Verde", "Camarões", "Camboja", "Canadá", "Catar", "Cazaquistão", "Chade", "Chile", "China", "Chipre", "Colômbia", "Comores", "Congo", "Coreia do Norte", "Coreia do Sul", "Costa do Marfim", "Costa Rica", "Croácia", "Cuba", "Dinamarca", "Djibuti", "Dominica", "Egito", "El Salvador", "Emirados Árabes Unidos", "Equador", "Eritreia", "Eslováquia", "Eslovênia", "Espanha", "Estados Unidos", "Estônia", "Eswatini", "Etiópia", "Fiji", "Filipinas", "Finlândia", "França", "Gabão", "Gâmbia", "Gana", "Geórgia", "Granada", "Grécia", "Guatemala", "Guiana", "Guiné", "Guiné-Bissau", "Guiné Equatorial", "Haiti", "Honduras", "Hungria", "Iêmen", "Ilhas Marshall", "Ilhas Salomão", "Índia", "Indonésia", "Irã", "Iraque", "Irlanda", "Islândia", "Israel", "Itália", "Jamaica", "Japão", "Jordânia", "Kiribati", "Kuwait", "Laos", "Lesoto", "Letônia", "Líbano", "Libéria", "Líbia", "Liechtenstein", "Lituânia", "Luxemburgo", "Macedônia do Norte", "Madagascar", "Malásia", "Malaui", "Maldivas", "Mali", "Malta", "Marrocos", "Maurício", "Mauritânia", "México", "Micronésia", "Moçambique", "Moldávia", "Mônaco", "Mongólia", "Montenegro", "Myanmar", "Namíbia", "Nauru", "Nepal", "Nicarágua", "Níger", "Nigéria", "Noruega", "Nova Zelândia", "Omã", "Países Baixos", "Palau", "Panamá", "Papua-Nova Guiné", "Paquistão", "Paraguai", "Peru", "Polônia", "Portugal", "Quênia", "Quirguistão", "Reino Unido", "República Centro-Africana", "República Democrática do Congo", "República Dominicana", "República Tcheca", "Romênia", "Ruanda", "Rússia", "Samoa", "San Marino", "Santa Lúcia", "São Cristóvão e Névis", "São Tomé e Príncipe", "São Vicente e Granadinas", "Seicheles", "Senegal", "Serra Leoa", "Sérvia", "Singapura", "Síria", "Somália", "Sri Lanka", "Sudão", "Sudão do Sul", "Suécia", "Suíça", "Suriname", "Tadjiquistão", "Tailândia", "Taiwan", "Tanzânia", "Timor-Leste", "Togo", "Tonga", "Trinidad e Tobago", "Tunísia", "Turcomenistão", "Turquia", "Tuvalu", "Ucrânia", "Uganda", "Uruguai", "Uzbequistão", "Vanuatu", "Vaticano", "Venezuela", "Vietnã", "Zâmbia", "Zimbábue",
+];
 
 const initial = {
   ncm: "", date: today, origin: "", quantity: 1000, fobUnit: 10, exchange: 5.5,
@@ -19,11 +23,11 @@ const initial = {
 
 type SimulationInput = typeof initial;
 type ApiResult = any;
-
 type SpecialContext = Record<string, unknown>;
 
 export default function Home() {
   const [s, setS] = useState<SimulationInput>(initial);
+  const [ncmSuggestions, setNcmSuggestions] = useState<string[]>([]);
   const [specialRegimeId, setSpecialRegimeId] = useState("");
   const [specialRegimeContext, setSpecialRegimeContext] = useState<SpecialContext>({});
   const [result, setResult] = useState<ApiResult>(null);
@@ -35,6 +39,21 @@ export default function Home() {
 
   const update = <K extends keyof SimulationInput>(key: K, value: SimulationInput[K]) => setS((current) => ({ ...current, [key]: value }));
   const canUseSC = s.ttd !== "none";
+
+  useEffect(() => {
+    const query = s.ncm.replace(/\D/g, "");
+    if (query.length < 2) { setNcmSuggestions([]); return; }
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/federal-ncm-search?q=${query}&limit=12`, { signal: controller.signal });
+        if (!response.ok) return;
+        const data = await response.json();
+        setNcmSuggestions(Array.isArray(data.items) ? data.items : []);
+      } catch { /* ignore aborted requests */ }
+    }, 180);
+    return () => { window.clearTimeout(timer); controller.abort(); };
+  }, [s.ncm]);
 
   const preview = useMemo(() => {
     const merchandise = s.quantity * s.fobUnit * s.exchange;
@@ -109,9 +128,15 @@ export default function Home() {
           <div className="card">
             <h3>1. Operação</h3>
             <div className="fields">
-              <label>NCM<input aria-label="NCM" inputMode="numeric" placeholder="Ex.: 32081020" value={s.ncm} onChange={(e) => update("ncm", e.target.value.replace(/\D/g, "").slice(0, 8))} /></label>
+              <label>NCM
+                <input aria-label="NCM" list="ncm-catalog" inputMode="numeric" autoComplete="off" placeholder="Ex.: 40112090" value={s.ncm} onChange={(e) => update("ncm", e.target.value.replace(/\D/g, "").slice(0, 8))} />
+                <datalist id="ncm-catalog">{ncmSuggestions.map((ncm) => <option key={ncm} value={ncm} />)}</datalist>
+              </label>
               <label>Data da importação<input type="date" value={s.date} onChange={(e) => update("date", e.target.value)} /></label>
-              <label>País de origem<input aria-label="País de origem" placeholder="Ex.: México" value={s.origin} onChange={(e) => update("origin", e.target.value)} /></label>
+              <label>País de origem
+                <input aria-label="País de origem" list="country-catalog" autoComplete="off" placeholder="Ex.: México" value={s.origin} onChange={(e) => update("origin", e.target.value)} />
+                <datalist id="country-catalog">{COUNTRIES.map((country) => <option key={country} value={country} />)}</datalist>
+              </label>
               <label>Quantidade<input type="number" min="0" step="any" value={s.quantity} onChange={(e) => update("quantity", Number(e.target.value))} /></label>
               <label>FOB unitário (US$)<input type="number" min="0" step="any" value={s.fobUnit} onChange={(e) => update("fobUnit", Number(e.target.value))} /></label>
               <label>Câmbio (R$/US$)<input type="number" min="0" step="any" value={s.exchange} onChange={(e) => update("exchange", Number(e.target.value))} /></label>
@@ -136,14 +161,7 @@ export default function Home() {
               <label><input type="checkbox" checked={s.decree2128Prohibited} onChange={(e) => update("decree2128Prohibited", e.target.checked)} /> Estou informando que existe vedação conhecida pelo Decreto SC 2.128/2009</label>
             </div>}
 
-            <SpecialRegimeSelector
-              selectedId={specialRegimeId}
-              onSelect={setSpecialRegimeId}
-              context={specialRegimeContext}
-              onContextChange={setSpecialRegimeContext}
-              ncm={s.ncm}
-              destination={s.destination as "commercial_resale" | "industrialization"}
-            />
+            <SpecialRegimeSelector selectedId={specialRegimeId} onSelect={setSpecialRegimeId} context={specialRegimeContext} onContextChange={setSpecialRegimeContext} ncm={s.ncm} destination={s.destination as "commercial_resale" | "industrialization"} />
 
             <button className="primaryBtn" onClick={calculate} disabled={loading || s.ncm.length !== 8}>{loading ? "Calculando..." : "Calcular operação"}</button>
             <p className="fine">A ausência de evidência jurídica não vira benefício automaticamente. Resultados condicionais permanecem sinalizados.</p>
@@ -155,8 +173,8 @@ export default function Home() {
             {!result ? <div className="empty">Informe a NCM e as premissas da operação. O resultado aparecerá aqui com tributos, custo e tratamento jurídico.</div> : <>
               <div className={`decision ${isBlocked ? "blocked" : isConditional ? "conditional" : "applied"}`}><strong>{isBlocked ? "Tratamento bloqueado" : isConditional ? "Tratamento condicional" : s.ttd === "none" && !specialRegimeId ? "Tributação normal" : specialRegimeId ? "Regime especial identificado" : `TTD ${s.ttd} aplicável`}</strong><span>{result.sc?.benefitReasons?.[0] || result.sc?.decisionReasons?.[0]}</span></div>
               <div className="metrics"><Metric t="Custo nacionalizado" v={br(item?.landedCostAfterBenefit)} hi /><Metric t="Custo por unidade" v={br(item?.landedCostPerUnitAfterBenefit)} /><Metric t="ICMS normal" v={br(item?.normalImportICMS)} /><Metric t="ICMS efetivo na importação" v={br(item?.benefitImportICMS)} /><Metric t="Economia de ICMS na importação" v={br(item?.importICMSSavings)} /><Metric t="Total de tributos" v={br(item?.benefitTaxTotal)} /></div>
-              <div className="auditBox"><h4>Composição tributária</h4><Line label="II" value={`${pct(result.federal?.ii?.rate)} · ${br(item?.taxLines?.ii?.amount)}`} /><Line label="IPI" value={`${pct(result.federal?.ipi?.rate)} · ${br(item?.taxLines?.ipi?.amount)}`} /><Line label="PIS-Importação" value={`${pct(result.federal?.pisImport?.rate)} · ${br(item?.taxLines?.pisImport?.amount)}`} /><Line label="COFINS-Importação" value={`${pct(result.federal?.cofinsImport?.rate)} · ${br(item?.taxLines?.cofinsImport?.amount)}`} /><Line label="ICMS" value={`${pct(result.sc?.icmsNormalRate)} · ${br(item?.taxLines?.icms?.amount)}`} /></div>
-              <div className="auditBox"><h4>Fundamentação e rastreabilidade</h4><p>{result.sc?.decisionReasons?.join(" ")}</p>{result.sc?.benefitReasons?.length > 0 && <p>{result.sc.benefitReasons.join(" ")}</p>}<small>Snapshot MDIC: {result.federal?.snapshot?.mdicPublished || "não informado"} · TIPI/RFB: {result.federal?.snapshot?.tipiUpdated || "não informado"}</small>{result.sc?.ruleIds?.length > 0 && <small>Regras SC: {result.sc.ruleIds.join(", ")}</small>}{result.sc?.blockingIssues?.length > 0 && <small>Bloqueios/condições: {result.sc.blockingIssues.join(", ")}</small>}</div>
+              <div className="auditBox"><h4>Composição tributária</h4><Line label="II" value={`${pct(item?.taxLines?.ii?.rate ?? result.federal?.ii?.rate)} · ${br(item?.taxLines?.ii?.amount)}`} /><Line label="IPI" value={`${pct(item?.taxLines?.ipi?.rate ?? result.federal?.ipi?.rate)} · ${br(item?.taxLines?.ipi?.amount)}`} /><Line label="PIS-Importação" value={`${pct(item?.taxLines?.pisImport?.rate ?? result.federal?.pisImport?.rate)} · ${br(item?.taxLines?.pisImport?.amount)}`} /><Line label="COFINS-Importação" value={`${pct(item?.taxLines?.cofinsImport?.rate ?? result.federal?.cofinsImport?.rate)} · ${br(item?.taxLines?.cofinsImport?.amount)}`} /><Line label="ICMS" value={`${pct(item?.taxLines?.icms?.rate ?? result.sc?.icmsNormalRate)} · ${br(item?.taxLines?.icms?.amount)}`} /></div>
+              <div className="auditBox"><h4>Fundamentação e rastreabilidade</h4><p>{result.sc?.decisionReasons?.join(" ")}</p>{result.sc?.benefitReasons?.length > 0 && <p>{result.sc.benefitReasons.join(" ")}</p>}<small>Snapshot MDIC: {result.federal?.snapshot?.mdicPublished || "não informado"} · TIPI/RFB: {result.federal?.snapshot?.tipiUpdated || "não informado"}</small>{result.federal?.pisImport?.source && <small>PIS/Cofins: {result.federal.pisImport.source}</small>}{result.sc?.ruleIds?.length > 0 && <small>Regras SC: {result.sc.ruleIds.join(", ")}</small>}{result.sc?.blockingIssues?.length > 0 && <small>Bloqueios/condições: {result.sc.blockingIssues.join(", ")}</small>}</div>
               <SCOutputBenefitPanel ttd={s.ttd as "409" | "410" | "77" | "none"} destination={s.destination as "commercial_resale" | "industrialization"} validConcession={s.validConcession} importEntryInSC={s.importEntryInSC} industrializationInSC={s.industrializationInSC} sameNcmPositionAfterFractionation={s.sameNcmPositionAfterFractionation} decree2128Prohibited={s.decree2128Prohibited} />
               <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 18, flexWrap: "wrap" }}><button className="secondaryBtn" onClick={saveSimulation}>Salvar simulação</button><a className="secondaryBtn" href="/relatorio">Abrir relatório</a></div>
             </>}
