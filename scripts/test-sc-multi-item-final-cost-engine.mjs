@@ -90,7 +90,10 @@ assert.equal(itemA.benefitTaxTotal, itemA.normalTaxTotal - itemA.importICMSSavin
 assert.equal(itemA.landedCostAfterBenefit, itemA.landedCostBeforeBenefit - itemA.importICMSSavings);
 assert.equal(itemB.importICMSSavings, 0);
 assert.equal(itemB.landedCostAfterBenefit, itemB.landedCostBeforeBenefit);
-assert.equal(result.totalLandedCostAfterBenefit, result.totalLandedCostBeforeBenefit - result.totalImportICMSSavings);
+
+// Monetary aggregates are floating-point values. Compare with a cent-level
+// tolerance rather than requiring binary floating-point identity.
+assert.ok(Math.abs(result.totalLandedCostAfterBenefit - (result.totalLandedCostBeforeBenefit - result.totalImportICMSSavings)) < 0.01);
 assert.equal(result.status, "conditional");
 assert.equal(result.warnings.length, 1);
 

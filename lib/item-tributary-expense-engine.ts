@@ -1,5 +1,5 @@
-import { allocateImportCost, type CostAllocationInput, type CostAllocationMethod } from "./import-cost-allocation";
-import { calculateTributaryOperation, type TaxLine, type TributaryResult } from "./tributary-engine";
+import { allocateImportCost, type CostAllocationInput, type CostAllocationMethod } from "./import-cost-allocation.ts";
+import { calculateTributaryOperation, type TaxLine, type TributaryResult } from "./tributary-engine.ts";
 
 export type ItemTributaryInput = CostAllocationInput & {
   iiRate: number;

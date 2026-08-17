@@ -73,21 +73,26 @@ export function resolveTTD409410OutputRate(input: TTD409410OutputRateInput): TTD
   const has36Months = (input.continuousTTDMonths ?? 0) >= 36;
   const annualThreshold = input.requiredAnnualThresholdBrl ?? 280_000_000;
   const reachesThreshold = (input.annualQualifiedOutputBrl ?? 0) >= annualThreshold;
-  const authorizedException = input.authorizedEarlyFullBenefit === true && (reachesThreshold || input.authorizedEarlyFullBenefit === true);
 
-  // The early-full-benefit exception requires prior fiscal authorization.
-  // If the user has not supplied that evidence, retain the 2.6% branch.
-  const earlyException = authorizedException;
+  // An early move to the full benefit is only allowed when both conditions
+  // represented by the input are satisfied: the statutory output threshold
+  // is reached AND prior fiscal authorization is present. Merely checking
+  // the authorization flag must never bypass the threshold.
+  const authorizedEarlyFullBenefit = input.authorizedEarlyFullBenefit === true;
+  const earlyException = authorizedEarlyFullBenefit && reachesThreshold;
+
   const targetTaxLoadPercent = (has36Months || earlyException || isMetal) ? (isMetal ? 0.6 : 1.0) : 2.6;
 
   if (!has36Months && !earlyException && !isMetal) {
-    warnings.push("Aplicada a carga final de 2,6% do período inicial; confirmar se existe autorização fiscal válida para afastar a regra do §2º.");
+    warnings.push("Aplicada a carga final de 2,6% do período inicial; para benefício integral antecipado, confirmar simultaneamente o atingimento do requisito anual e a autorização fiscal válida.");
   }
 
   if (isMetal) {
     reasons.push("Mercadoria enquadrada na categoria específica de aço, cobre, coque, alumínio ou prata: carga final de referência de 0,6%.");
   } else if (targetTaxLoadPercent === 2.6) {
     reasons.push("Estabelecimento sem 36 meses ininterruptos de regime, sem exceção comprovada: carga final de referência de 2,6%.");
+  } else if (earlyException) {
+    reasons.push("Requisito anual atingido e autorização fiscal válida informada: aplicação antecipada da carga final de referência de 1%.");
   } else {
     reasons.push("Carga final de referência de 1% para a operação comercial, observadas as demais condições do art. 246 e do ato concessivo.");
   }

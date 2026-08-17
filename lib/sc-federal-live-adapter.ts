@@ -1,4 +1,4 @@
-import { resolveFederalTaxes, type FederalTaxResolution } from "./federal-tax-resolution";
+import { resolveFederalTaxes, type FederalTaxResolution } from "./federal-tax-resolution.ts";
 
 export type SCFederalItemInput = {
   date: `${number}-${number}-${number}`;

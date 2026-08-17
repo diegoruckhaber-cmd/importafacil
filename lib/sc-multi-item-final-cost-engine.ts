@@ -1,6 +1,6 @@
-import { calculateItemTributaryOperation, type ItemImportExpense, type ItemTributaryInput } from "./item-tributary-expense-engine";
-import { applySCImportBenefitToItems, type ItemSCBenefitResult } from "./item-sc-benefit-bridge";
-import type { SCBenefitResolution } from "./sc-benefit-resolution";
+import { calculateItemTributaryOperation, type ItemImportExpense, type ItemTributaryInput } from "./item-tributary-expense-engine.ts";
+import { applySCImportBenefitToItems, type ItemSCBenefitResult } from "./item-sc-benefit-bridge.ts";
+import type { SCBenefitResolution } from "./sc-benefit-resolution.ts";
 
 export type SCMultiItemFinalCostInput = {
   items: ItemTributaryInput[];
@@ -110,7 +110,7 @@ export function calculateSCMultiItemFinalCost(input: SCMultiItemFinalCostInput):
       taxLines: item.taxLines,
       benefit,
       warnings: benefit.warnings,
-      customsValue: item.effectiveCustomsValue,
+      customsValue: item.baseCustomsValue,
       allocatedExpensesTotal: item.totalAllocatedExpenses,
     } satisfies SCMultiItemFinalCostItem;
   });

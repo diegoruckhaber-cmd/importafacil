@@ -1,6 +1,6 @@
-import { calculateSCImportOperation, type SCImportOperationInput } from "./sc-import-operation";
-import { decideSCItem } from "./sc-decision-engine";
-import { calculateTTD409410Benefit } from "./sc-ttd409-410-benefit-calculator";
+import { calculateSCImportOperation, type SCImportOperationInput } from "./sc-import-operation.ts";
+import { decideSCItem } from "./sc-decision-engine.ts";
+import { calculateTTD409410Benefit } from "./sc-ttd409-410-benefit-calculator.ts";
 
 export type SCRealCalculationInput = SCImportOperationInput & {
   ttd?: 409 | 410;
@@ -15,6 +15,8 @@ export type SCRealCalculationInput = SCImportOperationInput & {
   regimeHolderMonths?: number;
   specialAuthorizationForInitialPeriod?: boolean;
   specialProductRate?: boolean;
+  specialRegimeIds?: string[];
+  specialRegimeContext?: Record<string, unknown>;
 };
 
 export type SCRealCalculationResult = {
@@ -35,15 +37,29 @@ export function calculateSCRealOperation(input: SCRealCalculationInput): SCRealC
     importEntryInSC: input.importEntryInSC,
     decree2128Prohibited: input.decree2128Prohibited,
     sameNcmPositionAfterFractionation: input.sameNcmPositionAfterFractionation,
+    specialRegimeIds: input.specialRegimeIds,
+    specialRegimeContext: input.specialRegimeContext,
   });
 
-  if (decision.decision !== "apply" || input.ttd === undefined) {
+  if (decision.decision === "deny" || decision.decision === "conditional") {
     return {
       status: decision.decision === "deny" ? "denied" : "conditional",
       importCalculation,
       decision,
       benefit: null,
-      warnings: ["O cálculo do benefício não foi executado porque a elegibilidade ainda não está confirmada."],
+      warnings: decision.blockingIssues.length
+        ? decision.blockingIssues.map((issue) => `Elegibilidade SC: ${issue}.`)
+        : ["O cálculo do benefício não foi executado porque a elegibilidade ainda não está confirmada."],
+    };
+  }
+
+  if (input.ttd === undefined) {
+    return {
+      status: "calculated",
+      importCalculation,
+      decision,
+      benefit: null,
+      warnings: ["Regime especial de importação aplicado. Não foi executado cálculo de crédito presumido de saída TTD 409/410."],
     };
   }
 

@@ -53,7 +53,9 @@ assert.equal(result.status, "calculated");
 assert.equal(result.totalAllocatedExpenses, 10000);
 
 for (const item of result.items) {
-  assert.equal(item.customsValue, item.effectiveCustomsValue);
+  // customsValue is the backward-compatible original value; the effective
+  // value includes allocated customs-base expenses.
+  assert.equal(item.customsValue, item.baseCustomsValue);
   assert.equal(item.allocatedExpensesTotal, item.totalAllocatedExpenses);
   assert.ok(item.taxLines.ii);
   assert.ok(item.taxLines.ipi);

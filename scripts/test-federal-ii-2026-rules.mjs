@@ -18,7 +18,7 @@ const exemption = resolveFederalII2026({ date: "2026-08-13", statutoryRate: 12, 
 assert.equal(exemption.effectiveRate, 0);
 
 const lc224Exemption = resolveFederalII2026({ date: "2026-08-13", statutoryRate: 12, benefitKind: "exemption", coveredByLC224: true });
-assert.equal(lc224Exemption.effectiveRate, 1.2);
+assert.ok(Math.abs(lc224Exemption.effectiveRate - 1.2) < 1e-9);
 
 const suspension = resolveFederalII2026({ date: "2026-08-13", statutoryRate: 12, benefitKind: "suspension" });
 assert.equal(suspension.effectiveRate, 0);

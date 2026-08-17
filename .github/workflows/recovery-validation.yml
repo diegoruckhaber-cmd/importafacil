@@ -1,0 +1,70 @@
+name: Recovery architecture validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - recover/original-architecture
+    paths-ignore:
+      - '**/*.md'
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install
+      - name: Run legal foundation validation
+        run: npm run test:legal-foundation-2026
+      - name: Run engine and federal tax tests
+        run: |
+          npm run test:engine
+          npm run test:federal-2026
+          npm run test:federal-ii-2026
+          npm run test:federal-tax-resolution
+          npm run test:mercosul-eu-ii
+          npm run test:federal-tariff-catalog
+          npm run test:federal-ncm-auto
+          npm run test:defesa-comercial
+      - name: Run SC benefit and TTD tests
+        run: |
+          npm run test:item-sc-benefit
+          npm run test:sc-multi-item-final-cost
+          npm run test:sc-import-icms-ttd
+          npm run test:sc-ttd-2026
+          npm run test:sc-ttd-integration
+          npm run test:sc-special-regimes
+          npm run test:sc-special-regime-api
+          npm run test:sc-treatment-discovery
+          npm run test:import-scenario-comparator
+          npm run test:import-scenario-legal-memory
+          npm run test:import-scenario-recommendation
+          npm run test:tax-profile-sale-context
+          npm run test:sc-import-additional-charges
+          node --experimental-strip-types scripts/test-sc-ttd409-410-output-rate.mjs
+      - name: Run cost and regression tests
+        run: |
+          npm run test:item-tributary-expenses
+          npm run test:golden-import
+          npm run test:final-cost-memory
+          npm run test:mvp-sc-operation
+          npm run test:sc-federal-live
+      - name: Run source and data contract tests
+        run: |
+          npm run test:federal-tariff-sources
+          npm run test:tipi-source
+          npm run test:federal-workbook-contract
+      - name: Build production bundle
+        run: npm run build
