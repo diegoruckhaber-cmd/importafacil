@@ -32,13 +32,16 @@ function buildSaleContext(input: ImportScenarioInput) {
   const outputTaxStatus = input.outputIcmsRate != null ? "available" : "requires-validation";
   return { type, originUf: input.saleOriginUf, destinationUf: input.saleDestinationUf, outputIcmsRate: input.outputIcmsRate, outputTaxStatus } as const;
 }
+function taxValues(item: SCMultiItemFinalCostResult["items"][number]) {
+  return { icms: item.benefitImportICMS, pisImport: item.taxLines.pisImport.payable, cofinsImport: item.taxLines.cofinsImport.payable };
+}
 export function compareImportScenario(input:ImportScenarioInput,scenario:ImportScenario):ImportScenarioResult{
   const item=buildItem(input);
   const expenses=[{id:"other-expenses",description:"Outras despesas",amount:input.otherExpensesBrl,treatment:"operational_cost" as const,allocation:"item_value" as const}];
   const base=calculateSCMultiItemFinalCost({items:[item],expenses});
   const saleContext=buildSaleContext(input);
   const taxProfile=input.taxProfile;
-  const creditAnalysis=taxProfile ? analyzeImportTaxCredits({icms:base.items[0].normalImportICMS,pisImport:base.items[0].pisImport,cofinsImport:base.items[0].cofinsImport},taxProfile) : undefined;
+  const creditAnalysis=taxProfile ? analyzeImportTaxCredits(taxValues(base.items[0]),taxProfile) : undefined;
   if(scenario==="normal"){
     const r=base.items[0];
     return {scenario,label:LABELS[scenario],legallyEligible:true,decision:"normal",legalReasons:["Sem benefício estadual selecionado; cálculo tributário normal preservado."],blockingIssues:[],source:"Motor tributário SC + Federal",normalImportICMS:r.normalImportICMS,effectiveImportICMS:r.normalImportICMS,importICMSSavings:0,landedCostBeforeBenefit:r.landedCostBeforeBenefit,landedCostAfterBenefit:r.landedCostBeforeBenefit,landedCostPerUnit:r.landedCostBeforeBenefit/input.quantity,engineResult:base,taxProfile,creditAnalysis,saleContext};
@@ -47,7 +50,7 @@ export function compareImportScenario(input:ImportScenarioInput,scenario:ImportS
   const benefit=resolveSCBenefit({ttd,destination:input.destination??"commercial_resale",ncm:input.ncm,exclusionKnown:input.exclusionKnown,taxableOutput:input.taxableOutput,industrializationInSC:input.industrializationInSC,preservesOriginalCharacteristics:input.preservesOriginalCharacteristics,sameNcmPosition:input.sameNcmPosition,otherDeferment:input.otherDeferment,paragraph23Or24:input.paragraph23Or24,equivalentTaxableEventElection:input.equivalentTaxableEventElection,normalOutputICMS:input.outputIcmsRate??0});
   const engine=benefit.decision==="apply"?calculateSCMultiItemFinalCost({items:[item],expenses,benefitsByItem:{"comparison-item":benefit}}):base;
   const r=engine.items[0];
-  const finalCreditAnalysis=taxProfile ? analyzeImportTaxCredits({icms:r.benefitImportICMS,pisImport:r.pisImport,cofinsImport:r.cofinsImport},taxProfile) : undefined;
+  const finalCreditAnalysis=taxProfile ? analyzeImportTaxCredits(taxValues(r),taxProfile) : undefined;
   const legalReasons=[...benefit.reasons];
   if(saleContext.type!=="not-informed") legalReasons.push(`Saída considerada ${saleContext.type === "internal" ? "interna" : "interestadual"}${saleContext.destinationUf ? ` para ${saleContext.destinationUf.toUpperCase()}` : ""}.`);
   if(saleContext.outputTaxStatus==="requires-validation") legalReasons.push("A tributação da saída subsequente ainda requer validação específica; não foi incorporada ao custo de importação.");
