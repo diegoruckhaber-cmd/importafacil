@@ -33,12 +33,40 @@ function resolveRate(records: SnapshotRecord[], label: string) {
   return uniqueRates[0];
 }
 
+/**
+ * PIS/Cofins-Importação may have NCM-specific statutory rates. Keep this
+ * resolution separate from the generic federal snapshot because the current
+ * snapshot contains II/IPI records only.
+ *
+ * Lei 10.865/2004, art. 8º: for the 40.11 tariff position the rates are
+ * 2.68% for PIS/Pasep-Importação and 12.35% for Cofins-Importação.
+ */
+function resolveImportContributionRates(ncm: string) {
+  if (ncm.startsWith("4011")) {
+    return {
+      pisImportRate: 2.68,
+      cofinsImportRate: 12.35,
+      source: "Lei nº 10.865/2004, art. 8º — posição NCM 40.11",
+    };
+  }
+
+  return {
+    pisImportRate: 2.1,
+    cofinsImportRate: 9.65,
+    source: "Lei nº 10.865/2004 — alíquotas gerais de PIS/Cofins-Importação",
+  };
+}
+
 function loadFederal(ncm: string, date: string) {
   const snapshot = JSON.parse(fs.readFileSync(SNAPSHOT_PATH, "utf8")) as Snapshot;
   const records = snapshot.records.filter((record) => normalizeNcm(record.ncm) === ncm);
+  const contributions = resolveImportContributionRates(ncm);
   return {
     iiRate: resolveRate(records.filter((record) => record.sourceType === "mdic-ii"), "II"),
     ipiRate: resolveRate(records.filter((record) => record.sourceType === "rfb-ipi"), "IPI"),
+    pisImportRate: contributions.pisImportRate,
+    cofinsImportRate: contributions.cofinsImportRate,
+    contributionSource: contributions.source,
     snapshot: {
       mdicPublished: snapshot.sources.mdic?.published ?? null,
       tipiUpdated: snapshot.sources.rfbTipi?.updated ?? null,
@@ -155,8 +183,8 @@ export async function POST(request: Request) {
         volumeM3: 0,
         iiRate: federal.iiRate,
         ipiRate: federal.ipiRate,
-        pisImportRate: 2.1,
-        cofinsImportRate: 9.65,
+        pisImportRate: federal.pisImportRate,
+        cofinsImportRate: federal.cofinsImportRate,
         icmsRate: icms,
         importDate: date as `${number}-${number}-${number}`,
         iiLegalFoundation: "MDIC official snapshot 2026-07",
@@ -171,6 +199,13 @@ export async function POST(request: Request) {
     });
 
     const scItem = calculation.items[0];
+    const taxLines = {
+      ii: { rate: scItem.taxLines.ii.rate * 100, amount: scItem.taxLines.ii.value, base: scItem.taxLines.ii.base },
+      ipi: { rate: scItem.taxLines.ipi.rate * 100, amount: scItem.taxLines.ipi.value, base: scItem.taxLines.ipi.base },
+      pisImport: { rate: scItem.taxLines.pisImport.rate * 100, amount: scItem.taxLines.pisImport.value, base: scItem.taxLines.pisImport.base },
+      cofinsImport: { rate: scItem.taxLines.cofinsImport.rate * 100, amount: scItem.taxLines.cofinsImport.value, base: scItem.taxLines.cofinsImport.base },
+      icms: { rate: scItem.taxLines.icms.rate * 100, amount: scItem.taxLines.icms.value, base: scItem.taxLines.icms.base },
+    };
 
     return NextResponse.json({
       federal: {
@@ -178,8 +213,8 @@ export async function POST(request: Request) {
         origin,
         ii: { rate: federal.iiRate, automatic: true },
         ipi: { rate: federal.ipiRate, automatic: true },
-        pisImport: { rate: 2.1, automatic: true },
-        cofinsImport: { rate: 9.65, automatic: true },
+        pisImport: { rate: federal.pisImportRate, automatic: true, source: federal.contributionSource },
+        cofinsImport: { rate: federal.cofinsImportRate, automatic: true, source: federal.contributionSource },
         snapshot: federal.snapshot,
       },
       sc: {
@@ -197,7 +232,10 @@ export async function POST(request: Request) {
         effectiveImportICMS: scItem.benefitImportICMS,
         importICMSSavings: scItem.importICMSSavings,
       },
-      calculation,
+      calculation: {
+        ...calculation,
+        items: calculation.items.map((calculatedItem) => ({ ...calculatedItem, taxLines })),
+      },
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     return NextResponse.json({
