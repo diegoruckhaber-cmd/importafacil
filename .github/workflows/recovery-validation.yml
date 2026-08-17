@@ -37,6 +37,7 @@ jobs:
           npm run test:mercosul-eu-ii
           npm run test:federal-tariff-catalog
           npm run test:federal-ncm-auto
+          npm run test:defesa-comercial
       - name: Run SC benefit and TTD tests
         run: |
           npm run test:item-sc-benefit
@@ -50,6 +51,8 @@ jobs:
           npm run test:import-scenario-comparator
           npm run test:import-scenario-legal-memory
           npm run test:import-scenario-recommendation
+          npm run test:tax-profile-sale-context
+          npm run test:sc-import-additional-charges
           node --experimental-strip-types scripts/test-sc-ttd409-410-output-rate.mjs
       - name: Run cost and regression tests
         run: |
