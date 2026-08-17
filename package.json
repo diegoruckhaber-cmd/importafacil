@@ -32,7 +32,9 @@
     "test:import-scenario-comparator": "node --experimental-strip-types scripts/test-import-scenario-comparator.mjs",
     "test:import-scenario-legal-memory": "node --experimental-strip-types scripts/test-import-scenario-legal-memory.mjs",
     "test:import-scenario-recommendation": "node --experimental-strip-types scripts/test-import-scenario-recommendation.mjs",
-    "test:tax-profile-sale-context": "node --experimental-strip-types scripts/test-tax-profile-sale-context.mjs"
+    "test:tax-profile-sale-context": "node --experimental-strip-types scripts/test-tax-profile-sale-context.mjs",
+    "test:defesa-comercial": "node --experimental-strip-types scripts/test-defesa-comercial-resolver.mjs",
+    "test:sc-import-additional-charges": "node --experimental-strip-types scripts/test-sc-import-additional-charges.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",
