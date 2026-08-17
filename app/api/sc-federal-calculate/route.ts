@@ -4,6 +4,7 @@ import path from "node:path";
 import { calculateSCMultiItemFinalCost } from "../../../lib/sc-multi-item-final-cost-engine";
 import { decideSCItem } from "../../../lib/sc-decision-engine";
 import { resolveSCBenefit } from "../../../lib/sc-benefit-resolution";
+import { resolveImportContributionRates } from "../../../lib/import-contribution-rates";
 
 type SnapshotRecord = {
   sourceType: "mdic-ii" | "rfb-ipi";
@@ -31,30 +32,6 @@ function resolveRate(records: SnapshotRecord[], label: string) {
   if (records.length === 0) throw new Error(`${label} não localizado para a NCM no snapshot oficial.`);
   if (uniqueRates.length !== 1) throw new Error(`${label} possui tratamentos com alíquotas diferentes para a NCM; aplicação automática bloqueada.`);
   return uniqueRates[0];
-}
-
-/**
- * PIS/Cofins-Importação may have NCM-specific statutory rates. Keep this
- * resolution separate from the generic federal snapshot because the current
- * snapshot contains II/IPI records only.
- *
- * Lei 10.865/2004, art. 8º: for the 40.11 tariff position the rates are
- * 2.68% for PIS/Pasep-Importação and 12.35% for Cofins-Importação.
- */
-function resolveImportContributionRates(ncm: string) {
-  if (ncm.startsWith("4011")) {
-    return {
-      pisImportRate: 2.68,
-      cofinsImportRate: 12.35,
-      source: "Lei nº 10.865/2004, art. 8º — posição NCM 40.11",
-    };
-  }
-
-  return {
-    pisImportRate: 2.1,
-    cofinsImportRate: 9.65,
-    source: "Lei nº 10.865/2004 — alíquotas gerais de PIS/Cofins-Importação",
-  };
 }
 
 function loadFederal(ncm: string, date: string) {
