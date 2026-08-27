@@ -21,11 +21,6 @@ export type DefenseCommercialMeasure = {
 const normalize = (value: string) =>
   value.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-/**
- * Official MDIC/SECEX catalog for the active 4011.20.90 cargo-tyre measure.
- * The model is intentionally data-driven so additional active measures/NCMs
- * can be added without changing the resolver algorithm.
- */
 export const DEFENSE_COMMERCIAL_MEASURES: DefenseCommercialMeasure[] = [
   {
     ncm: "40112090",
@@ -39,9 +34,30 @@ export const DEFENSE_COMMERCIAL_MEASURES: DefenseCommercialMeasure[] = [
       china: [
         { exporter: "Shandong Linglong Tyre Co., Ltd.", rate: 1.05, unit: "USD_PER_KG" },
         { exporter: "Triangle Tyre Co., Ltd.", rate: 1.07, unit: "USD_PER_KG" },
-        { exporter: "Zhongce Rubber Group Co., Ltd. / Double Coin Holdings Ltd.", rate: 1.12, unit: "USD_PER_KG" },
-        { exporter: "Giti Tire (Anhui) Co., Ltd. / Giti Tire (Chongqing) Company Ltd. / Giti Tire (Fujian) Company Ltd.", rate: 1.31, unit: "USD_PER_KG" },
-        { exporter: "Aeolus Tyre Co., Ltd. / Chaoyang Long March Tyre Co., Ltd. / Cooper Chengshan (Shandong) Tire Company Ltd. / Guangming Tyre Group Co., Ltd. / Jiangsu Hankook Tire Co., Ltd. / Michelin Shenyang Tire Co., Ltd. / Pirelli Tyre Co., Ltd. / Sailun Co., Ltd. / Sailun Jinyu Group Co., Ltd. / Shandong Jinyu Tire Co., Ltd. / Shandong Changfeng Tyres Co., Ltd. / Shandong Hengyu Rubber Co., Ltd. / Shandong Longyue Rubber Co., Ltd. / Shandong Wanda Boto Tyre Co., Ltd. / Shenyang Peace Radial Tyre Manufacturing Co., Ltd. / Shouguang Firemax Tyre Co., Ltd. / Sinotyre International Group Co., Ltd. / Triangle (Weihai) Huamao Rubber Co., Ltd. / Zhaoqing Junhong Co., Ltd.", rate: 1.42, unit: "USD_PER_KG" },
+        { exporter: "Zhongce Rubber Group Co., Ltd.", rate: 1.12, unit: "USD_PER_KG" },
+        { exporter: "Double Coin Holdings Ltd.", rate: 1.12, unit: "USD_PER_KG" },
+        { exporter: "Giti Tire (Anhui) Co., Ltd.", rate: 1.31, unit: "USD_PER_KG" },
+        { exporter: "Giti Tire (Chongqing) Company Ltd.", rate: 1.31, unit: "USD_PER_KG" },
+        { exporter: "Giti Tire (Fujian) Company Ltd.", rate: 1.31, unit: "USD_PER_KG" },
+        { exporter: "Aeolus Tyre Co., Ltd.", rate: 1.42, unit: "USD_PER_KG" },
+        { exporter: "Chaoyang Long March Tyre Co., Ltd.", rate: 1.42, unit: "USD_PER_KG" },
+        { exporter: "Cooper Chengshan (Shandong) Tire Company Ltd.", rate: 1.42, unit: "USD_PER_KG" },
+        { exporter: "Guangming Tyre Group Co., Ltd.", rate: 1.42, unit: "USD_PER_KG" },
+        { exporter: "Jiangsu Hankook Tire Co., Ltd.", rate: 1.42, unit: "USD_PER_KG" },
+        { exporter: "Michelin Shenyang Tire Co., Ltd.", rate: 1.42, unit: "USD_PER_KG" },
+        { exporter: "Pirelli Tyre Co., Ltd.", rate: 1.42, unit: "USD_PER_KG" },
+        { exporter: "Sailun Co., Ltd.", rate: 1.42, unit: "USD_PER_KG" },
+        { exporter: "Sailun Jinyu Group Co., Ltd.", rate: 1.42, unit: "USD_PER_KG" },
+        { exporter: "Shandong Jinyu Tire Co., Ltd.", rate: 1.42, unit: "USD_PER_KG" },
+        { exporter: "Shandong Changfeng Tyres Co., Ltd.", rate: 1.42, unit: "USD_PER_KG" },
+        { exporter: "Shandong Hengyu Rubber Co., Ltd.", rate: 1.42, unit: "USD_PER_KG" },
+        { exporter: "Shandong Longyue Rubber Co., Ltd.", rate: 1.42, unit: "USD_PER_KG" },
+        { exporter: "Shandong Wanda Boto Tyre Co., Ltd.", rate: 1.42, unit: "USD_PER_KG" },
+        { exporter: "Shenyang Peace Radial Tyre Manufacturing Co., Ltd.", rate: 1.42, unit: "USD_PER_KG" },
+        { exporter: "Shouguang Firemax Tyre Co., Ltd.", rate: 1.42, unit: "USD_PER_KG" },
+        { exporter: "Sinotyre International Group Co., Ltd.", rate: 1.42, unit: "USD_PER_KG" },
+        { exporter: "Triangle (Weihai) Huamao Rubber Co., Ltd.", rate: 1.42, unit: "USD_PER_KG" },
+        { exporter: "Zhaoqing Junhong Co., Ltd.", rate: 1.42, unit: "USD_PER_KG" },
         { exporter: "Shandong Bayi Tyre Manufacture Co., Ltd.", rate: 1.55, unit: "USD_PER_KG" },
         { exporter: "Demais empresas", rate: 2.59, unit: "USD_PER_KG" },
       ],
