@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { resolveDefenseCommercial } from "../lib/defesa-comercial-resolver.ts";
+import { listDefenseCommercialExporters } from "../lib/defesa-comercial-catalog.ts";
 
 const pending = resolveDefenseCommercial({ ncm: "40112090", origin: "China", importDate: "2026-08-17" });
 assert.equal(pending.status, "requires_input");
@@ -12,11 +13,36 @@ const calculated = resolveDefenseCommercial({ ncm: "40112090", origin: "China", 
 assert.equal(calculated.status, "identified");
 assert.equal(calculated.amountBrl, 14245);
 
-const specific = resolveDefenseCommercial({ ncm: "40112090", origin: "China", importDate: "2026-08-17", weightKg: 1000, exchangeRate: 5.5, exporter: "Shandong Linglong Tyre Co., Ltd" });
+const specific = resolveDefenseCommercial({ ncm: "40112090", origin: "China", importDate: "2026-08-17", weightKg: 1000, exchangeRate: 5.5, exporter: "Shandong Linglong Tyre Co., Ltd." });
 assert.equal(specific.rateUsdPerKg, 1.05);
 assert.equal(specific.amountBrl, 5775);
+
+const triangle = resolveDefenseCommercial({ ncm: "40112090", origin: "China", importDate: "2026-08-17", weightKg: 1000, exchangeRate: 5.5, exporter: "Triangle Tyre Co., Ltd." });
+assert.equal(triangle.rateUsdPerKg, 1.07);
+assert.equal(triangle.amountBrl, 5885);
+
+const chinaResidual = listDefenseCommercialExporters("40112090", "China", "2026-08-17");
+assert.equal(chinaResidual?.options.length, 28);
+assert.equal(chinaResidual?.options.at(-1)?.rate, 2.59);
+
+const korea = resolveDefenseCommercial({ ncm: "40112090", origin: "Coreia do Sul", importDate: "2026-08-17", weightKg: 1000, exchangeRate: 5.5, exporter: "Kumho Tires Co. Inc." });
+assert.equal(korea.rateUsdPerKg, 0.32);
+assert.equal(korea.amountBrl, 1760);
+
+const russia = resolveDefenseCommercial({ ncm: "40112090", origin: "Rússia", importDate: "2026-08-17", weightKg: 1000, exchangeRate: 5.5, exporter: "OAO Cordiant" });
+assert.equal(russia.rateUsdPerKg, 1.10);
+assert.equal(russia.amountBrl, 6050);
+
+const thailand = resolveDefenseCommercial({ ncm: "40112090", origin: "Tailândia", importDate: "2026-08-17", weightKg: 1000, exchangeRate: 5.5, exporter: "Zhongce Rubber Co. Ltd" });
+assert.equal(thailand.rateUsdPerKg, 0.55);
+assert.equal(thailand.amountBrl, 3025);
+
+const japan = resolveDefenseCommercial({ ncm: "40112090", origin: "Japão", importDate: "2026-08-17", weightKg: 1000, exchangeRate: 5.5, exporter: "Sumitomo Rubber Industries" });
+assert.equal(japan.collectionSuspended, true);
+assert.equal(japan.amountBrl, undefined);
+assert.ok(japan.warnings.some((warning) => warning.includes("suspensa")));
 
 const otherOrigin = resolveDefenseCommercial({ ncm: "40112090", origin: "México", importDate: "2026-08-17", weightKg: 1000, exchangeRate: 5.5 });
 assert.equal(otherOrigin.status, "not_applicable");
 
-console.log("Defense commercial resolver: OK");
+console.log("Defense commercial resolver/catalog: OK");
