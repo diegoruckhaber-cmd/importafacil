@@ -19,6 +19,7 @@ UNIT_PATTERNS = [
     ("USD_PER_TON", re.compile(r"(?:US\$|USD)\s*([\d.,]+)\s*/\s*(?:t|ton|tonelada|toneladas)", re.I)),
     ("USD_PER_PAIR", re.compile(r"(?:US\$|USD)\s*([\d.,]+)\s*/\s*par", re.I)),
     ("USD_PER_UNIT", re.compile(r"(?:US\$|USD)\s*([\d.,]+)\s*/\s*(?:unidade|unidades|un)", re.I)),
+    ("USD_PER_SQUARE_METER", re.compile(r"(?:US\$|USD)\s*([\d.,]+)\s*/\s*m(?:²|2)", re.I)),
     ("AD_VALOREM", re.compile(r"([\d.,]+)\s*%")),
 ]
 
@@ -28,6 +29,7 @@ SUFFIX_UNIT_PATTERNS = [
     ("USD_PER_TON", re.compile(r"([\d.,]+)\s*(?:US\$|USD)\s*/\s*(?:t|ton|tonelada|toneladas)", re.I)),
     ("USD_PER_PAIR", re.compile(r"([\d.,]+)\s*(?:US\$|USD)\s*/\s*par", re.I)),
     ("USD_PER_UNIT", re.compile(r"([\d.,]+)\s*(?:US\$|USD)\s*/\s*(?:unidade|unidades|un)", re.I)),
+    ("USD_PER_SQUARE_METER", re.compile(r"([\d.,]+)\s*(?:US\$|USD)\s*/\s*m(?:²|2)", re.I)),
 ]
 
 HEADER_UNIT_PATTERNS = [
@@ -36,6 +38,7 @@ HEADER_UNIT_PATTERNS = [
     ("USD_PER_TON", re.compile(r"(?:US\$|USD)\s*/\s*(?:t|ton|tonelada|toneladas)", re.I)),
     ("USD_PER_PAIR", re.compile(r"(?:US\$|USD)\s*/\s*par", re.I)),
     ("USD_PER_UNIT", re.compile(r"(?:US\$|USD)\s*/\s*(?:unidade|unidades|un)", re.I)),
+    ("USD_PER_SQUARE_METER", re.compile(r"(?:US\$|USD)\s*/\s*m(?:²|2)", re.I)),
     ("AD_VALOREM", re.compile(r"ad\s*valorem|%", re.I)),
 ]
 
@@ -144,12 +147,10 @@ def parse_options(soup, text, origins):
                 rows.append(cells)
         if not rows:
             continue
-
         header = " | ".join(rows[0]).lower()
         if "direito" not in header or not any(k in header for k in ("produtor", "exportador", "origem")):
             continue
         header_unit = detect_header_unit(header)
-
         for cells in rows[1:]:
             if len(cells) < 2:
                 continue
@@ -160,7 +161,6 @@ def parse_options(soup, text, origins):
             if not detected or detected[1] is None:
                 continue
             unit, rate = detected
-
             origin_cell = cells[0].strip() if len(cells) >= 3 else ""
             if origin_cell:
                 origin = normalize_origin(origin_cell)
@@ -170,20 +170,12 @@ def parse_options(soup, text, origins):
                     current_origin = origin
             else:
                 origin = current_origin
-
             if not origin:
                 continue
-
             exporter = cells[1] if len(cells) >= 3 else cells[0]
             if not exporter:
-                continue
-
-            options.setdefault(origin.lower(), []).append({
-                "exporter": exporter,
-                "rate": rate,
-                "unit": unit,
-                "collectionSuspended": "suspens" in row_text.lower(),
-            })
+                exporter = "Todos os produtores/exportadores"
+            options.setdefault(origin.lower(), []).append({"exporter": exporter, "rate": rate, "unit": unit, "collectionSuspended": "suspens" in row_text.lower()})
 
     section = re.search(r"Direito\s+(?:Aplicado|aplicado)\s*:?(.+?)(?=Prazo\s+(?:de|da)\s+[Vv]ig[eê]ncia|Processos relacionados|Resumo do Caso|Compartilhe|$)", text, re.I | re.S)
     if section:
@@ -219,8 +211,9 @@ def parse_options(soup, text, origins):
             exporter = re.sub(r"^[-–—•:\s]+|[-–—•:\s]+$", "", exporter).strip()
             if not exporter and pending_exporter:
                 exporter = pending_exporter
-            if exporter:
-                options.setdefault(origin.lower(), []).append({"exporter": exporter, "rate": rate, "unit": unit, "collectionSuspended": "suspens" in line.lower()})
+            if not exporter:
+                exporter = "Todos os produtores/exportadores"
+            options.setdefault(origin.lower(), []).append({"exporter": exporter, "rate": rate, "unit": unit, "collectionSuspended": "suspens" in line.lower()})
             pending_exporter = None
 
     for key, values in list(options.items()):
@@ -265,60 +258,37 @@ def parse_page(url, html):
         if len(legal) >= 8:
             break
     return {
-        "ncm": ncm_patterns[0],
-        "ncmPatterns": ncm_patterns,
-        "ncmExclusions": exclusions,
-        "product": title,
-        "origins": origins,
-        "measure": "antidumping",
-        "measureTypeText": clean_text(type_match.group(1)),
-        "legalFoundation": "; ".join(legal),
-        "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
-        "sourceUrl": url,
+        "ncm": ncm_patterns[0], "ncmPatterns": ncm_patterns, "ncmExclusions": exclusions,
+        "product": title, "origins": origins, "measure": "antidumping", "measureTypeText": clean_text(type_match.group(1)),
+        "legalFoundation": "; ".join(legal), "source": "MDIC/SECEX — Medidas de defesa comercial em vigor", "sourceUrl": url,
         "validityNote": clean_text(" ".join(x for x in [f"Prazo de vigência: {validity}" if validity else "", "Cobrança suspensa." if suspended else ""] if x)),
-        "validUntil": validity,
-        "collectionSuspended": suspended,
+        "validUntil": validity, "collectionSuspended": suspended,
         "exportersByOrigin": {origin.lower(): options.get(origin.lower(), []) for origin in origins},
         "syncedAt": datetime.now(timezone.utc).isoformat(),
     }
 
 
 def main():
-    session = requests.Session()
-    session.headers.update(HEADERS)
-    index = session.get(INDEX_URL, timeout=60)
-    index.raise_for_status()
-    soup = BeautifulSoup(index.text, "html.parser")
-    urls = []
+    session = requests.Session(); session.headers.update(HEADERS)
+    index = session.get(INDEX_URL, timeout=60); index.raise_for_status()
+    soup = BeautifulSoup(index.text, "html.parser"); urls = []
     for anchor in soup.find_all("a", href=True):
-        url = urljoin(INDEX_URL, anchor["href"])
-        parsed = urlparse(url)
+        url = urljoin(INDEX_URL, anchor["href"]); parsed = urlparse(url)
         if parsed.netloc != BASE_HOST or "/medidas-em-vigor/medidas-em-vigor/" not in parsed.path or url.rstrip("/") == INDEX_URL.rstrip("/"):
             continue
-        if url not in urls:
-            urls.append(url)
+        if url not in urls: urls.append(url)
     measures, failures = [], []
     for url in urls:
         try:
-            response = session.get(url, timeout=60)
-            response.raise_for_status()
-            item = parse_page(url, response.text)
-            if item:
-                measures.append(item)
+            response = session.get(url, timeout=60); response.raise_for_status(); item = parse_page(url, response.text)
+            if item: measures.append(item)
         except Exception as exc:
             failures.append({"url": url, "error": str(exc)})
         time.sleep(0.12)
-    if len(measures) < 40:
-        raise RuntimeError(f"Crawl incompleto: {len(measures)} medidas extraídas de {len(urls)} páginas.")
+    if len(measures) < 40: raise RuntimeError(f"Crawl incompleto: {len(measures)} medidas extraídas de {len(urls)} páginas.")
     measures.sort(key=lambda x: (x["ncm"], x["product"], x["sourceUrl"]))
-    with open(OUTPUT, "w", encoding="utf-8") as fh:
-        json.dump(measures, fh, ensure_ascii=False, indent=2)
-        fh.write("\n")
-    missing_options = [
-        {"ncm": item["ncm"], "product": item["product"], "origins": [origin for origin, options in item["exportersByOrigin"].items() if not options], "sourceUrl": item["sourceUrl"]}
-        for item in measures
-        if any(not options for options in item["exportersByOrigin"].values())
-    ]
+    with open(OUTPUT, "w", encoding="utf-8") as fh: json.dump(measures, fh, ensure_ascii=False, indent=2); fh.write("\n")
+    missing_options = [{"ncm": item["ncm"], "product": item["product"], "origins": [o for o, opts in item["exportersByOrigin"].items() if not opts], "sourceUrl": item["sourceUrl"]} for item in measures if any(not opts for opts in item["exportersByOrigin"].values())]
     print(json.dumps({"indexPages": len(urls), "antidumpingMeasures": len(measures), "missingExporterOptions": missing_options[:50], "missingExporterOptionCount": len(missing_options), "failures": failures[:20]}, ensure_ascii=False, indent=2))
 
 
