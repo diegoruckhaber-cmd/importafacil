@@ -1,0 +1,58 @@
+name: Sync MDIC defense commercial catalog
+
+on:
+  push:
+    branches: [recover/original-architecture]
+    paths:
+      - "scripts/sync-mdic-defesa-comercial.py"
+      - ".github/workflows/sync-mdic-defesa-comercial.yml"
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install parser dependencies
+        run: python -m pip install --disable-pip-version-check requests beautifulsoup4
+
+      - name: Sync official MDIC catalog
+        run: python scripts/sync-mdic-defesa-comercial.py
+
+      - name: Validate generated catalog
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('data/defesa-comercial-mdic.json')
+          data = json.loads(p.read_text(encoding='utf-8'))
+          assert len(data) >= 40, f'Expected at least 40 measures, got {len(data)}'
+          assert all(item.get('ncm') and item.get('origins') and item.get('sourceUrl') for item in data)
+          print(f'Validated {len(data)} antidumping measures')
+          PY
+
+      - name: Commit catalog changes
+        run: |
+          git config user.name "importafacil-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/defesa-comercial-mdic.json
+          if git diff --cached --quiet; then
+            echo "No catalog changes."
+          else
+            git commit -m "chore: sync official MDIC defense commercial catalog"
+            git push
+          fi
