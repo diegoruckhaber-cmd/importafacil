@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { resolveDefenseCommercial } from "../lib/defesa-comercial-resolver.ts";
-import { listDefenseCommercialExporters } from "../lib/defesa-comercial-catalog.ts";
+import { listDefenseCommercialExporters } from "../lib/defesa-comercial-registry.ts";
 
 const pending = resolveDefenseCommercial({ ncm: "40112090", origin: "China", importDate: "2026-08-17" });
 assert.equal(pending.status, "requires_input");
@@ -44,5 +44,10 @@ assert.ok(japan.warnings.some((warning) => warning.includes("suspensa")));
 
 const otherOrigin = resolveDefenseCommercial({ ncm: "40112090", origin: "México", importDate: "2026-08-17", weightKg: 1000, exchangeRate: 5.5 });
 assert.equal(otherOrigin.status, "not_applicable");
+
+const butanol = listDefenseCommercialExporters("29051300", "Estados Unidos da América", "2026-08-17");
+assert.ok(butanol, "n-Butanol / EUA deve encontrar medida antidumping");
+assert.ok((butanol?.options.length ?? 0) >= 5, "n-Butanol / EUA deve listar produtores/exportadores");
+assert.ok(butanol?.options.some((option) => option.rate === 9.8 && option.unit === "AD_VALOREM"));
 
 console.log("Defense commercial resolver/catalog: OK");

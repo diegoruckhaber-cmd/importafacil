@@ -6,6 +6,36 @@ const generated = (Array.isArray(generatedData) ? generatedData : []) as unknown
 const generatedKeys = new Set(generated.flatMap((measure) => measure.origins.map((origin) => `${measure.ncm}|${normalize(origin)}`)));
 export const DEFENSE_COMMERCIAL_MEASURES: GeneratedMeasure[] = [...generated, ...LEGACY_DEFENSE_COMMERCIAL_MEASURES.filter((measure) => !measure.origins.some((origin) => generatedKeys.has(`${measure.ncm}|${normalize(origin)}`)))];
 export { type DefenseCommercialExporterOption, type DefenseCommercialMeasure, type DefenseCommercialUnit };
-export function findDefenseCommercialMeasure(ncm: string, origin: string, importDate?: string) { const normalizedNcm=ncm.replace(/\D/g,""); const normalizedOrigin=normalize(origin); const candidates=DEFENSE_COMMERCIAL_MEASURES.filter((candidate)=>{const generatedCandidate=candidate as GeneratedMeasure; const matchesNcm=candidate.ncm===normalizedNcm||generatedCandidate.ncmPatterns?.some((pattern)=>normalizedNcm.startsWith(pattern)); const excluded=generatedCandidate.ncmExclusions?.some((item)=>item===normalizedNcm); return Boolean(matchesNcm&&!excluded&&candidate.origins.some((item)=>normalize(item)===normalizedOrigin));}); if(!candidates.length)return undefined; const selected=[...candidates].sort((a,b)=>Number(Boolean(b.exportersByOrigin[normalizedOrigin]?.length))-Number(Boolean(a.exportersByOrigin[normalizedOrigin]?.length)))[0]; return {...selected,importDate}; }
-export function listDefenseCommercialExporters(ncm:string,origin:string,importDate?:string){const measure=findDefenseCommercialMeasure(ncm,origin,importDate);if(!measure)return null;return {measure,options:measure.exportersByOrigin[normalize(origin)]??[]};}
-export function resolveDefenseCommercialExporter(ncm:string,origin:string,exporter?:string,importDate?:string){const result=listDefenseCommercialExporters(ncm,origin,importDate);if(!result)return undefined;const normalizedExporter=normalize(exporter??"");if(!normalizedExporter)return result.options.find((option)=>/demais|todas as empresas|todos os produtores/i.test(option.exporter))??result.options.at(-1);return result.options.find((option)=>normalize(option.exporter)===normalizedExporter);}
+
+function optionsForOrigin(measure: GeneratedMeasure, normalizedOrigin: string): DefenseCommercialExporterOption[] {
+  const entry = Object.entries(measure.exportersByOrigin).find(([origin]) => normalize(origin) === normalizedOrigin);
+  return entry?.[1] ?? [];
+}
+
+export function findDefenseCommercialMeasure(ncm: string, origin: string, importDate?: string) {
+  const normalizedNcm = ncm.replace(/\D/g, "");
+  const normalizedOrigin = normalize(origin);
+  const candidates = DEFENSE_COMMERCIAL_MEASURES.filter((candidate) => {
+    const generatedCandidate = candidate as GeneratedMeasure;
+    const matchesNcm = candidate.ncm === normalizedNcm || generatedCandidate.ncmPatterns?.some((pattern) => normalizedNcm.startsWith(pattern));
+    const excluded = generatedCandidate.ncmExclusions?.some((item) => item === normalizedNcm);
+    return Boolean(matchesNcm && !excluded && candidate.origins.some((item) => normalize(item) === normalizedOrigin));
+  });
+  if (!candidates.length) return undefined;
+  const selected = [...candidates].sort((a, b) => Number(Boolean(optionsForOrigin(b, normalizedOrigin).length)) - Number(Boolean(optionsForOrigin(a, normalizedOrigin).length)))[0];
+  return { ...selected, importDate };
+}
+
+export function listDefenseCommercialExporters(ncm: string, origin: string, importDate?: string) {
+  const measure = findDefenseCommercialMeasure(ncm, origin, importDate);
+  if (!measure) return null;
+  return { measure, options: optionsForOrigin(measure, normalize(origin)) };
+}
+
+export function resolveDefenseCommercialExporter(ncm: string, origin: string, exporter?: string, importDate?: string) {
+  const result = listDefenseCommercialExporters(ncm, origin, importDate);
+  if (!result) return undefined;
+  const normalizedExporter = normalize(exporter ?? "");
+  if (!normalizedExporter) return result.options.find((option) => /demais|todas as empresas|todos os produtores/i.test(option.exporter)) ?? result.options.at(-1);
+  return result.options.find((option) => normalize(option.exporter) === normalizedExporter);
+}
