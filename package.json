@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/sync-mdic-defesa-comercial.mjs",
     "build": "next build",
     "start": "next start",
     "test:engine": "node --experimental-strip-types scripts/test-tributary-engine.mjs",
