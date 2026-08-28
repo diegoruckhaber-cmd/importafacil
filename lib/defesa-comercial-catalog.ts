@@ -1,4 +1,4 @@
-export type DefenseCommercialUnit = "USD_PER_KG" | "USD_PER_TON" | "USD_PER_UNIT" | "USD_PER_THOUSAND_UNITS" | "AD_VALOREM";
+export type DefenseCommercialUnit = "USD_PER_KG" | "USD_PER_TON" | "USD_PER_UNIT" | "USD_PER_THOUSAND_UNITS" | "USD_PER_PAIR" | "USD_PER_SQUARE_METER" | "AD_VALOREM";
 
 export type DefenseCommercialExporterOption = {
   exporter: string;
