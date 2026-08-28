@@ -1,4 +1,4 @@
-import { resolveDefenseCommercialExporter, type DefenseCommercialUnit } from "./defesa-comercial-catalog";
+import { findDefenseCommercialMeasure, resolveDefenseCommercialExporter, type DefenseCommercialUnit } from "./defesa-comercial-catalog";
 
 export type DefenseCommercialInput = { ncm: string; origin: string; importDate: string; weightKg?: number; exporter?: string; exchangeRate?: number };
 export type DefenseCommercialResolution = {
@@ -20,8 +20,9 @@ export type DefenseCommercialResolution = {
 
 export function resolveDefenseCommercial(input: DefenseCommercialInput): DefenseCommercialResolution {
   const ncm = input.ncm.replace(/\D/g, "");
+  const measure = findDefenseCommercialMeasure(ncm, input.origin, input.importDate);
   const resolved = resolveDefenseCommercialExporter(ncm, input.origin, input.exporter, input.importDate);
-  if (!resolved) {
+  if (!measure || !resolved) {
     return {
       status: "not_applicable",
       product: "",
@@ -38,7 +39,7 @@ export function resolveDefenseCommercial(input: DefenseCommercialInput): Defense
   const exchange = Number(input.exchangeRate ?? 0);
   const warnings = [
     `Medida antidumping identificada para NCM ${ncm} originária de ${input.origin}.`,
-    resolved.measure.validityNote,
+    measure.validityNote,
   ];
 
   const exporter = resolved;
@@ -65,8 +66,8 @@ export function resolveDefenseCommercial(input: DefenseCommercialInput): Defense
   const canCalculate = Number.isFinite(weight) && weight > 0 && Number.isFinite(exchange) && exchange > 0 && !exporter.collectionSuspended;
   return {
     status: canCalculate ? "identified" : "requires_input",
-    measure: "antidumping",
-    product: resolved.measure.product,
+    measure: measure.measure,
+    product: measure.product,
     ncm,
     origin: input.origin,
     unit: exporter.unit,
@@ -75,8 +76,8 @@ export function resolveDefenseCommercial(input: DefenseCommercialInput): Defense
     exporter: exporter.exporter,
     exporterTreatment: isResidual ? "default_other_companies" : "specific_company",
     collectionSuspended: exporter.collectionSuspended,
-    legalFoundation: resolved.measure.legalFoundation,
-    source: resolved.measure.source,
+    legalFoundation: measure.legalFoundation,
+    source: measure.source,
     warnings,
   };
 }
