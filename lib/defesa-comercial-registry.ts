@@ -1,5 +1,4 @@
-import fs from "node:fs";
-import path from "node:path";
+import generatedData from "../data/defesa-comercial-mdic.json";
 import {
   DEFENSE_COMMERCIAL_MEASURES as LEGACY_DEFENSE_COMMERCIAL_MEASURES,
   type DefenseCommercialExporterOption,
@@ -7,31 +6,21 @@ import {
   type DefenseCommercialUnit,
 } from "./defesa-comercial-catalog";
 
-export const normalize = (value: string) =>
-  value.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+export const normalize = (value: string) => value.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-const GENERATED_PATH = path.join(process.cwd(), "data", "defesa-comercial-mdic.json");
+type GeneratedMeasure = DefenseCommercialMeasure & {
+  ncmPatterns?: string[];
+  ncmExclusions?: string[];
+  sourceUrl?: string;
+  collectionSuspended?: boolean;
+};
 
-function loadGeneratedMeasures(): DefenseCommercialMeasure[] {
-  try {
-    if (!fs.existsSync(GENERATED_PATH)) return [];
-    const parsed = JSON.parse(fs.readFileSync(GENERATED_PATH, "utf8"));
-    return Array.isArray(parsed) ? parsed as DefenseCommercialMeasure[] : [];
-  } catch {
-    return [];
-  }
-}
+const generated = (Array.isArray(generatedData) ? generatedData : []) as GeneratedMeasure[];
+const generatedKeys = new Set(generated.flatMap((measure) => measure.origins.map((origin) => `${measure.ncm}|${normalize(origin)}`)));
 
-const generated = loadGeneratedMeasures();
-const generatedKeys = new Set(
-  generated.flatMap((measure) => measure.origins.map((origin) => `${measure.ncm}|${normalize(origin)}`)),
-);
-
-export const DEFENSE_COMMERCIAL_MEASURES: DefenseCommercialMeasure[] = [
+export const DEFENSE_COMMERCIAL_MEASURES: GeneratedMeasure[] = [
   ...generated,
-  ...LEGACY_DEFENSE_COMMERCIAL_MEASURES.filter(
-    (measure) => !measure.origins.some((origin) => generatedKeys.has(`${measure.ncm}|${normalize(origin)}`)),
-  ),
+  ...LEGACY_DEFENSE_COMMERCIAL_MEASURES.filter((measure) => !measure.origins.some((origin) => generatedKeys.has(`${measure.ncm}|${normalize(origin)}`))),
 ];
 
 export { type DefenseCommercialExporterOption, type DefenseCommercialMeasure, type DefenseCommercialUnit };
@@ -39,9 +28,12 @@ export { type DefenseCommercialExporterOption, type DefenseCommercialMeasure, ty
 export function findDefenseCommercialMeasure(ncm: string, origin: string, importDate?: string) {
   const normalizedNcm = ncm.replace(/\D/g, "");
   const normalizedOrigin = normalize(origin);
-  const candidates = DEFENSE_COMMERCIAL_MEASURES.filter(
-    (candidate) => (candidate.ncm === normalizedNcm || (candidate as DefenseCommercialMeasure & { ncmVariants?: string[] }).ncmVariants?.includes(normalizedNcm)) && candidate.origins.some((item) => normalize(item) === normalizedOrigin),
-  );
+  const candidates = DEFENSE_COMMERCIAL_MEASURES.filter((candidate) => {
+    const generatedCandidate = candidate as GeneratedMeasure;
+    const matchesNcm = candidate.ncm === normalizedNcm || generatedCandidate.ncmPatterns?.some((pattern) => normalizedNcm.startsWith(pattern));
+    const excluded = generatedCandidate.ncmExclusions?.some((item) => item === normalizedNcm);
+    return Boolean(matchesNcm && !excluded && candidate.origins.some((item) => normalize(item) === normalizedOrigin));
+  });
   if (!candidates.length) return undefined;
   const selected = [...candidates].sort((a, b) => Number(Boolean(b.exportersByOrigin[normalizedOrigin]?.length)) - Number(Boolean(a.exportersByOrigin[normalizedOrigin]?.length)))[0];
   return { ...selected, importDate };
