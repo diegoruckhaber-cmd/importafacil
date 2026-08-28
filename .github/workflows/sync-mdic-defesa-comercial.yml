@@ -50,7 +50,7 @@ jobs:
           PY
 
       - name: Run defense commercial resolver tests
-        run: node --experimental-strip-types --experimental-specifier-resolution=node scripts/test-defesa-comercial-resolver.mjs
+        run: npx --yes tsx scripts/test-defesa-comercial-resolver.mjs
 
       - name: Commit catalog changes
         run: |
