@@ -4,7 +4,6 @@ import path from "node:path";
 const INDEX_URL = "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor";
 const OUTPUT = path.join(process.cwd(), "data", "defesa-comercial-mdic.json");
 const HEADERS = { "User-Agent": "ImportaFacil/1.0 (official MDIC catalog synchronizer)" };
-
 const UNIT_PATTERNS = [
   ["USD_PER_THOUSAND_UNITS", /(?:US\$|USD)\s*([\d.,]+)\s*\/\s*(?:mil\s*unidades|milheiro|milheiros)/i],
   ["USD_PER_KG", /(?:US\$|USD)\s*([\d.,]+)\s*\/\s*kg/i],
@@ -34,36 +33,33 @@ const HEADER_PATTERNS = [
 function clean(value) { return value.replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&").replace(/&#39;/gi, "'").replace(/&quot;/gi, '"').replace(/&lt;/gi, "<").replace(/&gt;/gi, ">").replace(/\s+/g, " ").trim(); }
 function number(value) { return Number(value.replace(/\./g, "").replace(",", ".")); }
 function origin(value) {
-  const x = clean(value).replace(/[\*,:;]+$/g, "").trim().toLowerCase();
+  const x = clean(value).replace(/^[\-–—•]+\s*/, "").replace(/\s*\([^)]*\)\s*$/g, "").replace(/[\*\.,:;]+$/g, "").trim().toLowerCase();
   const map = { "coréia": "Coreia do Sul", "coréia do sul": "Coreia do Sul", "coreia": "Coreia do Sul", "coreia do sul": "Coreia do Sul", "japao": "Japão", "japão": "Japão", "tailândia": "Tailândia", "tailandia": "Tailândia", "reino da tailândia": "Tailândia", "do reino da tailândia": "Tailândia", "taipé chinês": "Taipé Chinês", "taipe chines": "Taipé Chinês", "eua": "Estados Unidos da América", "estados unidos": "Estados Unidos da América", "estados unidos da américa": "Estados Unidos da América", "united states": "Estados Unidos da América", "holanda": "Países Baixos", "países baixos": "Países Baixos", "república popular da china": "China", "republica popular da china": "China", "da china": "China", "china": "China", "da malásia": "Malásia", "malásia": "Malásia", "malasia": "Malásia", "da ucrânia": "Ucrânia", "ucrânia": "Ucrânia", "ucrania": "Ucrânia", "união europeia": "União Europeia", "uniao europeia": "União Europeia" };
-  return map[x] ?? clean(value);
+  return map[x] ?? clean(value).replace(/^[\-–—•]+\s*/, "").replace(/[\*\.,:;]+$/g, "").trim();
 }
 function stripHtml(html) { return html.replace(/<script[\s\S]*?<\/script>/gi, "\n").replace(/<style[\s\S]*?<\/style>/gi, "\n").replace(/<br\s*\/?>/gi, "\n").replace(/<\/(?:p|div|li|tr|td|th|h1|h2|h3|h4|h5|h6)>/gi, "\n").replace(/<[^>]+>/g, " ").replace(/\r/g, "").split("\n").map(clean).filter(Boolean).join("\n"); }
 function linksFromIndex(html) { const urls = new Set(); for (const match of html.matchAll(/<a[^>]+href=["']([^"']+)["']/gi)) { const href = match[1].replace(/&amp;/g, "&"); if (href.includes("/medidas-em-vigor/medidas-em-vigor/") && href.startsWith("https://www.gov.br/")) urls.add(href.split("#")[0]); } return [...urls].filter((url) => url !== INDEX_URL && !url.endsWith("/medidas-em-vigor")); }
 function parseNcm(raw) { const patterns = [...raw.matchAll(/\d{4}(?:\.\d{2})?(?:\.\d{2})?/g)].map((m) => m[0].replace(/\D/g, "")); const exception = raw.match(/exceto\s*:\s*(.+)$/i); const exclusions = exception ? [...exception[1].matchAll(/\d{4}(?:\.\d{2})?(?:\.\d{2})?/g)].map((m) => m[0].replace(/\D/g, "")) : []; return { patterns: [...new Set(patterns)], exclusions }; }
 function detectHeaderUnit(text) { for (const [unit, pattern] of HEADER_PATTERNS) if (pattern.test(text)) return unit; return null; }
 function detectRate(cells, headerUnit) { const line = cells.join(" | "); for (const [unit, pattern] of [...UNIT_PATTERNS, ...SUFFIX_PATTERNS]) { const match = line.match(pattern); if (match) return { unit, rate: number(match[1]) }; } if (headerUnit) { for (let i = cells.length - 1; i >= 0; i--) { const cell = cells[i]; if (/prazo\s+(?:da|de)\s+vig[eê]ncia|vig[eê]ncia|^fonte/i.test(cell)) continue; const match = cell.match(/(?<![\d.,])([\d]{1,3}(?:\.\d{3})*(?:,\d+)?|[\d]+(?:,\d+)?)\s*%?\s*$/); if (match) return { unit: headerUnit, rate: number(match[1]) }; } } return null; }
-function addOption(options, currentOrigin, exporter, detected, line) { if (!currentOrigin || !detected || !Number.isFinite(detected.rate)) return; let cleanExporter = clean(exporter).replace(/^[-–—•:\s]+|[-–—•:\s]+$/g, "").trim().replace(/\s*\|\s*$/g, "").trim(); if (!cleanExporter || /^(Direito|Origem|Produtor\/Exportador)$/i.test(cleanExporter)) cleanExporter = "Todos os produtores/exportadores"; options[currentOrigin.toLowerCase()] ??= []; options[currentOrigin.toLowerCase()].push({ exporter: cleanExporter, rate: detected.rate, unit: detected.unit, collectionSuspended: /suspens/i.test(line) }); }
+function addOption(options, currentOrigin, exporter, detected, line) { if (!currentOrigin || !detected || !Number.isFinite(detected.rate)) return; let cleanExporter = clean(exporter).replace(/^[-–—•:\s]+|[-–—•:\s]+$/g, "").replace(/\s*\|\s*$/g, "").trim(); if (!cleanExporter || /^(Direito|Origem|Produtor\/Exportador)$/i.test(cleanExporter)) cleanExporter = "Todos os produtores/exportadores"; options[currentOrigin.toLowerCase()] ??= []; options[currentOrigin.toLowerCase()].push({ exporter: cleanExporter, rate: detected.rate, unit: detected.unit, collectionSuspended: /suspens/i.test(line) }); }
 function parsePage(url, html) {
   const text = stripHtml(html); const lines = text.split("\n").map(clean).filter(Boolean);
-  const type = lines.find((line) => /^Tipo de [Mm]edida:/i.test(line))?.replace(/^Tipo de [Mm]edida:\s*/i, "") ?? "";
-  if (!/antidumping/i.test(type)) return null;
-  const ncmRaw = lines.find((line) => /^NCM:/i.test(line))?.replace(/^NCM:\s*/i, "") ?? "";
-  const originsRaw = lines.find((line) => /^Pa[ií]s(?:es)? de [Oo]rigem:/i.test(line))?.replace(/^Pa[ií]s(?:es)? de [Oo]rigem:\s*/i, "") ?? "";
-  if (!ncmRaw || !originsRaw) return null;
-  const ncm = parseNcm(ncmRaw); if (!ncm.patterns.length) return null;
-  const origins = originsRaw.split(/,|;|\s+e\s+/).map(origin).filter(Boolean);
-  const validity = text.match(/Prazo (?:de|da) [Vv]ig[eê]ncia:?\s*(\d{2}\/\d{2}\/\d{4})/)?.[1] ?? null;
-  const suspended = /cobrança suspensa|medida suspensa/i.test(text);
-  const start = lines.findIndex((line) => /^Direito\s+Aplicado\s*:?$/i.test(line));
-  const end = start >= 0 ? lines.findIndex((line, index) => index > start && /^(?:Prazo\s+(?:de|da)\s+Vig[eê]ncia|Compartilhe|Fonte:)/i.test(line)) : -1;
-  const sectionLines = start >= 0 ? lines.slice(start + 1, end >= 0 ? end : undefined) : [];
-  const options = Object.fromEntries(origins.map((x) => [x.toLowerCase(), []])); let currentOrigin = origins.length === 1 ? origins[0] : null;
-  const headerUnit = detectHeaderUnit(sectionLines.slice(0, 4).join(" | "));
+  const type = lines.find((line) => /^Tipo de [Mm]edida:/i.test(line))?.replace(/^Tipo de [Mm]edida:\s*/i, "") ?? ""; if (!/antidumping/i.test(type)) return null;
+  const ncmRaw = lines.find((line) => /^NCM:/i.test(line))?.replace(/^NCM:\s*/i, "") ?? ""; const originsRaw = lines.find((line) => /^Pa[ií]s(?:es)? de [Oo]rigem:/i.test(line))?.replace(/^Pa[ií]s(?:es)? de [Oo]rigem:\s*/i, "") ?? "";
+  if (!ncmRaw || !originsRaw) return null; const ncm = parseNcm(ncmRaw); if (!ncm.patterns.length) return null;
+  const origins = originsRaw.split(/,|;|\s+e\s+/).map(origin).filter(Boolean); const validity = text.match(/Prazo (?:de|da) [Vv]ig[eê]ncia:?\s*(\d{2}\/\d{2}\/\d{4})/)?.[1] ?? null; const suspended = /cobrança suspensa|medida suspensa/i.test(text);
+  const sectionMatch = text.match(/Direito\s+Aplicado\s*:?\s*([\s\S]*?)(?=Prazo\s+(?:de|da)\s+Vig[eê]ncia|Compartilhe|Fonte:|$)/i); const sectionText = sectionMatch?.[1] ?? ""; const sectionLines = sectionText.split("\n").map(clean).filter(Boolean);
+  const options = Object.fromEntries(origins.map((x) => [x.toLowerCase(), []])); let currentOrigin = origins.length === 1 ? origins[0] : null; const headerUnit = detectHeaderUnit(sectionLines.slice(0, 8).join(" | "));
   for (const line of sectionLines) {
     if (/^(?:Fonte|Prazo|Resumo do Caso|Processos relacionados)\b/i.test(line)) continue;
     const cells = line.split(/\s*\|\s*/).map(clean).filter(Boolean);
-    for (const candidate of origins) { if (origin(line) === candidate || new RegExp(`(?:^|[|,;])\\s*${candidate.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}\\s*(?:[|,;]|$)`, "i").test(line)) currentOrigin = candidate; }
+    const normalizedLineOrigin = origin(line);
+    for (const candidate of origins) {
+      const normalizedCandidate = origin(candidate);
+      if (normalizedLineOrigin.toLowerCase() === normalizedCandidate.toLowerCase() || normalizedLineOrigin.toLowerCase().startsWith(`${normalizedCandidate.toLowerCase()}:`)) currentOrigin = candidate;
+      if (line.toLowerCase().includes(`${normalizedCandidate.toLowerCase()}:`)) currentOrigin = candidate;
+    }
     const detected = detectRate(cells.length ? cells : [line], headerUnit); if (!detected) continue;
     let exporter = "";
     if (cells.length >= 3) { const candidateOrigin = origin(cells[0]); if (options[candidateOrigin.toLowerCase()]) { currentOrigin = candidateOrigin; exporter = cells[cells.length - 2]; } else exporter = cells[0]; }
@@ -72,13 +68,11 @@ function parsePage(url, html) {
     addOption(options, currentOrigin, exporter, detected, line);
   }
   for (const key of Object.keys(options)) { const seen = new Set(); options[key] = options[key].filter((x) => { if (/prazo\s+(?:da|de)\s+vig[eê]ncia/i.test(x.exporter)) return false; const sig = `${x.exporter}|${x.rate}|${x.unit}`; if (seen.has(sig)) return false; seen.add(sig); return true; }); }
-  const legal = lines.filter((line) => /RESOLU[ÇC][AÃ]O\s+(?:GECEX|CAMEX)|CIRCULAR\s+SECEX/i.test(line)).slice(0, 8).join("; ");
-  return { ncm: ncm.patterns[0], ncmPatterns: ncm.patterns, ncmExclusions: ncm.exclusions, product: clean((html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i)?.[1] ?? "").replace(/<[^>]+>/g, " ")), origins, measure: "antidumping", measureTypeText: clean(type), legalFoundation: legal, source: "MDIC/SECEX — Medidas de defesa comercial em vigor", sourceUrl: url, validityNote: [validity ? `Prazo de vigência: ${validity}` : "", suspended ? "Cobrança suspensa." : ""].filter(Boolean).join(" "), validUntil: validity, collectionSuspended: suspended, exportersByOrigin: options, syncedAt: new Date().toISOString() };
+  const legal = lines.filter((line) => /RESOLU[ÇC][AÃ]O\s+(?:GECEX|CAMEX)|CIRCULAR\s+SECEX/i.test(line)).slice(0, 8).join("; "); const title = clean((html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i)?.[1] ?? "").replace(/<[^>]+>/g, " "));
+  return { ncm: ncm.patterns[0], ncmPatterns: ncm.patterns, ncmExclusions: ncm.exclusions, product: title, origins, measure: "antidumping", measureTypeText: clean(type), legalFoundation: legal, source: "MDIC/SECEX — Medidas de defesa comercial em vigor", sourceUrl: url, validityNote: [validity ? `Prazo de vigência: ${validity}` : "", suspended ? "Cobrança suspensa." : ""].filter(Boolean).join(" "), validUntil: validity, collectionSuspended: suspended, exportersByOrigin: options, syncedAt: new Date().toISOString() };
 }
 
 const response = await fetch(INDEX_URL, { headers: HEADERS }); if (!response.ok) throw new Error(`MDIC index HTTP ${response.status}`); const indexHtml = await response.text(); const urls = linksFromIndex(indexHtml); const measures = []; const failures = [];
 for (const url of urls) { try { const page = await fetch(url, { headers: HEADERS }); if (!page.ok) throw new Error(`HTTP ${page.status}`); const parsed = parsePage(url, await page.text()); if (parsed) measures.push(parsed); } catch (error) { failures.push({ url, error: String(error) }); } }
-if (measures.length < 40) throw new Error(`Crawl MDIC incompleto: ${measures.length} medidas extraídas de ${urls.length} páginas.`);
-measures.sort((a, b) => `${a.ncm}|${a.product}|${a.sourceUrl}`.localeCompare(`${b.ncm}|${b.product}|${b.sourceUrl}`)); fs.mkdirSync(path.dirname(OUTPUT), { recursive: true }); fs.writeFileSync(OUTPUT, `${JSON.stringify(measures, null, 2)}\n`, "utf8");
-const missing = measures.flatMap((item) => Object.entries(item.exportersByOrigin).filter(([, options]) => options.length === 0).map(([origin]) => ({ ncm: item.ncm, product: item.product, origin, sourceUrl: item.sourceUrl })));
-console.log(JSON.stringify({ indexPages: urls.length, antidumpingMeasures: measures.length, missingExporterOptionCount: missing.length, missingExporterOptions: missing, failures: failures.slice(0, 20) }, null, 2));
+if (measures.length < 40) throw new Error(`Crawl MDIC incompleto: ${measures.length} medidas extraídas de ${urls.length} páginas.`); measures.sort((a, b) => `${a.ncm}|${a.product}|${a.sourceUrl}`.localeCompare(`${b.ncm}|${b.product}|${b.sourceUrl}`)); fs.mkdirSync(path.dirname(OUTPUT), { recursive: true }); fs.writeFileSync(OUTPUT, `${JSON.stringify(measures, null, 2)}\n`, "utf8");
+const missing = measures.flatMap((item) => Object.entries(item.exportersByOrigin).filter(([, options]) => options.length === 0).map(([origin]) => ({ ncm: item.ncm, product: item.product, origin, sourceUrl: item.sourceUrl }))); console.log(JSON.stringify({ indexPages: urls.length, antidumpingMeasures: measures.length, missingExporterOptionCount: missing.length, missingExporterOptions: missing, failures: failures.slice(0, 20) }, null, 2));
