@@ -1,20 +1,33 @@
 import generatedData from "../data/defesa-comercial-mdic.json";
 import { DEFENSE_COMMERCIAL_MEASURES as LEGACY_DEFENSE_COMMERCIAL_MEASURES, type DefenseCommercialExporterOption, type DefenseCommercialMeasure, type DefenseCommercialUnit } from "./defesa-comercial-catalog";
 
-export const normalize = (value: string) => value.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+export const normalize = (value: string) => value.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\*,:;]+$/g, "").trim();
 
 const ORIGIN_ALIASES: Record<string, string> = {
-  "estados unidos": "estados unidos da america",
+  "coreia": "coreia do sul",
+  "coréia": "coreia do sul",
+  "coreia do sul": "coreia do sul",
+  "japao": "japao",
+  "japão": "japao",
+  "taipé chines": "taipe chines",
+  "taipe chines": "taipe chines",
   "eua": "estados unidos da america",
-  "usa": "estados unidos da america",
+  "estados unidos": "estados unidos da america",
   "united states": "estados unidos da america",
   "united states of america": "estados unidos da america",
+  "estados unidos da america": "estados unidos da america",
+  "republica popular da china": "china",
+  "republica popular da china": "china",
+  "da china": "china",
+  "do reino da tailandia": "tailandia",
+  "reino da tailandia": "tailandia",
+  "tailandia": "tailandia",
+  "da malasia": "malasia",
+  "malasia": "malasia",
+  "uniao europeia": "uniao europeia",
 };
 
-export const normalizeOrigin = (value: string) => {
-  const normalized = normalize(value);
-  return ORIGIN_ALIASES[normalized] ?? normalized;
-};
+export const normalizeOrigin = (value: string) => ORIGIN_ALIASES[normalize(value)] ?? normalize(value);
 
 type GeneratedMeasure = DefenseCommercialMeasure & { ncmPatterns?: string[]; ncmExclusions?: string[]; sourceUrl?: string; collectionSuspended?: boolean };
 const generated = (Array.isArray(generatedData) ? generatedData : []) as unknown as GeneratedMeasure[];
