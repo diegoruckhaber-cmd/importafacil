@@ -28,8 +28,8 @@ export async function POST(request: Request) {
     if (ncm.length !== 8) throw new Error("Informe uma NCM válida com 8 dígitos."); if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error("Informe uma data de importação válida.");
     const numericInputs: Array<[string, number]> = [["Quantidade", quantity],["Peso líquido", weightKg],["FOB unitário", fobUnit],["Câmbio", exchange],["Frete", freight],["Seguro", insurance],["Armazenagem", storage],["Outras despesas", otherBrl],["ICMS normal", icms]];
     for (const [label, value] of numericInputs) if (!Number.isFinite(value) || value < 0) throw new Error(`${label} inválido.`); if (icms >= 100) throw new Error("ICMS deve ser inferior a 100%.");
-    const federal = loadFederal(ncm, date); const customsValue = quantity * fobUnit * exchange; const itemId = "ITEM-001";
-    const defense = resolveDefenseCommercial({ ncm, origin, importDate: date, weightKg: weightKg > 0 ? weightKg : undefined, quantity: quantity > 0 ? quantity : undefined, exporter: typeof body.exporter === "string" ? body.exporter : undefined, exchangeRate: exchange, customsValueBrl: customsValue });
+    const federal = loadFederal(ncm, date); const merchandiseValueBrl = quantity * fobUnit * exchange; const customsValue = merchandiseValueBrl; const customsValueForDefense = merchandiseValueBrl + freight * exchange + insurance * exchange; const itemId = "ITEM-001";
+    const defense = resolveDefenseCommercial({ ncm, origin, importDate: date, weightKg: weightKg > 0 ? weightKg : undefined, quantity: quantity > 0 ? quantity : undefined, exporter: typeof body.exporter === "string" ? body.exporter : undefined, exchangeRate: exchange, customsValueBrl: customsValueForDefense });
     const additionalCharges = resolveSCImportAdditionalCharges({ freightBrl: freight * exchange, transportMode, declarationType, additions: 1 });
     const defenseCommercialBrl = defense.amountBrl ?? 0;
     const benefitsByItem: Record<string, ReturnType<typeof resolveSCBenefit>> = {}; let scDecision: ReturnType<typeof decideSCItem> | null = null;
