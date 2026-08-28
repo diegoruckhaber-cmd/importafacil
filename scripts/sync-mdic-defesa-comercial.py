@@ -130,6 +130,9 @@ def parse_options(soup, text, origins):
         for cells in rows[1:]:
             if len(cells) < 2:
                 continue
+            row_text = " | ".join(cells)
+            if re.search(r"prazo|vig[eê]ncia", row_text, re.I):
+                continue
             detected = detect_rate(cells, header_unit)
             if not detected or detected[1] is None:
                 continue
@@ -156,15 +159,21 @@ def parse_options(soup, text, origins):
                 "exporter": exporter,
                 "rate": rate,
                 "unit": unit,
-                "collectionSuspended": "suspens" in " | ".join(cells).lower(),
+                "collectionSuspended": "suspens" in row_text.lower(),
             })
 
-    section = re.search(r"Direito\s+(?:Aplicado|aplicado)\s*:?(.+?)(?=Prazo\s+(?:de\s+)?vig[eê]ncia|Processos relacionados|Resumo do Caso|Compartilhe|$)", text, re.I | re.S)
+    section = re.search(r"Direito\s+(?:Aplicado|aplicado)\s*:?(.+?)(?=Prazo\s+(?:de|da)\s+[Vv]ig[eê]ncia|Processos relacionados|Resumo do Caso|Compartilhe|$)", text, re.I | re.S)
     if section:
         section_text = section.group(1)
         section_unit = detect_header_unit(section_text)
         lines = [clean_text(x) for x in section_text.splitlines() if clean_text(x)]
         for line in lines:
+            if re.search(r"prazo|vig[eê]ncia", line, re.I):
+                continue
+            origin_heading = next((candidate for candidate in origins if normalize_origin(line) == candidate), None)
+            if origin_heading:
+                current_origin = origin_heading
+                continue
             detected = detect_rate([line], section_unit)
             if not detected or detected[1] is None:
                 continue
