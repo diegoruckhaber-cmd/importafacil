@@ -1,0 +1,203 @@
+#!/usr/bin/env python3
+import json
+import re
+import time
+from datetime import datetime, timezone
+from urllib.parse import urljoin, urlparse
+
+import requests
+from bs4 import BeautifulSoup
+
+INDEX_URL = "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor"
+OUTPUT = "data/defesa-comercial-mdic.json"
+BASE_HOST = "www.gov.br"
+HEADERS = {"User-Agent": "ImportaFacil/1.0 (official MDIC catalog synchronizer)"}
+
+UNIT_PATTERNS = [
+    ("USD_PER_THOUSAND_UNITS", re.compile(r"(?:US\$|USD)\s*([\d.,]+)\s*/\s*(?:mil\s*unidades|milheiro|milheiros)", re.I)),
+    ("USD_PER_KG", re.compile(r"(?:US\$|USD)\s*([\d.,]+)\s*/\s*kg", re.I)),
+    ("USD_PER_TON", re.compile(r"(?:US\$|USD)\s*([\d.,]+)\s*/\s*(?:t|ton|tonelada|toneladas)", re.I)),
+    ("USD_PER_PAIR", re.compile(r"(?:US\$|USD)\s*([\d.,]+)\s*/\s*par", re.I)),
+    ("USD_PER_UNIT", re.compile(r"(?:US\$|USD)\s*([\d.,]+)\s*/\s*(?:unidade|unidades|un)", re.I)),
+    ("AD_VALOREM", re.compile(r"([\d.,]+)\s*%")),
+]
+
+
+def number(value):
+    value = value.strip().replace(".", "").replace(",", ".")
+    try:
+        return float(value)
+    except ValueError:
+        return None
+
+
+def clean_text(text):
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def normalize_origin(value):
+    value = clean_text(value).lower()
+    replacements = {
+        "coreia do sul": "Coreia do Sul", "coréia do sul": "Coreia do Sul",
+        "tailândia": "Tailândia", "taipé chinês": "Taipé Chinês",
+        "eua": "Estados Unidos da América", "estados unidos": "Estados Unidos da América",
+        "estados unidos da américa": "Estados Unidos da América", "holanda": "Países Baixos",
+        "países baixos": "Países Baixos",
+    }
+    return replacements.get(value, value.title())
+
+
+def split_origins(value):
+    value = re.sub(r"\([^)]*\)", "", value)
+    parts = re.split(r",|;|\s+e\s+", value)
+    return [normalize_origin(x) for x in parts if x.strip()]
+
+
+def parse_ncm_patterns(raw):
+    patterns = []
+    exclusions = []
+    for match in re.finditer(r"\d{4}(?:\.\d{2})?(?:\.\d{2})?", raw):
+        patterns.append(re.sub(r"\D", "", match.group(0)))
+    for match in re.finditer(r"(\d{4})\s+a\s+(\d{4})", raw, re.I):
+        start, end = int(match.group(1)), int(match.group(2))
+        for chapter in range(start, end + 1):
+            patterns.append(str(chapter))
+    exception = re.search(r"exceto\s*:\s*(.+)$", raw, re.I)
+    if exception:
+        exclusions = [re.sub(r"\D", "", x) for x in re.findall(r"\d{4}(?:\.\d{2})?(?:\.\d{2})?", exception.group(1))]
+    return list(dict.fromkeys(patterns)), exclusions
+
+
+def parse_options(soup, text, origins):
+    options = {origin.lower(): [] for origin in origins}
+    current_origin = origins[0] if len(origins) == 1 else None
+
+    for table in soup.find_all("table"):
+        rows = []
+        for tr in table.find_all("tr"):
+            cells = [clean_text(c.get_text(" ", strip=True)) for c in tr.find_all(["th", "td"])]
+            if cells: rows.append(cells)
+        header = " ".join(rows[0]).lower() if rows else ""
+        if not rows or "direito" not in header or not any(k in header for k in ("produtor", "exportador", "origem")):
+            continue
+        for cells in rows[1:]:
+            line = " | ".join(cells)
+            detected = None
+            for unit, pattern in UNIT_PATTERNS:
+                m = pattern.search(line)
+                if m:
+                    detected = (unit, number(m.group(1)))
+                    break
+            if not detected or detected[1] is None: continue
+            unit, rate = detected
+            origin = normalize_origin(cells[0]) if len(cells) >= 3 else current_origin
+            if origin and origin.lower() not in options: origin = current_origin
+            exporter = cells[1] if len(cells) >= 3 else cells[0]
+            if origin and exporter:
+                options.setdefault(origin.lower(), []).append({"exporter": exporter, "rate": rate, "unit": unit, "collectionSuspended": "suspens" in line.lower()})
+                current_origin = origin
+
+    section = re.search(r"Direito\s+(?:Aplicado|aplicado)\s*:?(.+?)(?=Prazo\s+(?:de\s+)?vig[eê]ncia|Processos relacionados|Resumo do Caso|Compartilhe|$)", text, re.I | re.S)
+    if section:
+        lines = [clean_text(x) for x in section.group(1).splitlines() if clean_text(x)]
+        for line in lines:
+            detected = None
+            for unit, pattern in UNIT_PATTERNS:
+                m = pattern.search(line)
+                if m:
+                    detected = (unit, number(m.group(1)))
+                    break
+            if not detected or detected[1] is None: continue
+            unit, rate = detected
+            origin = current_origin
+            for candidate in origins:
+                if re.search(r"\b" + re.escape(candidate) + r"\b", line, re.I):
+                    origin = candidate
+                    current_origin = candidate
+                    break
+            if not origin: continue
+            exporter = re.sub(r"(?:US\$|USD)\s*[\d.,]+\s*/\s*\S+", "", line, flags=re.I)
+            exporter = re.sub(r"[\d.,]+\s*%", "", exporter)
+            exporter = re.sub(r"^[-–—•:\s]+|[-–—•:\s]+$", "", exporter).strip()
+            if exporter:
+                options.setdefault(origin.lower(), []).append({"exporter": exporter, "rate": rate, "unit": unit, "collectionSuspended": "suspens" in line.lower()})
+
+    for key, values in list(options.items()):
+        seen, deduped = set(), []
+        for item in values:
+            signature = (item["exporter"].lower(), item["rate"], item["unit"])
+            if signature not in seen:
+                seen.add(signature); deduped.append(item)
+        options[key] = deduped
+    return options
+
+
+def parse_page(url, html):
+    soup = BeautifulSoup(html, "html.parser")
+    h1 = soup.find("h1")
+    title = clean_text(h1.get_text(" ", strip=True)) if h1 else ""
+    text = soup.get_text("\n", strip=True)
+    type_match = re.search(r"Tipo de [Mm]edida:\s*([^\n]+)", text)
+    if not type_match or "antidumping" not in type_match.group(1).lower(): return None
+    ncm_match = re.search(r"NCM:\s*([^\n]+)", text, re.I)
+    if not ncm_match: return None
+    ncm_patterns, exclusions = parse_ncm_patterns(ncm_match.group(1))
+    if not ncm_patterns: return None
+    origin_match = re.search(r"Pa[ií]s(?:es)? de [Oo]rigem:\s*([^\n]+)", text, re.I)
+    if not origin_match: return None
+    origins = split_origins(origin_match.group(1))
+    validity_match = re.search(r"Prazo (?:de|da) [Vv]ig[eê]ncia:?\s*([0-9]{2}/[0-9]{2}/[0-9]{4})", text)
+    validity = validity_match.group(1) if validity_match else None
+    suspended = "cobrança suspensa" in text.lower() or "medida suspensa" in text.lower()
+    options = parse_options(soup, text, origins)
+    legal = []
+    for line in text.splitlines():
+        if re.search(r"RESOLU[ÇC][AÃ]O\s+(?:GECEX|CAMEX)|CIRCULAR\s+SECEX", line, re.I):
+            legal.append(clean_text(line))
+        if len(legal) >= 8: break
+    return {
+        "ncm": ncm_patterns[0],
+        "ncmPatterns": ncm_patterns,
+        "ncmExclusions": exclusions,
+        "product": title,
+        "origins": origins,
+        "measure": "antidumping",
+        "measureTypeText": clean_text(type_match.group(1)),
+        "legalFoundation": "; ".join(legal),
+        "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+        "sourceUrl": url,
+        "validityNote": clean_text(" ".join(x for x in [f"Prazo de vigência: {validity}" if validity else "", "Cobrança suspensa." if suspended else ""] if x)),
+        "validUntil": validity,
+        "collectionSuspended": suspended,
+        "exportersByOrigin": {origin.lower(): options.get(origin.lower(), []) for origin in origins},
+        "syncedAt": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+def main():
+    session = requests.Session(); session.headers.update(HEADERS)
+    index = session.get(INDEX_URL, timeout=60); index.raise_for_status()
+    soup = BeautifulSoup(index.text, "html.parser")
+    urls = []
+    for anchor in soup.find_all("a", href=True):
+        url = urljoin(INDEX_URL, anchor["href"]); parsed = urlparse(url)
+        if parsed.netloc != BASE_HOST or "/medidas-em-vigor/medidas-em-vigor/" not in parsed.path or url.rstrip("/") == INDEX_URL.rstrip("/"): continue
+        if url not in urls: urls.append(url)
+    measures, failures = [], []
+    for url in urls:
+        try:
+            response = session.get(url, timeout=60); response.raise_for_status()
+            item = parse_page(url, response.text)
+            if item: measures.append(item)
+        except Exception as exc:
+            failures.append({"url": url, "error": str(exc)})
+        time.sleep(0.12)
+    if len(measures) < 40:
+        raise RuntimeError(f"Crawl incompleto: {len(measures)} medidas extraídas de {len(urls)} páginas.")
+    measures.sort(key=lambda x: (x["ncm"], x["product"], x["sourceUrl"]))
+    with open(OUTPUT, "w", encoding="utf-8") as fh:
+        json.dump(measures, fh, ensure_ascii=False, indent=2); fh.write("\n")
+    print(json.dumps({"indexPages": len(urls), "antidumpingMeasures": len(measures), "failures": failures[:20]}, ensure_ascii=False, indent=2))
+
+
+if __name__ == "__main__": main()
