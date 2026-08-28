@@ -22,6 +22,14 @@ UNIT_PATTERNS = [
     ("AD_VALOREM", re.compile(r"([\d.,]+)\s*%")),
 ]
 
+SUFFIX_UNIT_PATTERNS = [
+    ("USD_PER_THOUSAND_UNITS", re.compile(r"([\d.,]+)\s*(?:US\$|USD)\s*/\s*(?:mil\s*unidades|milheiro|milheiros)", re.I)),
+    ("USD_PER_KG", re.compile(r"([\d.,]+)\s*(?:US\$|USD)\s*/\s*kg", re.I)),
+    ("USD_PER_TON", re.compile(r"([\d.,]+)\s*(?:US\$|USD)\s*/\s*(?:t|ton|tonelada|toneladas)", re.I)),
+    ("USD_PER_PAIR", re.compile(r"([\d.,]+)\s*(?:US\$|USD)\s*/\s*par", re.I)),
+    ("USD_PER_UNIT", re.compile(r"([\d.,]+)\s*(?:US\$|USD)\s*/\s*(?:unidade|unidades|un)", re.I)),
+]
+
 HEADER_UNIT_PATTERNS = [
     ("USD_PER_THOUSAND_UNITS", re.compile(r"(?:US\$|USD)\s*/\s*(?:mil\s*unidades|milheiro|milheiros)", re.I)),
     ("USD_PER_KG", re.compile(r"(?:US\$|USD)\s*/\s*kg", re.I)),
@@ -45,13 +53,22 @@ def clean_text(text):
 
 
 def normalize_origin(value):
-    value = clean_text(value).lower()
+    value = clean_text(value)
+    value = re.sub(r"\([^)]*\)", "", value)
+    value = re.sub(r"[\*,:;]+$", "", value).strip().lower()
     replacements = {
-        "coreia do sul": "Coreia do Sul", "coréia do sul": "Coreia do Sul",
-        "tailândia": "Tailândia", "taipé chinês": "Taipé Chinês",
+        "coreia": "Coreia do Sul", "coreia do sul": "Coreia do Sul", "coréia do sul": "Coreia do Sul",
+        "japao": "Japão", "japão": "Japão",
+        "tailândia": "Tailândia", "tailandia": "Tailândia", "reino da tailândia": "Tailândia", "do reino da tailândia": "Tailândia",
+        "taipé chinês": "Taipé Chinês", "taipe chines": "Taipé Chinês",
         "eua": "Estados Unidos da América", "estados unidos": "Estados Unidos da América",
-        "estados unidos da américa": "Estados Unidos da América", "holanda": "Países Baixos",
-        "países baixos": "Países Baixos",
+        "estados unidos da américa": "Estados Unidos da América", "united states": "Estados Unidos da América",
+        "união europeia": "União Europeia", "uniao europeia": "União Europeia",
+        "holanda": "Países Baixos", "países baixos": "Países Baixos",
+        "república popular da china": "China", "republica popular da china": "China",
+        "da china": "China", "china": "China",
+        "da malásia": "Malásia", "malásia": "Malásia", "malasia": "Malásia",
+        "da ucrânia": "Ucrânia", "ucrânia": "Ucrânia", "ucrania": "Ucrânia",
     }
     return replacements.get(value, value.title())
 
@@ -99,8 +116,14 @@ def detect_rate(cells, header_unit=None):
             m = pattern.search(line)
             if m:
                 return unit, number(m.group(1))
+    for unit, pattern in SUFFIX_UNIT_PATTERNS:
+        m = pattern.search(line)
+        if m:
+            return unit, number(m.group(1))
     if header_unit:
         for cell in reversed(cells):
+            if re.search(r"prazo|vig[eê]ncia", cell, re.I):
+                continue
             match = re.search(r"(?<![\d.,])([\d]{1,3}(?:\.\d{3})*(?:,\d+)?|[\d]+(?:,\d+)?)\s*$", cell)
             if match:
                 rate = number(match.group(1))
@@ -167,15 +190,19 @@ def parse_options(soup, text, origins):
         section_text = section.group(1)
         section_unit = detect_header_unit(section_text)
         lines = [clean_text(x) for x in section_text.splitlines() if clean_text(x)]
+        pending_exporter = None
         for line in lines:
             if re.search(r"prazo|vig[eê]ncia", line, re.I):
                 continue
             origin_heading = next((candidate for candidate in origins if normalize_origin(line) == candidate), None)
             if origin_heading:
                 current_origin = origin_heading
+                pending_exporter = None
                 continue
             detected = detect_rate([line], section_unit)
             if not detected or detected[1] is None:
+                if line.startswith(("-", "–", "—", "•")) or (current_origin and not re.search(r"direito|fonte|elaboração", line, re.I)):
+                    pending_exporter = re.sub(r"^[-–—•:\s]+", "", line).strip()
                 continue
             unit, rate = detected
             origin = current_origin
@@ -190,8 +217,11 @@ def parse_options(soup, text, origins):
             exporter = re.sub(r"[\d.,]+\s*%", "", exporter)
             exporter = re.sub(r"[\d]{1,3}(?:\.\d{3})*(?:,\d+)?\s*$", "", exporter)
             exporter = re.sub(r"^[-–—•:\s]+|[-–—•:\s]+$", "", exporter).strip()
+            if not exporter and pending_exporter:
+                exporter = pending_exporter
             if exporter:
                 options.setdefault(origin.lower(), []).append({"exporter": exporter, "rate": rate, "unit": unit, "collectionSuspended": "suspens" in line.lower()})
+            pending_exporter = None
 
     for key, values in list(options.items()):
         seen, deduped = set(), []
@@ -224,6 +254,8 @@ def parse_page(url, html):
     origins = split_origins(origin_match.group(1))
     validity_match = re.search(r"Prazo (?:de|da) [Vv]ig[eê]ncia:?\s*([0-9]{2}/[0-9]{2}/[0-9]{4})", text)
     validity = validity_match.group(1) if validity_match else None
+    if re.search(r"prazo\s+(?:da|de)\s+vig[eê]ncia\s*:\s*encerrada|\(medida encerrada\)", text, re.I):
+        return None
     suspended = "cobrança suspensa" in text.lower() or "medida suspensa" in text.lower()
     options = parse_options(soup, text, origins)
     legal = []
