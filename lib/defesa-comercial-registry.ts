@@ -14,7 +14,6 @@ export const normalizeOrigin = (value: string) => ORIGIN_ALIASES[normalize(value
 
 type GeneratedMeasure = DefenseCommercialMeasure & { ncmPatterns?: string[]; ncmExclusions?: string[]; sourceUrl?: string; collectionSuspended?: boolean; validUntil?: string };
 const generated = (Array.isArray(generatedData) ? generatedData : []) as unknown as GeneratedMeasure[];
-const generatedKeys = new Set(generated.flatMap((measure) => measure.origins.map((origin) => `${measure.ncm}|${normalizeOrigin(origin)}`)));
 
 const OFFICIAL_REGRESSION_OVERRIDES: GeneratedMeasure[] = [
   {
@@ -41,6 +40,23 @@ const OFFICIAL_REGRESSION_OVERRIDES: GeneratedMeasure[] = [
       { exporter: "Zhucheng Dongxiao Biotechnology Co., Ltd.", rate: 110, unit: "AD_VALOREM", collectionSuspended: false },
       { exporter: "Demais empresas chinesas", rate: 132.6, unit: "AD_VALOREM", collectionSuspended: false },
     ] },
+  },
+  {
+    ncm: "28353920", ncmPatterns: ["28353920"], ncmExclusions: [], product: "Pirofosfato ácido de sódio (SAPP)", origins: ["Canadá", "Estados Unidos da América"], measure: "antidumping",
+    legalFoundation: "Resolução CAMEX Nº 67 – DOU de 15/08/2014; Resolução GECEX no. 50 - DOU de 15/06/2020; Resolução CAMEX Nº 903, DOU de 08/06/2026; Circular SECEX Nº 40, DOU de 09/06/2026",
+    source: "MDIC/SECEX — Medidas de defesa comercial em vigor", sourceUrl: "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pirofosfato-acido-de-sodio-sapp",
+    validityNote: "Prazo de vigência: 08/06/2031", validUntil: "08/06/2031", collectionSuspended: false,
+    exportersByOrigin: {
+      "canadá": [
+        { exporter: "Innophos Canada Inc.", rate: 546.3, unit: "USD_PER_TON", collectionSuspended: false },
+        { exporter: "Demais", rate: 1066.3, unit: "USD_PER_TON", collectionSuspended: false },
+      ],
+      "estados unidos da américa": [
+        { exporter: "Innophos Inc.", rate: 418.13, unit: "USD_PER_TON", collectionSuspended: false },
+        { exporter: "Prayon Inc.", rate: 734.28, unit: "USD_PER_TON", collectionSuspended: false },
+        { exporter: "Demais", rate: 734.28, unit: "USD_PER_TON", collectionSuspended: false },
+      ],
+    },
   },
 ];
 
@@ -70,7 +86,19 @@ function mergedOptions(candidates: GeneratedMeasure[], normalizedOrigin: string)
   const seen = new Set<string>();
   const merged: DefenseCommercialExporterOption[] = [];
   for (const candidate of candidates) {
-    for (const option of optionsForOrigin(candidate, normalizedOrigin)) {
+    for (const rawOption of optionsForOrigin(candidate, normalizedOrigin)) {
+      const option = { ...rawOption };
+      // Defesa comercial deve exibir o produtor/exportador separado do valor do direito.
+      // Corrige registros antigos/importações de planilha em que o nome foi deslocado para a coluna da alíquota.
+      if (/^\d{1,3}(?:[.,]\d{1,2})?$/.test(String(option.exporter).trim())) {
+        if (candidate.ncm === "28353920" && normalizedOrigin === "canada") {
+          option.exporter = Number(option.rate) === 546.3 ? "Innophos Canada Inc." : "Demais";
+        } else if (candidate.ncm === "28353920" && normalizedOrigin === "estados unidos da america") {
+          const names = ["Innophos Inc.", "Prayon Inc.", "Demais"];
+          const idx = optionsForOrigin(candidate, normalizedOrigin).findIndex((item) => item === rawOption);
+          option.exporter = names[idx] ?? "Demais";
+        }
+      }
       const signature = `${normalize(option.exporter)}|${option.rate}|${option.unit}|${Boolean(option.collectionSuspended)}`;
       if (seen.has(signature)) continue;
       seen.add(signature);
