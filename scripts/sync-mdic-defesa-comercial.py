@@ -22,6 +22,15 @@ UNIT_PATTERNS = [
     ("AD_VALOREM", re.compile(r"([\d.,]+)\s*%")),
 ]
 
+HEADER_UNIT_PATTERNS = [
+    ("USD_PER_THOUSAND_UNITS", re.compile(r"(?:US\$|USD)\s*/\s*(?:mil\s*unidades|milheiro|milheiros)", re.I)),
+    ("USD_PER_KG", re.compile(r"(?:US\$|USD)\s*/\s*kg", re.I)),
+    ("USD_PER_TON", re.compile(r"(?:US\$|USD)\s*/\s*(?:t|ton|tonelada|toneladas)", re.I)),
+    ("USD_PER_PAIR", re.compile(r"(?:US\$|USD)\s*/\s*par", re.I)),
+    ("USD_PER_UNIT", re.compile(r"(?:US\$|USD)\s*/\s*(?:unidade|unidades|un)", re.I)),
+    ("AD_VALOREM", re.compile(r"ad\s*valorem|%", re.I)),
+]
+
 
 def number(value):
     value = value.strip().replace(".", "").replace(",", ".")
@@ -68,6 +77,38 @@ def parse_ncm_patterns(raw):
     return list(dict.fromkeys(patterns)), exclusions
 
 
+def detect_unit(text):
+    for unit, pattern in UNIT_PATTERNS:
+        if pattern.search(text):
+            return unit
+    return None
+
+
+def detect_header_unit(text):
+    for unit, pattern in HEADER_UNIT_PATTERNS:
+        if pattern.search(text):
+            return unit
+    return None
+
+
+def detect_rate(cells, header_unit=None):
+    line = " | ".join(cells)
+    detected = detect_unit(line)
+    if detected:
+        for unit, pattern in UNIT_PATTERNS:
+            m = pattern.search(line)
+            if m:
+                return unit, number(m.group(1))
+    if header_unit:
+        for cell in reversed(cells):
+            match = re.search(r"(?<![\d.,])([\d]{1,3}(?:\.\d{3})*(?:,\d+)?|[\d]+(?:,\d+)?)\s*$", cell)
+            if match:
+                rate = number(match.group(1))
+                if rate is not None:
+                    return header_unit, rate
+    return None
+
+
 def parse_options(soup, text, origins):
     options = {origin.lower(): [] for origin in origins}
     current_origin = origins[0] if len(origins) == 1 else None
@@ -76,38 +117,57 @@ def parse_options(soup, text, origins):
         rows = []
         for tr in table.find_all("tr"):
             cells = [clean_text(c.get_text(" ", strip=True)) for c in tr.find_all(["th", "td"])]
-            if cells: rows.append(cells)
-        header = " ".join(rows[0]).lower() if rows else ""
-        if not rows or "direito" not in header or not any(k in header for k in ("produtor", "exportador", "origem")):
+            if cells:
+                rows.append(cells)
+        if not rows:
             continue
+
+        header = " | ".join(rows[0]).lower()
+        if "direito" not in header or not any(k in header for k in ("produtor", "exportador", "origem")):
+            continue
+        header_unit = detect_header_unit(header)
+
         for cells in rows[1:]:
-            line = " | ".join(cells)
-            detected = None
-            for unit, pattern in UNIT_PATTERNS:
-                m = pattern.search(line)
-                if m:
-                    detected = (unit, number(m.group(1)))
-                    break
-            if not detected or detected[1] is None: continue
+            if len(cells) < 2:
+                continue
+            detected = detect_rate(cells, header_unit)
+            if not detected or detected[1] is None:
+                continue
             unit, rate = detected
-            origin = normalize_origin(cells[0]) if len(cells) >= 3 else current_origin
-            if origin and origin.lower() not in options: origin = current_origin
+
+            origin_cell = cells[0].strip() if len(cells) >= 3 else ""
+            if origin_cell:
+                origin = normalize_origin(origin_cell)
+                if origin.lower() not in options:
+                    origin = current_origin
+                else:
+                    current_origin = origin
+            else:
+                origin = current_origin
+
+            if not origin:
+                continue
+
             exporter = cells[1] if len(cells) >= 3 else cells[0]
-            if origin and exporter:
-                options.setdefault(origin.lower(), []).append({"exporter": exporter, "rate": rate, "unit": unit, "collectionSuspended": "suspens" in line.lower()})
-                current_origin = origin
+            if not exporter:
+                continue
+
+            options.setdefault(origin.lower(), []).append({
+                "exporter": exporter,
+                "rate": rate,
+                "unit": unit,
+                "collectionSuspended": "suspens" in " | ".join(cells).lower(),
+            })
 
     section = re.search(r"Direito\s+(?:Aplicado|aplicado)\s*:?(.+?)(?=Prazo\s+(?:de\s+)?vig[eê]ncia|Processos relacionados|Resumo do Caso|Compartilhe|$)", text, re.I | re.S)
     if section:
-        lines = [clean_text(x) for x in section.group(1).splitlines() if clean_text(x)]
+        section_text = section.group(1)
+        section_unit = detect_header_unit(section_text)
+        lines = [clean_text(x) for x in section_text.splitlines() if clean_text(x)]
         for line in lines:
-            detected = None
-            for unit, pattern in UNIT_PATTERNS:
-                m = pattern.search(line)
-                if m:
-                    detected = (unit, number(m.group(1)))
-                    break
-            if not detected or detected[1] is None: continue
+            detected = detect_rate([line], section_unit)
+            if not detected or detected[1] is None:
+                continue
             unit, rate = detected
             origin = current_origin
             for candidate in origins:
@@ -115,9 +175,11 @@ def parse_options(soup, text, origins):
                     origin = candidate
                     current_origin = candidate
                     break
-            if not origin: continue
+            if not origin:
+                continue
             exporter = re.sub(r"(?:US\$|USD)\s*[\d.,]+\s*/\s*\S+", "", line, flags=re.I)
             exporter = re.sub(r"[\d.,]+\s*%", "", exporter)
+            exporter = re.sub(r"[\d]{1,3}(?:\.\d{3})*(?:,\d+)?\s*$", "", exporter)
             exporter = re.sub(r"^[-–—•:\s]+|[-–—•:\s]+$", "", exporter).strip()
             if exporter:
                 options.setdefault(origin.lower(), []).append({"exporter": exporter, "rate": rate, "unit": unit, "collectionSuspended": "suspens" in line.lower()})
@@ -127,7 +189,8 @@ def parse_options(soup, text, origins):
         for item in values:
             signature = (item["exporter"].lower(), item["rate"], item["unit"])
             if signature not in seen:
-                seen.add(signature); deduped.append(item)
+                seen.add(signature)
+                deduped.append(item)
         options[key] = deduped
     return options
 
@@ -138,13 +201,17 @@ def parse_page(url, html):
     title = clean_text(h1.get_text(" ", strip=True)) if h1 else ""
     text = soup.get_text("\n", strip=True)
     type_match = re.search(r"Tipo de [Mm]edida:\s*([^\n]+)", text)
-    if not type_match or "antidumping" not in type_match.group(1).lower(): return None
+    if not type_match or "antidumping" not in type_match.group(1).lower():
+        return None
     ncm_match = re.search(r"NCM:\s*([^\n]+)", text, re.I)
-    if not ncm_match: return None
+    if not ncm_match:
+        return None
     ncm_patterns, exclusions = parse_ncm_patterns(ncm_match.group(1))
-    if not ncm_patterns: return None
+    if not ncm_patterns:
+        return None
     origin_match = re.search(r"Pa[ií]s(?:es)? de [Oo]rigem:\s*([^\n]+)", text, re.I)
-    if not origin_match: return None
+    if not origin_match:
+        return None
     origins = split_origins(origin_match.group(1))
     validity_match = re.search(r"Prazo (?:de|da) [Vv]ig[eê]ncia:?\s*([0-9]{2}/[0-9]{2}/[0-9]{4})", text)
     validity = validity_match.group(1) if validity_match else None
@@ -154,7 +221,8 @@ def parse_page(url, html):
     for line in text.splitlines():
         if re.search(r"RESOLU[ÇC][AÃ]O\s+(?:GECEX|CAMEX)|CIRCULAR\s+SECEX", line, re.I):
             legal.append(clean_text(line))
-        if len(legal) >= 8: break
+        if len(legal) >= 8:
+            break
     return {
         "ncm": ncm_patterns[0],
         "ncmPatterns": ncm_patterns,
@@ -175,20 +243,27 @@ def parse_page(url, html):
 
 
 def main():
-    session = requests.Session(); session.headers.update(HEADERS)
-    index = session.get(INDEX_URL, timeout=60); index.raise_for_status()
+    session = requests.Session()
+    session.headers.update(HEADERS)
+    index = session.get(INDEX_URL, timeout=60)
+    index.raise_for_status()
     soup = BeautifulSoup(index.text, "html.parser")
     urls = []
     for anchor in soup.find_all("a", href=True):
-        url = urljoin(INDEX_URL, anchor["href"]); parsed = urlparse(url)
-        if parsed.netloc != BASE_HOST or "/medidas-em-vigor/medidas-em-vigor/" not in parsed.path or url.rstrip("/") == INDEX_URL.rstrip("/"): continue
-        if url not in urls: urls.append(url)
+        url = urljoin(INDEX_URL, anchor["href"])
+        parsed = urlparse(url)
+        if parsed.netloc != BASE_HOST or "/medidas-em-vigor/medidas-em-vigor/" not in parsed.path or url.rstrip("/") == INDEX_URL.rstrip("/"):
+            continue
+        if url not in urls:
+            urls.append(url)
     measures, failures = [], []
     for url in urls:
         try:
-            response = session.get(url, timeout=60); response.raise_for_status()
+            response = session.get(url, timeout=60)
+            response.raise_for_status()
             item = parse_page(url, response.text)
-            if item: measures.append(item)
+            if item:
+                measures.append(item)
         except Exception as exc:
             failures.append({"url": url, "error": str(exc)})
         time.sleep(0.12)
@@ -196,8 +271,14 @@ def main():
         raise RuntimeError(f"Crawl incompleto: {len(measures)} medidas extraídas de {len(urls)} páginas.")
     measures.sort(key=lambda x: (x["ncm"], x["product"], x["sourceUrl"]))
     with open(OUTPUT, "w", encoding="utf-8") as fh:
-        json.dump(measures, fh, ensure_ascii=False, indent=2); fh.write("\n")
-    print(json.dumps({"indexPages": len(urls), "antidumpingMeasures": len(measures), "failures": failures[:20]}, ensure_ascii=False, indent=2))
+        json.dump(measures, fh, ensure_ascii=False, indent=2)
+        fh.write("\n")
+    missing_options = [
+        {"ncm": item["ncm"], "product": item["product"], "origins": [origin for origin, options in item["exportersByOrigin"].items() if not options], "sourceUrl": item["sourceUrl"]}
+        for item in measures
+        if any(not options for options in item["exportersByOrigin"].values())
+    ]
+    print(json.dumps({"indexPages": len(urls), "antidumpingMeasures": len(measures), "missingExporterOptions": missing_options[:50], "missingExporterOptionCount": len(missing_options), "failures": failures[:20]}, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__": main()
