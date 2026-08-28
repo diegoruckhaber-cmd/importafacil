@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { listDefenseCommercialExporters } from "../../../lib/defesa-comercial-catalog";
+import { listDefenseCommercialExporters } from "../../../lib/defesa-comercial-registry";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -17,6 +17,7 @@ export async function GET(request: Request) {
       product: result.measure.product,
       legalFoundation: result.measure.legalFoundation,
       source: result.measure.source,
+      sourceUrl: (result.measure as typeof result.measure & { sourceUrl?: string }).sourceUrl,
       validityNote: result.measure.validityNote,
     },
     options: result.options,
