@@ -37,7 +37,7 @@ jobs:
           npm run test:mercosul-eu-ii
           npm run test:federal-tariff-catalog
           npm run test:federal-ncm-auto
-          npm run test:defesa-comercial
+          NODE_OPTIONS=--experimental-specifier-resolution=node npm run test:defesa-comercial
       - name: Run SC benefit and TTD tests
         run: |
           npm run test:item-sc-benefit
