@@ -50,4 +50,27 @@ assert.ok(butanol, "n-Butanol / EUA deve encontrar medida antidumping");
 assert.ok((butanol?.options.length ?? 0) >= 5, "n-Butanol / EUA deve listar produtores/exportadores");
 assert.ok(butanol?.options.some((option) => option.rate === 9.8 && option.unit === "AD_VALOREM"));
 
+const sappCanada = listDefenseCommercialExporters("28353920", "Canadá", "2026-08-28");
+assert.ok(sappCanada, "SAPP / Canadá deve encontrar medida antidumping");
+assert.deepEqual(sappCanada?.options, [
+  { exporter: "Innophos Canada Inc.", rate: 546.3, unit: "USD_PER_TON", collectionSuspended: false },
+  { exporter: "Demais", rate: 1066.3, unit: "USD_PER_TON", collectionSuspended: false },
+]);
+
+const sappSpecific = resolveDefenseCommercial({ ncm: "28353920", origin: "Canadá", importDate: "2026-08-28", weightKg: 10000, exchangeRate: 5.5, exporter: "Innophos Canada Inc." });
+assert.equal(sappSpecific.status, "identified");
+assert.equal(sappSpecific.unit, "USD_PER_TON");
+assert.equal(sappSpecific.amountBrl, 30046.5);
+
+const sappOther = resolveDefenseCommercial({ ncm: "28353920", origin: "Canadá", importDate: "2026-08-28", weightKg: 10000, exchangeRate: 5.5, exporter: "Demais" });
+assert.equal(sappOther.amountBrl, 58646.5);
+
+const sappUsa = listDefenseCommercialExporters("28353920", "Estados Unidos", "2026-08-28");
+assert.ok(sappUsa, "SAPP / EUA deve encontrar medida antidumping por alias de origem");
+assert.deepEqual(sappUsa?.options, [
+  { exporter: "Innophos Inc.", rate: 418.13, unit: "USD_PER_TON", collectionSuspended: false },
+  { exporter: "Prayon Inc.", rate: 734.28, unit: "USD_PER_TON", collectionSuspended: false },
+  { exporter: "Demais", rate: 734.28, unit: "USD_PER_TON", collectionSuspended: false },
+]);
+
 console.log("Defense commercial resolver/catalog: OK");
