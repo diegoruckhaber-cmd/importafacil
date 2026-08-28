@@ -39,8 +39,15 @@ jobs:
           data = json.loads(p.read_text(encoding='utf-8'))
           assert len(data) >= 40, f'Expected at least 40 measures, got {len(data)}'
           assert all(item.get('ncm') and item.get('origins') and item.get('sourceUrl') for item in data)
+          sapp = next((item for item in data if item.get('ncm') == '28353920' and item.get('product') == 'Pirofosfato ácido de sódio (SAPP)'), None)
+          assert sapp, 'SAPP measure missing from generated catalog'
+          assert len(sapp.get('exportersByOrigin', {}).get('canadá', [])) == 2, 'SAPP Canada exporter table was not parsed'
+          assert len(sapp.get('exportersByOrigin', {}).get('estados unidos da américa', [])) == 3, 'SAPP USA exporter table was not parsed'
           print(f'Validated {len(data)} antidumping measures')
           PY
+
+      - name: Run defense commercial resolver tests
+        run: node --experimental-strip-types scripts/test-defesa-comercial-resolver.mjs
 
       - name: Commit catalog changes
         run: |
