@@ -3,9 +3,6 @@ name: Sync MDIC defense commercial catalog
 on:
   push:
     branches: [recover/original-architecture]
-    paths:
-      - "scripts/sync-mdic-defesa-comercial.py"
-      - ".github/workflows/sync-mdic-defesa-comercial.yml"
   schedule:
     - cron: "17 5 * * *"
   workflow_dispatch:
