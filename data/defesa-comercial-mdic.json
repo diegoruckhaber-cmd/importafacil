@@ -1,1 +1,2716 @@
-[]
+[
+  {
+    "ncm": "04021010",
+    "ncmPatterns": [
+      "04021010",
+      "04021090",
+      "04022110",
+      "04022120",
+      "04022910",
+      "04022920"
+    ],
+    "ncmExclusions": [],
+    "product": "Leite em pó",
+    "origins": [
+      "Argentina",
+      "Uruguai"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO GECEX Nº 907, DE 3 DE JUNHO DE 2026",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/leite-em-po",
+    "validityNote": "Prazo de vigência: 08/06/2031",
+    "validUntil": "08/06/2031",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "argentina": [],
+      "uruguai": []
+    },
+    "syncedAt": "2026-08-28T13:57:56.327486+00:00"
+  },
+  {
+    "ncm": "07032010",
+    "ncmPatterns": [
+      "07032010",
+      "07032090"
+    ],
+    "ncmExclusions": [],
+    "product": "Alhos",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 52 - DOU de 14/11/2007; Resolução CAMEX Nº 80 - DOU de 04/10/2013; Resolução CAMEX Nº 113 - DOU de 20/12/2013; Resolução CAMEX nº 13/2016 - DOU de 19/02/2016; Resolução CAMEX nº 47/2017 - DOU de 07/07/2017; RESOLUÇÃO GECEX Nº 181, DE 30 DE MARÇO DE 2021; RESOLUÇÃO GECEX Nº 797, DE 29 DE SETEMBRO DE 2025; CIRCULAR SECEX Nº 5/2026 - DOU de 30/01/2026 -",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/alhos",
+    "validityNote": "Prazo de vigência: 30/09/2030",
+    "validUntil": "30/09/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [
+        {
+          "exporter": "Preço de Exportação CIF maior ou igual a",
+          "rate": 1.53,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:57:40.622960+00:00"
+  },
+  {
+    "ncm": "20041000",
+    "ncmPatterns": [
+      "20041000"
+    ],
+    "ncmExclusions": [],
+    "product": "Batatas congeladas",
+    "origins": [
+      "Alemanha",
+      "Bélgica",
+      "França",
+      "Países Baixos"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "Resolução CAMEX nº 06/2017 - DOU de 17/02/2017; Resolução CAMEX nº 1-SEI, de 29 de maio de 2017 - DOU de 30/05/2017; (Revê direito antidumping definitivo aplicado pela Resolução CAMEX nº 6, de 2017); Resolução CAMEX n; Resolução CAMEX n; RESOLUÇÃO GECEX Nº 140, DE 31 DE DEZEMBRO DE 2020; - DOU de 04/01/2020 - Esclarece que as batatas pré-fritas congeladas, sem cobertura, borrifadas com especiarias, quando originárias da Alemanha, Bélgica, França e Países Baixos, não estão sujeitas à incidência do direito antidumping instituído pela Resolução Camex nº 6, de 16 de fevereiro de 2017.; Resolução CAMEX nº 451/2023 - DOU de 17/02/2023",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/batatas-congeladas",
+    "validityNote": "Prazo de vigência: 17/02/2028",
+    "validUntil": "17/02/2028",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "alemanha": [],
+      "bélgica": [],
+      "frança": [],
+      "países baixos": []
+    },
+    "syncedAt": "2026-08-28T13:57:42.444839+00:00"
+  },
+  {
+    "ncm": "23099090",
+    "ncmPatterns": [
+      "23099090",
+      "29224110",
+      "29224190"
+    ],
+    "ncmExclusions": [],
+    "product": "Lisina",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO GECEX Nº 923, DE 24 DE JUNHO DE 2026; RETIFICAÇÃO - RESOLUÇÃO GECEX Nº 923, DE 24 DE JUNHO DE 2026",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/lisina-md",
+    "validityNote": "Prazo de vigência: 25/06/2031",
+    "validUntil": "25/06/2031",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:57:56.691364+00:00"
+  },
+  {
+    "ncm": "28353920",
+    "ncmPatterns": [
+      "28353920"
+    ],
+    "ncmExclusions": [],
+    "product": "Pirofosfato ácido de sódio (SAPP)",
+    "origins": [
+      "Canadá",
+      "Estados Unidos da América"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 67 – DOU de 15/08/2014; Resolução GECEX no. 50 - DOU de 15/06/2020; Resolução CAMEX Nº 903, DOU de 08/06/2026; Circular SECEX Nº 40, DOU de 09/06/2026; - Encerra a revisão da medida antidumping instituída pela Resolução CAMEX nº 50, de 12 de junho de 2020, iniciada por intermédio da Circular SECEX nº 43, de 12 de junho de 2025, publicada no Diário Oficial da União (D.O.U) de 13 de junho de 2025, sem prorrogação da referida medida, uma vez que não houve comprovação da probabilidade de retomada de dumping nas exportações da República Popular da China para o Brasil de pirofosfato ácido de sódio (SAPP).",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pirofosfato-acido-de-sodio-sapp",
+    "validityNote": "Prazo de vigência: 08/06/2031",
+    "validUntil": "08/06/2031",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "canadá": [],
+      "estados unidos da américa": []
+    },
+    "syncedAt": "2026-08-28T13:58:00.872637+00:00"
+  },
+  {
+    "ncm": "29051300",
+    "ncmPatterns": [
+      "29051300"
+    ],
+    "ncmExclusions": [],
+    "product": "n-Butanol",
+    "origins": [
+      "Estados Unidos da América"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "Resolução CAMEX N° 76 – DOU de 06/10/2011; Resolução CAMEX Nº 48 – DOU de 04/07/2014; Resolução CAMEX nº 48 - DOU de 07/07/2017; Resolução CAMEX nº 71 - DOU de 01/09/2017; Resolução CAMEX nº 42/2022 - DOU de 01/09/2022; Resolução CAMEX nº 507/2023 - DOU de 18/08/2023",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/n-butanol",
+    "validityNote": "Prazo de vigência: 18/08/2028",
+    "validUntil": "18/08/2028",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "estados unidos da américa": [
+        {
+          "exporter": "The Dow Chemical Company e Union Carbide Corporation",
+          "rate": 28.4,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Basf Corporation",
+          "rate": 24.7,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Oxea Corporation",
+          "rate": 9.8,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Eastman Chemical Company",
+          "rate": 14.1,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Demais empresas",
+          "rate": 28.4,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:57:59.304614+00:00"
+  },
+  {
+    "ncm": "29051300",
+    "ncmPatterns": [
+      "29051300"
+    ],
+    "ncmExclusions": [],
+    "product": "n-Butanol (AFS e RUS)",
+    "origins": [
+      "África Do Sul",
+      "Rússia"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "Resolução CAMEX nº 127/20016 - DOU de 23/12/2016; Resolução CAMEX nº 48/2017 - DOU de 07/07/2017; Resolução CAMEX nº 432/2022 - DOU de 21/12/2022; Resolução CAMEX nº 432/2022 - DOU de 23/12/2022; (Retificação da resolução CAMEX nº432/2022)",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/n-butanol-2",
+    "validityNote": "Prazo de vigência: 21/12/2027",
+    "validUntil": "21/12/2027",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "áfrica do sul": [],
+      "rússia": []
+    },
+    "syncedAt": "2026-08-28T13:57:59.666480+00:00"
+  },
+  {
+    "ncm": "29094310",
+    "ncmPatterns": [
+      "29094310"
+    ],
+    "ncmExclusions": [],
+    "product": "EBMEG (Alemanha)",
+    "origins": [
+      "Alemanha"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 37 - DOU de 22/04/2016; CIRCULAR SECEX Nº 32; RESOLUÇÃO GECEX Nº 327, DE 20 DE ABRIL DE 2022; Encerra a revisão da medida antidumping instituída pela Resolução CAMEX nº 90, de 27 de setembro de 2016, iniciada por intermédio da Circular SECEX nº 28, de 20 de abril de 2021, publicada no Diário Oficial da União (DOU) de 22 de abril de 2021, sem prorrogação da medida aplicada às importações de éter monobutílico do etilenoglicol - EBMEG, originárias dos EUA.",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/ebmeg-alemanha",
+    "validityNote": "Prazo de vigência: 22/04/2027",
+    "validUntil": "22/04/2027",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "alemanha": [
+        {
+          "exporter": "Todas as empresas",
+          "rate": 22.6,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:57:47.212513+00:00"
+  },
+  {
+    "ncm": "29094310",
+    "ncmPatterns": [
+      "29094310"
+    ],
+    "ncmExclusions": [],
+    "product": "EBMEG (França)",
+    "origins": [
+      "França"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Provisório",
+    "legalFoundation": "RESOLUÇÃO GECEX Nº 305, DE 24 DE FEVEREIRO DE 2022; RESOLUÇÃO GECEX Nº 386, DE 24 DE FEVEREIRO DE 2022",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/ebmeg-franca",
+    "validityNote": "Prazo de vigência: 22/08/2027",
+    "validUntil": "22/08/2027",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "frança": [
+        {
+          "exporter": "INEOS Chemicals Lavera (ICL) SAS",
+          "rate": 374.38,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Demais empresas",
+          "rate": 374.38,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:57:47.577845+00:00"
+  },
+  {
+    "ncm": "29153100",
+    "ncmPatterns": [
+      "29153100",
+      "29153931"
+    ],
+    "ncmExclusions": [],
+    "product": "Ésteres acéticos",
+    "origins": [
+      "Estados Unidos da América",
+      "México"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX nº 68/2017 - DOU de 22/08/2017; Resolução CAMEX nº 85/2017 - DOU de 27/10/2017; Resolução CAMEX nº 39/2022 - DOU de 22/08/2022; Resolução CAMEX nº 506/2023 - DOU de 18/08/2023",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/esteres-aceticos",
+    "validityNote": "Prazo de vigência: 18/08/2028",
+    "validUntil": "18/08/2028",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "estados unidos da américa": [],
+      "méxico": []
+    },
+    "syncedAt": "2026-08-28T13:57:48.666989+00:00"
+  },
+  {
+    "ncm": "29161230",
+    "ncmPatterns": [
+      "29161230"
+    ],
+    "ncmExclusions": [],
+    "product": "Acrilato de butila",
+    "origins": [
+      "Rússia"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX nº 454/2023 - DOU de 20/03/2023",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/Acrilato-de-butila",
+    "validityNote": "Prazo de vigência: 20/03/2028",
+    "validUntil": "20/03/2028",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "rússia": []
+    },
+    "syncedAt": "2026-08-28T13:57:39.871266+00:00"
+  },
+  {
+    "ncm": "29161230",
+    "ncmPatterns": [
+      "29161230"
+    ],
+    "ncmExclusions": [],
+    "product": "Acrilato de butila",
+    "origins": [
+      "África Do Sul",
+      "Taipé Chinês"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX nº 90/2015 (DOU de 25/09/2015); RESOLUÇÃO GECEX Nº 252, DE 24 DE SETEMBRO DE 2021",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/acrilato-de-butila",
+    "validityNote": "Prazo de vigência: 24/09/2026 Cobrança suspensa.",
+    "validUntil": "24/09/2026",
+    "collectionSuspended": true,
+    "exportersByOrigin": {
+      "áfrica do sul": [],
+      "taipé chinês": []
+    },
+    "syncedAt": "2026-08-28T13:57:39.507733+00:00"
+  },
+  {
+    "ncm": "29161230",
+    "ncmPatterns": [
+      "29161230"
+    ],
+    "ncmExclusions": [],
+    "product": "Acrilato de butila (EUA)",
+    "origins": [
+      "Estados Unidos da América"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 15 - DOU de 25/03/2009; Resolução CAMEX N° 04 – DOU de 06/02/2013; Resolução CAMEX Nº 120 - DOU de 19/12/2014; RESOLUÇÃO GECEX Nº 186, DE 30 DE MARÇO DE 2021",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/acrilato-de-butila-eua",
+    "validityNote": "Prazo de vigência: 08/04/2026",
+    "validUntil": "08/04/2026",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "estados unidos da américa": [
+        {
+          "exporter": "Arkema Inc =",
+          "rate": 0.19,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "The Dow ChemicalCompany e UnionCarbide Corporation =",
+          "rate": 0.19,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Rohm and Haas Company e Rohm and Haas Texas Inc. =",
+          "rate": 0.19,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Demais =",
+          "rate": 0.42,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:57:39.146177+00:00"
+  },
+  {
+    "ncm": "29171210",
+    "ncmPatterns": [
+      "29171210"
+    ],
+    "ncmExclusions": [],
+    "product": "Ácido Adípico",
+    "origins": [
+      "Alemanha",
+      "China",
+      "Estados Unidos da América",
+      "França",
+      "Itália"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 15, DOU 01/04/2015; RESOLUÇÃO GECEX Nº 185, DE 30 DE MARÇO DE 2021",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/acido-adipico",
+    "validityNote": "Prazo de vigência: 31/03/2026",
+    "validUntil": "31/03/2026",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "alemanha": [],
+      "china": [],
+      "estados unidos da américa": [],
+      "frança": [],
+      "itália": []
+    },
+    "syncedAt": "2026-08-28T13:57:37.644377+00:00"
+  },
+  {
+    "ncm": "29173500",
+    "ncmPatterns": [
+      "29173500"
+    ],
+    "ncmExclusions": [],
+    "product": "Anidrido ftálico",
+    "origins": [
+      "Israel",
+      "Rússia"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO GECEX Nº 286, DE 21 DE DEZEMBRO DE 2021",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/anidrido-ftalico",
+    "validityNote": "Prazo de vigência: 22/12/2026",
+    "validUntil": "22/12/2026",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "israel": [],
+      "rússia": []
+    },
+    "syncedAt": "2026-08-28T13:57:41.349529+00:00"
+  },
+  {
+    "ncm": "29173500",
+    "ncmPatterns": [
+      "29173500"
+    ],
+    "ncmExclusions": [],
+    "product": "Anidrido ftálico",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO GECEX Nº 763, DE 25 DE JULHO DE 2025",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/anidrido-ftalico-dp",
+    "validityNote": "Prazo de vigência: 28/07/2030",
+    "validUntil": "28/07/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:57:41.715198+00:00"
+  },
+  {
+    "ncm": "29181400",
+    "ncmPatterns": [
+      "29181400"
+    ],
+    "ncmExclusions": [],
+    "product": "Ácido cítrico",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo e",
+    "legalFoundation": "Resolução CAMEX n° 52/2012 – DOU de 25/07/2012; Resolução CAMEX nº 67/2012 – DOU de 10/09/2012; Resolução CAMEX nº 38/2016 - DOU de 22/04/2016; Resolução CAMEX n° 57/2016 – DOU de 24/06/2016; Resolução CAMEX nº 82/2017 - DOU de 18/10/2017; Resolução CAMEX nº 503/2023 - DOU de 24/07/2023; (Defere pleito de inclusão da empresa COFCO Biochemical Energy (Yushu) Co., Ltd. no compromisso de preço homologado pela Resolução Gecex nº 82, de 17 de outubro de 2017; e altera o art. 2º e o Anexo I da Resolução Gecex nº 82, de 17 de outubro de 2017.); Resolução CAMEX nº 528/2023 - DOU de 18/10/2023",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/acido-citrico",
+    "validityNote": "Prazo de vigência: 18/10/2028",
+    "validUntil": "18/10/2028",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [
+        {
+          "exporter": "Shandong Ensign Industry Co. Ltd =",
+          "rate": 252.89,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:57:38.036381+00:00"
+  },
+  {
+    "ncm": "29181400",
+    "ncmPatterns": [
+      "29181400"
+    ],
+    "ncmExclusions": [],
+    "product": "Ácido cítrico",
+    "origins": [
+      "Colômbia",
+      "Tailândia"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX n° 384/2022 – DOU de 22/08/2022; Resolução CAMEX nº 434/2022 - DOU de 26/12/2022; (Indefere pedido de reconsideração apresentado pela COFCO Biochemical (Thailand) Co., Ltd. em face da Resolução Gecex nº 384 de 19 de agosto de 2022); - DOU de 30/04/2024 - Inicia procedimento administrativo de redeterminação do direito antidumping aplicado às empresas tailandesas Cofco Biochemical (Thailand) CO., LTD. e Sunshine Biotech International CO, LTD. por meio da Resolução GECEX nº 384, de 19 agosto de 2022, a qual impôs a medida antidumping às importações brasileiras de ácido cítrico e determinados sais e ésteres de ácido cítrico, quando originárias da Tailândia.; RESOLUÇÃO GECEX Nº 668, DE 12 DE NOVEMBRO DE 2024",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/acido-citrico-2",
+    "validityNote": "Prazo de vigência: 22/08/2027",
+    "validUntil": "22/08/2027",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "colômbia": [],
+      "tailândia": []
+    },
+    "syncedAt": "2026-08-28T13:57:38.399691+00:00"
+  },
+  {
+    "ncm": "29221100",
+    "ncmPatterns": [
+      "29221100",
+      "29221310"
+    ],
+    "ncmExclusions": [],
+    "product": "Etanolaminas",
+    "origins": [
+      "Estados Unidos da América",
+      "Alemanha"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 93 - DOU de 04/11/2013; Resolução CAMEX Nº 49 – DOU de 04/07/2014; Resolução CAMEX nº 65 - DOU de 23/07/2015; Resolução CAMEX n° 07 - DOU de 01/11/2019; Resolução CAMEX Nº 518 - DOU de 25/09/2023; Resolução CAMEX Nº 804 - DOU de 24/10/2025; RESOLUÇÃO GECEX Nº 859, DE 13 DE FEVEREIRO DE 2026; - DOU de 18/02/2026 - Dispõe sobre a apreciação do pedido de reconsideração apresentado pelas empresas The Dow Chemical Company e Union Carbide Corporation em face da Resolução Gecex nº 804, de 23 de outubro de 2025.",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/etanolaminas",
+    "validityNote": "Prazo de vigência: 24/10/2030",
+    "validUntil": "24/10/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "estados unidos da américa": [],
+      "alemanha": []
+    },
+    "syncedAt": "2026-08-28T13:57:49.031755+00:00"
+  },
+  {
+    "ncm": "29221100",
+    "ncmPatterns": [
+      "29221100",
+      "29221200"
+    ],
+    "ncmExclusions": [],
+    "product": "Etanolaminas (monoetanolaminas e dietanolaminas)",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO CAMEX Nº 875/2026",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/etanolaminas-ch",
+    "validityNote": "Prazo de vigência: 06/04/2031",
+    "validUntil": "06/04/2031",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:57:49.428159+00:00"
+  },
+  {
+    "ncm": "32061110",
+    "ncmPatterns": [
+      "32061110"
+    ],
+    "ncmExclusions": [],
+    "product": "Pigmentos de dióxido de titânio",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO CAMEX Nº 802 - DOU de 24/10/2025",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pigmentos-dioxido-titanio-md",
+    "validityNote": "Prazo de vigência: 24/10/2030",
+    "validUntil": "24/10/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:58:00.509306+00:00"
+  },
+  {
+    "ncm": "37013021",
+    "ncmPatterns": [
+      "37013021",
+      "37013031"
+    ],
+    "ncmExclusions": [],
+    "product": "Chapas off-set",
+    "origins": [
+      "China",
+      "Estados Unidos da América",
+      "Taipé Chinês",
+      "União Europeia",
+      "Reino Unido"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 9, DOU 05/03/2015; RESOLUÇÃO GECEX Nº 199, DE 4 DE MAIO DE 2021; RESOLUÇÃO GECEX Nº 241, DE 27 DE AGOSTO DE 2021; - DOU de 30/08/2021 - Dispõe sobre a apreciação de pedido de reconsideração em face da Resolução Gecex nº 199, de 4 de maio de 2021, que prorrogou direito antidumping definitivo, por um prazo de até 5 (cinco) anos, aplicado às importações brasileiras de chapas pré-sensibilizadas de alumínio para impressão off-set, originárias da República Popular da China, de Taipé Chinês, dos Estados Unidos da América, da União Europeia e do Reino Unido.",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/chapas-off-set",
+    "validityNote": "Prazo de vigência: 05/05/2026",
+    "validUntil": "05/05/2026",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [],
+      "estados unidos da américa": [],
+      "taipé chinês": [],
+      "união europeia": [],
+      "reino unido": []
+    },
+    "syncedAt": "2026-08-28T13:57:45.372277+00:00"
+  },
+  {
+    "ncm": "38221990",
+    "ncmPatterns": [
+      "38221990"
+    ],
+    "ncmExclusions": [],
+    "product": "Tubos de plástico para coleta de sangue",
+    "origins": [
+      "Alemanha"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX nº 26/2015 (DOU de 30/04/2015); Resolução GECEX Nº 23/2020; RESOLUÇÃO GECEX Nº 193, DE 28 DE ABRIL DE 2021; - DOU de 29/04/2021 - Prorroga o direito antidumping definitivo, por um prazo de até 5 (cinco) anos, aplicado às importações brasileiras de tubos de plástico para coleta de sangue a vácuo, originárias da China, Estados Unidos da América e do Reino Unido. Mantém vigente a suspensão, por interesse público, dos direitos antidumping aplicado às importações brasileiras de tubos de plástico para coleta de sangue a vácuo estabelecida pela Resolução Gecex nº 147, de 15 de janeiro de 2021, tendo por objetivo facilitar o combate à pandemia do Corona Vírus / Covid-19.; CIRCULAR SECEX Nº 29, DE 28 DE ABRIL DE 2021; - DOU de 29/04/2021 - Encerra a revisão da medida antidumping instituída pela Resolução CAMEX nº 26, de 29 de abril de 2015, iniciada por intermédio da Circular SECEX nº 30, de 29 de abril de 2020, publicada no Diário Oficial da União (D.O.U) de 30 de abril de 2020, sem prorrogação da referida medida, uma vez que não houve comprovação da probabilidade de retomada do dano decorrente da prática de dumping nas exportações de tubos de plástico para coleta de sangue a vácuo originárias da Alemanha para o Brasil, classificadas nos subitens 3822.00.90, 3926.90.40 e 9018.39.99 da Nomenclatura Comum do MERCOSUL - NCM, no caso de extinção da medida antidumping em questão, nos termos do art. 106 do Decreto nº 8.058, de 2013.; RESOLUÇÃO GECEX Nº 243, DE 30 DE AGOSTO DE 2021; Dispõe sobre a apreciação dos pedidos de reconsideração em face da Resolução Gecex nº 193, de 28 de abril de 2021, que prorrogou direito antidumping definitivo, por um prazo de até 5 (cinco) anos, aplicado às importações brasileiras de tubos de plástico para coleta de sangue a vácuo, originárias da China, Estados Unidos da América e do Reino Unido, e manteve vigente a suspensão, por interesse público, dos mencionados direitos antidumping, estabelecida pela Resolução Gecex nº 147, de 15 de janeiro de 2021, tendo por objetivo facilitar o combate à pandemia do Corona Vírus / Covid-19.",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-de-coleta-de-sangue",
+    "validityNote": "Prazo de vigência: 29/04/2026",
+    "validUntil": "29/04/2026",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "alemanha": [
+        {
+          "exporter": "Guangzhou Improve Medical Instruments Co. Ltd.=",
+          "rate": 49.5,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Weihai Hongyu Medical Devices Co. Ltd.=",
+          "rate": 97.8,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Zhejiang Gongdong Medical Plastic Factory =",
+          "rate": 80.7,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Demais =",
+          "rate": 638.1,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Becton Dickinson and Company =",
+          "rate": 45.3,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Demais=",
+          "rate": 86.5,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Becton Dickinson and Company =",
+          "rate": 71.5,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Demais =",
+          "rate": 492.8,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:58:10.092238+00:00"
+  },
+  {
+    "ncm": "39011030",
+    "ncmPatterns": [
+      "39011030",
+      "39012029",
+      "39014000"
+    ],
+    "ncmExclusions": [],
+    "product": "Resinas de polietileno",
+    "origins": [
+      "Canadá",
+      "Estados Unidos da América"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO CAMEX Nº 876, DE 13 DE ABRIL DE 2026",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/resinas-polietileno",
+    "validityNote": "Prazo de vigência: 14/04/2031",
+    "validUntil": "14/04/2031",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "canadá": [],
+      "estados unidos da américa": []
+    },
+    "syncedAt": "2026-08-28T13:58:05.297966+00:00"
+  },
+  {
+    "ncm": "39021020",
+    "ncmPatterns": [
+      "39021020",
+      "39023000"
+    ],
+    "ncmExclusions": [],
+    "product": "Resina de polipropileno (EUA)",
+    "origins": [
+      "Estados Unidos da América"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "Resolução CAMEX N° 86 – DOU de 09/12/2010; Resolução CAMEX Nº 16 – DOU de 18/03/2011; Resolução CAMEX Nº 50 – DOU de 04/07/2014; Resolução CAMEX nº 104/2016 - DOU de 01/11/2016; Resolução CAMEX nº 410/2022 - DOU de 24/10/2022; Resolução CAMEX Nº 424/2022 - DOU de 05/12/2022; (Altera a Resolução Gecex nº 410, de 22 de outubro de 2022); Resolução CAMEX Nº 433/2022 - DOU de 26/12/2022",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/resina-de-polipropileno-eua",
+    "validityNote": "Prazo de vigência: 24/10/2027",
+    "validUntil": "24/10/2027",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "estados unidos da américa": [
+        {
+          "exporter": "Alíquota ad valorem de",
+          "rate": 10.6,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:58:06.056072+00:00"
+  },
+  {
+    "ncm": "39021020",
+    "ncmPatterns": [
+      "39021020",
+      "39023000"
+    ],
+    "ncmExclusions": [],
+    "product": "Resina de polipropileno (África do Sul e Índia)",
+    "origins": [
+      "África Do Sul",
+      "Índia"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 75 – DOU de 28/08/2014; RESOLUÇÃO GECEX Nº 134, DE 23 DE DEZEMBRO DE 2020; - DOU de 28/12/2020 - Encerra a revisão da medida antidumping instituída pela Resolução GECEX nº134, 23 de dezembro de 2020, publicada no DOU de 28 de dezembro de 2020, sem prorrogação da referida medida relativa à Coreia do Sul, uma vez que não houve comprovação da probabilidade de retomada do dano à indústria doméstica decorrente da prática de dumping nas exportações da Coreia do Sul para o Brasil de resinas de polipropileno, classificadas no subitens 3902.10.20 e 3902.30.00 da Nomenclatura Comum do Mercosul - NCM, no caso de extinção da medida antidumping em questão, nos termos do art. 106 do Decreto no8.058, de 2013. Encerrar a avaliação de interesse público em relação à medida antidumping definitiva aplicada às importações brasileiras de resinas de polipropileno originárias da Coreia do Sul.; RESOLUÇÃO GECEX Nº 157, DE 11 DE FEVEREIRO DE 2021; – DOU de 17/02/2021 - Altera a Resolução Gecex nº 134, de 23 de dezembro de 2020, que prorroga direito antidumping definitivo aplicado às importações brasileiras de Resina de polipropileno(PP) originárias da República da África do Sul e da República da Índia.",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/resina-de-polipropileno",
+    "validityNote": "Prazo de vigência: 28/12/2025",
+    "validUntil": "28/12/2025",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "áfrica do sul": [],
+      "índia": []
+    },
+    "syncedAt": "2026-08-28T13:58:05.691870+00:00"
+  },
+  {
+    "ncm": "39041010",
+    "ncmPatterns": [
+      "39041010"
+    ],
+    "ncmExclusions": [],
+    "product": "PVC-S (China)",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO CAMEX Nº 68 – DOU de 15/08/2014; RESOLUÇÃO GECEX Nº 38; CIRCULAR SECEX Nº 50, DE 14 DE AGOSTO DE 2020; - DOU de 14/08/2020 - edição extra. Encerra a revisão da medida antidumping instituída pela Resolução CAMEX nº 68, de 14 de agosto de 2014, sem prorrogação da referida medida relativa à Coreia do Sul, uma vez que não houve comprovação da probabilidade de retomada do dano à indústria doméstica decorrente da prática de dumping nas exportações da Coreia do Sul para o Brasil de resinas de policloreto de vinila obtidas por processo de suspensão (PVC-S), classificadas no subitem 3904.10.10 da Nomenclatura Comum do Mercosul - NCM, no caso de extinção da medida antidumping em questão, nos termos do art. 106 do Decreto nº 8.058, de 2013.; RESOLUÇÃO GECEX Nº 73, DE 14 DE AGOSTO DE 2020; RESOLUÇÃO GECEX Nº 200, DE 11 DE MAIO DE 2021; - DOU de 13/05/2021 - Defere parcialmente pedido de reconsideração em face da Resolução GECEX nº 73, de 14 de agosto de 2020, publicada no D.O.U. de 14 de agosto de 2020.; RESOLUÇÃO GECEX Nº 255, DE 24 DE SETEMBRO DE 2021",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pvc-s-china-e-coreia-do-sul",
+    "validityNote": "Prazo de vigência: 06/08/2031",
+    "validUntil": "06/08/2031",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [
+        {
+          "exporter": "Todas as empresas =",
+          "rate": 21.6,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:58:04.912867+00:00"
+  },
+  {
+    "ncm": "39041010",
+    "ncmPatterns": [
+      "39041010"
+    ],
+    "ncmExclusions": [],
+    "product": "PVC-S (EUA e México)",
+    "origins": [
+      "Eua E"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX nº 85/2010 - DOU de 09/12/2010; Resolução CAMEX nº 66/2011 - DOU de 21/09/2011; Resolução CAMEX nº 89/2016 - DOU de 28/09/2016; CIRCULAR SECEX Nº 15, DE 8 DE ABRIL DE 2022; Resolução CAMEX nº 399/2022 - DOU de 19/09/2022; Resolução CAMEX Nº 436/2022 - DOU de 26/12/2022; (Altera a Resolução Gecex nº 399, de 16 de setembro de 2022); Resolução CAMEX Nº737/2025 - DOU de 29/05/2025",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pvc-s-eua-e-mexico",
+    "validityNote": "Prazo de vigência: 19/09/2027 Cobrança suspensa.",
+    "validUntil": "19/09/2027",
+    "collectionSuspended": true,
+    "exportersByOrigin": {
+      "eua e": [
+        {
+          "exporter": "Todos os produtores =",
+          "rate": 13.6,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:58:04.551422+00:00"
+  },
+  {
+    "ncm": "39072939",
+    "ncmPatterns": [
+      "39072939"
+    ],
+    "ncmExclusions": [],
+    "product": "Poliol poliéteres",
+    "origins": [
+      "China",
+      "Estados Unidos da América"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO CAMEX Nº 754/2025; RESOLUÇÃO CAMEX Nº 858/2026; - DOU de 23/02/2026 - Encerra avaliação de interesse público sem suspensão ou alteração do direito antidumping aplicado pela Resolução Gecex nº 754, de 3 de julho de 2025, relativo às importações brasileiras de poliol poliéter originárias da China e dos Estados Unidos da América.; RESOLUÇÃO CAMEX Nº 877/2026; - DOU de 06/04/2026 - Dispõe sobre a apreciação do pedido de reconsideração apresentado pelas empresas BASF S.A. e BASF Corporation em face da Resolução Gecex nº 754, de 3 de julho de 2025.; RESOLUÇÃO CAMEX Nº 878/2026; - DOU de 06/04/2026 - Dispõe sobre a apreciação do pedido de reconsideração apresentado pelas empresas Wanhua Chemical Group Co. Ltd., Wanhua Chemical (Ningbo) Rongwei Polyurethane Co. Ltd., Wanhua Chemical (Yantai) Rongwei Polyurethane Co. Ltd., Wanhua Chemical (Ningbo) Trading Co. Ltd. e Wanhua Chemical (Singapore) Pte. Ltd. em face da Resolução Gecex nº 754, de 3 de julho de 2025",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/poliol-polieteres-pv",
+    "validityNote": "Prazo de vigência: 04/07/2030",
+    "validUntil": "04/07/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [],
+      "estados unidos da américa": []
+    },
+    "syncedAt": "2026-08-28T13:58:03.462588+00:00"
+  },
+  {
+    "ncm": "39076100",
+    "ncmPatterns": [
+      "39076100",
+      "39076900"
+    ],
+    "ncmExclusions": [],
+    "product": "Resina PET",
+    "origins": [
+      "China",
+      "Índia"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "Resolução CAMEX nº 121/2016 - DOU de 28/11/2016 (Aplica direito antidumping definitivo); Resolução CAMEX nº 419/2022 - DOU de 25/11/2022 (Prorroga direito antidumping definitivo)",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/resina-pet",
+    "validityNote": "Prazo de vigência: 24/11/2027",
+    "validUntil": "24/11/2027",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [
+        {
+          "exporter": "China Resources Packaging Materials Co., Ltd.",
+          "rate": 119.44,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Jiangsu Xingye Plastic Co., Ltd.",
+          "rate": 104.34,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Jiangyin Xingyu New Material Co., Ltd.",
+          "rate": 87.23,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Guangdong IVL Pet Polymer Co., Ltd.",
+          "rate": 682.38,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Jiangyin Xingtai New Material Co., Ltd., Polymet Commodities Ltd., Shanghai Hengyi Polyester Fiber Co., Ltd., Sinopec Chemical Commercial Holding Company Limited, Wankai Hong Kong International Limited e Zhejiang Wankai New Materials Co., Ltd.",
+          "rate": 105.4,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Demais",
+          "rate": 143.01,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Reliance Industries Limited",
+          "rate": 193.78,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Dhunseri Petrochem & Tea Ltd.",
+          "rate": 468.97,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Demais",
+          "rate": 228.68,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        }
+      ],
+      "índia": []
+    },
+    "syncedAt": "2026-08-28T13:58:06.420002+00:00"
+  },
+  {
+    "ncm": "40025900",
+    "ncmPatterns": [
+      "40025900"
+    ],
+    "ncmExclusions": [],
+    "product": "Borracha nitrílica (NBR)",
+    "origins": [
+      "Coreia do Sul",
+      "França"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "Circular SECEX No. 46, D.O.U. de 09/08/2019; Circular SECEX Nº 29, D.O.U de 11/08/2023; Resolução CAMEX n; Resolução GECEX nº 21, DOU de 26/03/2020; RESOLUÇÃO GECEX Nº 626, DE 8 DE AGOSTO DE 2024",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/borracha-nitrilica-nbr",
+    "validityNote": "Prazo de vigência: 09/08/2028",
+    "validUntil": "09/08/2028",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "coreia do sul": [],
+      "frança": []
+    },
+    "syncedAt": "2026-08-28T13:57:42.807762+00:00"
+  },
+  {
+    "ncm": "40091100",
+    "ncmPatterns": [
+      "40091100"
+    ],
+    "ncmExclusions": [],
+    "product": "Tubos de borracha elastomérica",
+    "origins": [
+      "Alemanha"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX nº 57/2015 (DOU de 22/06/2015); RESOLUÇÃO GECEX Nº 215, DE 21 DE JUNHO DE 2021",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-de-borracha-elastomerica",
+    "validityNote": "Prazo de vigência: 22/06/2026",
+    "validUntil": "22/06/2026",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "alemanha": [
+        {
+          "exporter": "Todas as empresas",
+          "rate": 56.4,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Todas as empresas",
+          "rate": 21.0,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Todas as empresas",
+          "rate": 45.9,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:58:09.727894+00:00"
+  },
+  {
+    "ncm": "40111000",
+    "ncmPatterns": [
+      "40111000"
+    ],
+    "ncmExclusions": [],
+    "product": "Pneus de automóveis",
+    "origins": [
+      "Tailândia",
+      "Taipé Chinês"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 1 – DOU de 16/01/2014; Resolução CAMEX Nº 17 – DOU de 20/02/2014; Resolução CAMEX Nº 18 – DOU de 20/02/2014; Resolução CAMEX N° 3 - DOU de 16/01/2020; Resolução CAMEX Nº 831 - DOU de 22/12/2025",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-de-automoveis",
+    "validityNote": "Prazo de vigência: 22/12/2030",
+    "validUntil": "22/12/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "tailândia": [],
+      "taipé chinês": []
+    },
+    "syncedAt": "2026-08-28T13:58:01.602961+00:00"
+  },
+  {
+    "ncm": "40112090",
+    "ncmPatterns": [
+      "40112090"
+    ],
+    "ncmExclusions": [],
+    "product": "Pneus de carga",
+    "origins": [
+      "Coreia do Sul",
+      "Japão",
+      "Tailândia"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo e Compromisso de Preço",
+    "legalFoundation": "Resolução CAMEX nº 107/14 - DOU de 24/11/2014; Circular SECEX n° 12/2016 - DOU de 24/02/2016; Circular SECEX n° 16/2016 - DOU de 11/03/2016; Circular SECEX n° 13/2017 - DOU de 06/03/2017; Circular SECEX n° 12/2018 - DOU de 13/03/2018; Circular SECEX n° 16/2019 - DOU de 04/04/2019; Circular SECEX n° 63/2019 - DOU de 22/11/2019; Circular SECEX nº 17/2020 - DOU de 27/03/2020",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-de-carga",
+    "validityNote": "Prazo de vigência: 22/03/2026 Cobrança suspensa.",
+    "validUntil": "22/03/2026",
+    "collectionSuspended": true,
+    "exportersByOrigin": {
+      "coreia do sul": [],
+      "japão": [],
+      "tailândia": []
+    },
+    "syncedAt": "2026-08-28T13:58:02.725010+00:00"
+  },
+  {
+    "ncm": "40112090",
+    "ncmPatterns": [
+      "40112090"
+    ],
+    "ncmExclusions": [],
+    "product": "Pneus de carga (China)",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 33 - DOU de 18/06/2009; Resolução CAMEX Nº 32 - DOU 04/05/2015; Resolução CAMEX No 12 - DOU de 02/03/2018; (Altera a Resolução CAMEX nº 32, de 04 de maio de 2015); RESOLUÇÃO GECEX Nº 198, DE 3 DE MAIO DE 2021; RESOLUÇÃO GECEX Nº 224, DE 23 DE JULHO DE 2021; - DOU de 27/07/2021 - Dispõe sobre a apreciação de pedidos de reconsideração em face da Resolução Gecex nº 198, de 03 de maio de 2021, que prorrogou o direito antidumping definitivo, por um prazo de até 5 (cinco) anos, aplicado às importações brasileiras de pneus de radial, de aros 20\", 22\" e 22,5\", para uso em ônibus e caminhões.; RESOLUÇÃO GECEX Nº 540, DE 15 DE DEZEMBRO DE 2023",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-de-carga-china",
+    "validityNote": "Prazo de vigência: 04/05/2026",
+    "validUntil": "04/05/2026",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [
+        {
+          "exporter": "Shandong Linglong Tyre Co., Ltd =",
+          "rate": 1.05,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Triangle Tyre Co., Ltd. =",
+          "rate": 1.07,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Zhongce Rubber Group Co., Ltd. e Double Coin Holdings Ltd. =",
+          "rate": 1.12,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Giti Tire (Anhui) Co., Ltd.; Giti Tire (Chongqing) Company Ltd. e Giti Tire (Fujian) Company Ltd. =",
+          "rate": 1.31,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Aeolus Tyre Co., Ltd.; Chaoyang Long March Tyre Co., Ltd.; Cooper Chengshan (Shandong) Tire Company Ltd.; Guangming Tyre Group Co., Ltd.; Jiangsu Hankook Tire Co., Ltd.; Michelin Shenyang Tire Co., Ltd.; Pirelli Tyre Co., Ltd.; Sailun Co., Ltd.; Sailun Jinyu Group Co., Ltd.; Shandong Jinyu Tire Co., Ltd.; Shandong Changfeng Tyres Co., Ltd.; Shandong Hengyu Rubber Co., Ltd.; Shandong Longyue Rubber Co., Ltd.; Shandong Wanda Boto Tyre Co., Ltd.; Shenyang Peace Radial Tyre Manufacturing Co., Ltd; Shouguang Firemax Tyre Co., Ltd; Sinotyre International Group Co., Ltd; Triangle (Weihai) Huamao Rubber Co., Ltd.; Zhaoqing Junhong Co., Ltd. =",
+          "rate": 1.42,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Shandong Bayi Tyre Manufacture Co., Ltd. =",
+          "rate": 1.55,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Demais empresas =",
+          "rate": 2.59,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:58:02.330767+00:00"
+  },
+  {
+    "ncm": "40114000",
+    "ncmPatterns": [
+      "40114000"
+    ],
+    "ncmExclusions": [],
+    "product": "Pneus de motocicletas",
+    "origins": [
+      "China",
+      "Tailândia",
+      "Vietnã"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 106 – DOU de 19/12/2013; Resolução CAMEX Nº 9 – DOU de 20/02/2014; Resolução CAMEX Nº 12 – DOU de 20/02/2014; Resolução CAMEX Nº 819 - DOU de 02/12/2025",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-de-motocicletas",
+    "validityNote": "Prazo de vigência: 02/12/2030",
+    "validUntil": "02/12/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [],
+      "tailândia": [],
+      "vietnã": []
+    },
+    "syncedAt": "2026-08-28T13:58:03.088360+00:00"
+  },
+  {
+    "ncm": "40117010",
+    "ncmPatterns": [
+      "40117010",
+      "40117090",
+      "40118090",
+      "40119090",
+      "40119010"
+    ],
+    "ncmExclusions": [],
+    "product": "Pneus agrícolas",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "Resolução CAMEX nº 03/2017 - DOU de 17/02/2017; Resolução CAMEX nº 23/2017 - DOU de 31/03/2017; (Altera a Resolução CAMEX nº 3/2017, publicada no DOU de 17/02/2017); Resolução CAMEX nº 452/2023 - DOU de 17/02/2023; Resolução CAMEX nº474/2023 - DOU de 11/05/2023; Dispõe sobre a apreciação dos pedidos de reconsideração em face da Resolução Gecex nº 452)",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-agricolas",
+    "validityNote": "Prazo de vigência: 17/02/2028",
+    "validUntil": "17/02/2028",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:58:01.235746+00:00"
+  },
+  {
+    "ncm": "40151200",
+    "ncmPatterns": [
+      "40151200",
+      "40151900",
+      "39262000"
+    ],
+    "ncmExclusions": [],
+    "product": "Luvas para procedimentos não cirúrgicos",
+    "origins": [
+      "República Popular Da China",
+      "Da Malásia",
+      "Do Reino Da Tailândia"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX N° 568 – DOU de 20/02/2024 -; RESOLUÇÃO CAMEX Nº 627 - DOU de 09/08/2024 -; Prorroga, por até 3 (três) meses, a contar a partir de 20 de agosto de 2024, o direito antidumping provisório aplicado pela Resolução Gecex nº 568, de 19 de fevereiro de 2024, publicada no Diário Oficial da União de 20 de fevereiro de 2024, às importações brasileiras de luvas para procedimentos não cirúrgicos, quando originárias da China, Malásia e Tailândia.; RESOLUÇÃO CAMEX Nº 650 DOU de 23/10/2024 -; Aplica direito antidumping definitivo, por um prazo de até 5 (cinco) anos, às importações brasileiras de luvas para procedimento não cirúrgico originárias de China, Malásia e Tailândia, e encerra a avaliação de interesse público instaurada por meio da Circular SECEX nº 3, de 8 de fevereiro de 2024.; RESOLUÇÃO GECEX Nº 691, DE 27 DE JANEIRO DE 2025; - DOU de 28/01/2025 - Dispõe sobre a apreciação dos pedidos de reconsideração em face da Resolução Gecex nº 650, de 18 de outubro de 2024, publicada no Diário Oficial da União de 23 de outubro de 2024.; RESOLUÇÃO CAMEX Nº 836 DOU de 28/01/2025",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/Luvas-para-procedimentos-nao-cirurgicos",
+    "validityNote": "Prazo de vigência: 23/10/2029",
+    "validUntil": "23/10/2029",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "república popular da china": [],
+      "da malásia": [],
+      "do reino da tailândia": []
+    },
+    "syncedAt": "2026-08-28T13:57:57.063627+00:00"
+  },
+  {
+    "ncm": "48101389",
+    "ncmPatterns": [
+      "48101389",
+      "48101989",
+      "48109290"
+    ],
+    "ncmExclusions": [],
+    "product": "Cartão semirrígido",
+    "origins": [
+      "Chile"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 742/2025 - DOU de 04/07/2025; Resolução CAMEX Nº 46 - DOU DE 11.10.2007; Resolução CAMEX N° 71– DOU de 13.09.2013; Circular SECEX nº 12/2014 - DOU de 31/03/2014; Circular SECEX nº 20/2015 - DOU de 25/03/2015; Circular SECEX nº 17/2016 - DOU de 30/03/2016; Circular SECEX nº 18/2017 - DOU de 30/03/2017; Circular SECEX nº 13/2018 - DOU de 13/03/2018",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/cartao-semirrigido",
+    "validityNote": "Prazo de vigência: 04/07/2030",
+    "validUntil": "04/07/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "chile": [
+        {
+          "exporter": "CMPC",
+          "rate": 10.8,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Demais empresas",
+          "rate": 20.6,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:57:45.008006+00:00"
+  },
+  {
+    "ncm": "54023111",
+    "ncmPatterns": [
+      "54023111",
+      "54023119",
+      "54024520"
+    ],
+    "ncmExclusions": [],
+    "product": "Fios de náilon",
+    "origins": [
+      "China",
+      "Taipé Chinês",
+      "Coreia do Sul"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO CAMEX Nº 124, DE 26 DE DEZEMBRO DE 2013; RESOLUÇÃO CAMEX Nº 584, DE 29 DE ABRIL DE 2024; - DOU de 02/05/2024 - Altera o art. 1º da Resolução Gecex nº 19, de 20 de dezembro de 2019.; RESOLUÇÃO CAMEX Nº 828, DE 18 DE DEZEMBRO DE 2025",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/fios-de-nailon",
+    "validityNote": "Prazo de vigência: 19/12/2030",
+    "validUntil": "19/12/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [],
+      "taipé chinês": [],
+      "coreia do sul": []
+    },
+    "syncedAt": "2026-08-28T13:57:51.620575+00:00"
+  },
+  {
+    "ncm": "54023111",
+    "ncmPatterns": [
+      "54023111",
+      "54023119",
+      "54024520"
+    ],
+    "ncmExclusions": [],
+    "product": "Fios de náilon",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO CAMEX Nº 908, DOU de 09/06/2026",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/fios-de-nailon-dp",
+    "validityNote": "Prazo de vigência: 09/06/2031",
+    "validUntil": "09/06/2031",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:57:51.984907+00:00"
+  },
+  {
+    "ncm": "54023310",
+    "ncmPatterns": [
+      "54023310",
+      "54023320",
+      "54023390"
+    ],
+    "ncmExclusions": [],
+    "product": "Fios de poliéster",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO CAMEX Nº 910 - DOU 08/06/2026",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/fios-de-poliester",
+    "validityNote": "Prazo de vigência: 08/06/2031",
+    "validUntil": "08/06/2031",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:57:52.402306+00:00"
+  },
+  {
+    "ncm": "55032090",
+    "ncmPatterns": [
+      "55032090"
+    ],
+    "ncmExclusions": [],
+    "product": "Fibras de poliéster",
+    "origins": [
+      "China",
+      "Índia",
+      "Vietnã",
+      "Tailândia"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução GECEX Nº 778, de 28 de agosto de 2025; Resolução GECEX Nº 778, de 28 de agosto de 2025, republicada no DOU de 02/09/2025; - DOU de 02/09/2025 - Encerra, sem aplicação de medida antidumping, a investigação iniciada por intermédio da Circular SECEX nº 11, de 20 de março de 2024, publicada no Diário Oficial da União (DOU) de 21 de março de 2024, uma vez que não houve comprovação suficiente da existência de dumping nas exportações da Malásia para o Brasil de fibras de poliéster, comumente classificadas no subitem 5503.20.90 da Nomenclatura Comum do MERCOSUL - NCM, nos termos do inciso I do art. 74 do Decreto nº 8.058, de 2013.",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/fibras-de-poliester-md",
+    "validityNote": "Prazo de vigência: 01/09/2030",
+    "validUntil": "01/09/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [],
+      "índia": [],
+      "vietnã": [],
+      "tailândia": []
+    },
+    "syncedAt": "2026-08-28T13:57:49.798081+00:00"
+  },
+  {
+    "ncm": "60041031",
+    "ncmPatterns": [
+      "60041031",
+      "60041032",
+      "60041033",
+      "60041034",
+      "60049030",
+      "60063120",
+      "60063220",
+      "60063320",
+      "60063420"
+    ],
+    "ncmExclusions": [],
+    "product": "Malhas de poliéster",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO CAMEX Nº 909 - DOU 08/06/2026",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/malhas-de-poliester",
+    "validityNote": "Prazo de vigência: 08/06/2031",
+    "validUntil": "08/06/2031",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:57:58.572979+00:00"
+  },
+  {
+    "ncm": "60041041",
+    "ncmPatterns": [
+      "60041041",
+      "60041042",
+      "60041043",
+      "60041044",
+      "60049040",
+      "60064100",
+      "60064200",
+      "60064300",
+      "60064400"
+    ],
+    "ncmExclusions": [],
+    "product": "Malhas de viscose",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX N° 07/2017 – DOU de 17/02/2017",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/malhas-de-viscose",
+    "validityNote": "Prazo de vigência: 17/02/2028",
+    "validUntil": "17/02/2028",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:57:58.943868+00:00"
+  },
+  {
+    "ncm": "63051000",
+    "ncmPatterns": [
+      "63051000"
+    ],
+    "ncmExclusions": [],
+    "product": "Sacos de juta",
+    "origins": [
+      "Bangladesh"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX n° 66/2010 – DOU de 03/09/2010; Resolução CAMEX nº 94/2016 - DOU de 30/09/2016; CIRCULAR SECEX Nº 65, DE 29 DE SETEMBRO DE 2021; Resolução CAMEX nº 397/2022 - DOU de 16/09/2022",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/sacos-de-juta",
+    "validityNote": "Prazo de vigência: 16/09/2027",
+    "validUntil": "16/09/2027",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "bangladesh": [
+        {
+          "exporter": "Todas as empresas =",
+          "rate": 0.16,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:58:06.783228+00:00"
+  },
+  {
+    "ncm": "6402",
+    "ncmPatterns": [
+      "6402",
+      "6405",
+      "64022000",
+      "64021200",
+      "64031200",
+      "64032000",
+      "6403",
+      "6404"
+    ],
+    "ncmExclusions": [
+      "64022000",
+      "64021200",
+      "64031200",
+      "64032000"
+    ],
+    "product": "Calçados",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX nº 14/2010 – DOU de 05/03/2010; Resolução CAMEX nº 121/2015 - DOU de 18/12/2015; Resolução CAMEX nº 20/2016 - DOU de 02/03/2016; Resolução CAMEX nº 88/2016 - DOU de 28/09/2016; CIRCULAR SECEX Nº 32, DE 18 DE MAIO DE 2020; RESOLUÇÃO GECEX Nº 303, DE 23 DE FEVEREIRO DE 2022; - Prorroga a aplicação do direito antidumping definitivo, por um prazo de até cinco anos, aplicado às importações brasileiras de calçados, comumente classificadas nas posições NCM 6402 a 6405, originárias da China, a ser recolhido sob a forma de alíquota específica fixada em dólares estadunidenses por par, nos montantes especificados. Encerra a avaliação de interesse público instaurada por meio da Circular Secex nº 67/2021.; RESOLUÇÃO GECEX Nº 352, DE 27 DE MAIO DE 2022",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/calcados",
+    "validityNote": "Prazo de vigência: 25/02/2027",
+    "validUntil": "25/02/2027",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:57:43.920385+00:00"
+  },
+  {
+    "ncm": "69039091",
+    "ncmPatterns": [
+      "69039091",
+      "69039099"
+    ],
+    "ncmExclusions": [],
+    "product": "Filtros cerâmicos refratários",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 47 – DOU de 04/07/2014; RESOLUÇÃO GECEX Nº 64, DE 23 DE JUNHO DE 2020; RESOLUÇÃO GECEX Nº 920, DE 23 DE JUNHO DE 2026",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/filtros-ceramicos-refratarios",
+    "validityNote": "Prazo de vigência: 24/06/2031",
+    "validUntil": "24/06/2031",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:57:50.886586+00:00"
+  },
+  {
+    "ncm": "69072100",
+    "ncmPatterns": [
+      "69072100"
+    ],
+    "ncmExclusions": [],
+    "product": "Porcelanato técnico (medida encerrada)",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "Resolução CAMEX nº 122/2014 - DOU de 19/12/2014; Resolução CAMEX n; RESOLUÇÃO GECEX Nº 152, DE 4 DE FEVEREIRO DE 2021; RESOLUÇÃO GECEX Nº 180, DE 30 DE MARÇO DE 2021; - DOU de 31/03/2021 - Retifica a Resolução Gecex nº 152, de 4 de fevereiro de 2021, que prorroga direito antidumping definitivo, por um prazo de até 5 (cinco) anos, aplicado às importações brasileiras de porcelanato técnico, comumente classificadas no subitem 6907.21.00 da Nomenclatura Comum do Mercosul - NCM, originárias da China.; RESOLUÇÃO GECEX Nº 254, DE 24 DE SETEMBRO DE 2021; - DOU de 27/09/2021 - Dispõe sobre o pedido de reconsideração em face da Resolução Gecex nº 152, de 4 de fevereiro de 2021, que prorrogou direito antidumping definitivo, por um prazo de até 5 (cinco) anos, aplicado às importações brasileiras de porcelanato técnico, comumente classificadas no subitem 6907.21.00 da Nomenclatura Comum do Mercosul - NCM, originárias da China.; Circular SECEX nº 15/2016 - DOU de 29/02/2016",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/porcelanato-tecnico",
+    "validityNote": "",
+    "validUntil": null,
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:58:03.823158+00:00"
+  },
+  {
+    "ncm": "69111010",
+    "ncmPatterns": [
+      "69111010"
+    ],
+    "ncmExclusions": [],
+    "product": "Objetos de louça para mesa",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 3 – DOU de 17/01/2014; Resolução CAMEX N; (Altera o termo de compromisso de preços homologado pela Resolução CAMEX n; Circular SECEX nº 5/2016 - DOU de 15/01/2016; Circular SECEX nº 4/2017 - DOU de 18/01/2017; Circular SECEX nº 6/2018 - DOU de 31/01/2018; Resolução CAMEX N; (Encerra o compromisso de preço homologado pela Resolução CAMEX n",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/objetos-de-louca-para-mesa",
+    "validityNote": "Prazo de vigência: 22/12/2030",
+    "validUntil": "22/12/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:58:00.126494+00:00"
+  },
+  {
+    "ncm": "70052900",
+    "ncmPatterns": [
+      "70052900"
+    ],
+    "ncmExclusions": [],
+    "product": "Vidros planos flotados incolores",
+    "origins": [
+      "Malásia",
+      "Paquistão",
+      "Turquia"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO GECEX Nº 833, DE 22 DE DEZEMBRO DE 2025; RESOLUÇÃO GECEX Nº 936, DE 2 DE JULHO DE 2026",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/vidros-planos-flotados",
+    "validityNote": "Prazo de vigência: 23/12/2030",
+    "validUntil": "23/12/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "malásia": [],
+      "paquistão": [],
+      "turquia": []
+    },
+    "syncedAt": "2026-08-28T13:58:11.577901+00:00"
+  },
+  {
+    "ncm": "70052900",
+    "ncmPatterns": [
+      "70052900"
+    ],
+    "ncmExclusions": [],
+    "product": "Vidros planos flotados incolores",
+    "origins": [
+      "China",
+      "Egito",
+      "Emirados Árabes Unidos",
+      "México"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 121 - DOU de 19/12/2014; Resolução CAMEX n; da Resolução CAMEX n; Resolução GECEX nº 71 - DOU de 22/07/2020; da Resolução CAMEX n; CIRCULAR SECEX Nº 10, DE 18 DE FEVEREIRO DE 2021; - DOU de 19/02/2021 - Encerra a revisão da medida antidumping instituída pela Resolução CAMEX nº 121, de 18 de dezembro de 2014, iniciada por intermédio da Circular SECEX no 69, de 18 de dezembro de 2019, publicada no Diário Oficial da União (D.O.U) de 19 de dezembro de 2019, sem prorrogação da referida medida, uma vez que não houve comprovação da probabilidade de retomada do dano decorrente da prática de dumping nas exportações de vidros planos flotados incolores originárias da Arábia Saudita e dos Estados Unidos da América para o Brasil de vidros planos flotados incolores, com espessuras de 2 mm a 19 mm, classificadas no subitem 7005.29.00 da Nomenclatura Comum do MERCOSUL - NCM, no caso de extinção da medida antidumping em questão.; RESOLUÇÃO GECEX Nº 160, DE 18 DE FEVEREIRO DE 2021",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/vidros-planos-flotados-incolores",
+    "validityNote": "Prazo de vigência: 19/02/2026 Cobrança suspensa.",
+    "validUntil": "19/02/2026",
+    "collectionSuspended": true,
+    "exportersByOrigin": {
+      "china": [],
+      "egito": [],
+      "emirados árabes unidos": [],
+      "méxico": []
+    },
+    "syncedAt": "2026-08-28T13:58:11.943541+00:00"
+  },
+  {
+    "ncm": "70071100",
+    "ncmPatterns": [
+      "70071100",
+      "70071900",
+      "70072100",
+      "70072900",
+      "87082999"
+    ],
+    "ncmExclusions": [],
+    "product": "Vidros automotivos",
+    "origins": [
+      "China",
+      "Malásia"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "Resolução CAMEX nº 05/2017 - DOU de 17/02/2017; Resolução CAMEX nº 450/2023 - DOU de 17/02/2023; RESOLUÇÃO CAMEX Nº 556, DE 19 DE FEVEREIRO DE 2024; RESOLUÇÃO CAMEX Nº 832, DE 19 DE DEZEMBRO DE 2025; RESOLUÇÃO GECEX Nº 888, DE 7 DE MAIO DE 2026; - DOU de 08/05/2026 - Dispõe sobre a apreciação do pedido de reconsideração apresentado pela empresa Xinyi Energy Smart em face da Resolução Gecex nº 832, de 19 de dezembro de 2025, que estendeu a aplicação do direito antidumping definitivo às importações brasileiras de para-brisas originárias ou procedentes da Malásia.",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/vidros-automotivos",
+    "validityNote": "Prazo de vigência: 17/02/2028",
+    "validUntil": "17/02/2028",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [],
+      "malásia": []
+    },
+    "syncedAt": "2026-08-28T13:58:10.819355+00:00"
+  },
+  {
+    "ncm": "70071900",
+    "ncmPatterns": [
+      "70071900"
+    ],
+    "ncmExclusions": [],
+    "product": "Vidros para eletrodomésticos da linha fria",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 46 – DOU de 04/07/2014; RESOLUÇÃO GECEX Nº 63, DE 23 DE JUNHO DE 2020; RESOLUÇÃO GECEX Nº 921, DE 23 DE JUNHO DE 2026",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/vidros-para-eletrodomesticos-da-linha-fria",
+    "validityNote": "Prazo de vigência: 24/06/2026",
+    "validUntil": "24/06/2026",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:58:11.185675+00:00"
+  },
+  {
+    "ncm": "70099100",
+    "ncmPatterns": [
+      "70099100"
+    ],
+    "ncmExclusions": [],
+    "product": "Espelhos",
+    "origins": [
+      "China",
+      "México"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX nº 10/2016 - DOU de 19/02/2016; Resolução CAMEX nº 118/2016 – DOU de 28/11/2016; CIRCULAR SECEX Nº 32, DE 18 DE MAIO DE 2020; RESOLUÇÃO GECEX Nº 302, DE 16 DE FEVEREIRO DE 2022",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/espelhos",
+    "validityNote": "Prazo de vigência: 17/02/2027 Cobrança suspensa.",
+    "validUntil": "17/02/2027",
+    "collectionSuspended": true,
+    "exportersByOrigin": {
+      "china": [],
+      "méxico": []
+    },
+    "syncedAt": "2026-08-28T13:57:48.303844+00:00"
+  },
+  {
+    "ncm": "72085100",
+    "ncmPatterns": [
+      "72085100",
+      "72085200",
+      "72107010",
+      "2014",
+      "72254090",
+      "2015",
+      "2017",
+      "72083610",
+      "2016",
+      "72083690",
+      "72083700",
+      "72253000"
+    ],
+    "ncmExclusions": [],
+    "product": "Laminados planos de baixo carbono e baixa liga (Chapas Grossas)",
+    "origins": [
+      "África Do Sul",
+      "China",
+      "Coreia do Sul",
+      "Ucrânia"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "NCM: 7208.51.00, 7208.52.00, 7210.70.10 (Anticircunvenção - Resolução CAMEX 119/2014), 7225.40.90 (Anticircunvenção - Resoluções CAMEX 119/2014, 82/2015 e 08/2017) 7208.36.10 (Anticircunvenção - Resolução CAMEX 2/2016), 7208.36.90 (Anticircunvenção - Resolução CAMEX 2/2016), 7208.37.00 (Anticircunvenção - Resolução CAMEX 2/2016), 7225.30.00 (Anticircunvenção - Resolução CAMEX 2/2016); Resolução CAMEX N° 77 – DOU de 03/10/2013; Resolução CAMEX Nº 111 - DOU de 20/12/2013; Resolução CAMEX Nº 119 - DOU de 19/12/2014; Resolução CAMEX nº 70 - DOU de 23/07/2015; Resolução CAMEX nº 82 - DOU de 31/08/2015; Resolução CAMEX nº 2 - DOU de 27/01/2016; Resolução CAMEX nº 8 - DOU de 17/02/2017",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/laminados-planos-de-baixo-carbono-e-baixa-liga-chapas-grossas",
+    "validityNote": "Prazo de vigência: 30/09/2030",
+    "validUntil": "30/09/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "áfrica do sul": [],
+      "china": [],
+      "coreia do sul": [],
+      "ucrânia": []
+    },
+    "syncedAt": "2026-08-28T13:57:55.144290+00:00"
+  },
+  {
+    "ncm": "72091500",
+    "ncmPatterns": [
+      "72091500",
+      "72091600",
+      "72091700",
+      "72091800",
+      "72092500",
+      "72092600",
+      "72092700",
+      "72092800",
+      "72099000",
+      "72112300",
+      "72112910",
+      "72112920",
+      "72255090",
+      "72269200"
+    ],
+    "ncmExclusions": [],
+    "product": "Laminados planos de aço carbono, ligados ou não ligados, em forma de chapas ou em bobinas, laminados a frio",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO CAMEX Nº 854/2026 - DOU de 18/02/2026 - REPUBLICADA",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/laminados-planos-a-frio",
+    "validityNote": "Prazo de vigência: 13/02/2031",
+    "validUntil": "13/02/2031",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:57:54.779462+00:00"
+  },
+  {
+    "ncm": "72101200",
+    "ncmPatterns": [
+      "72101200",
+      "72105000",
+      "72121000",
+      "72125090"
+    ],
+    "ncmExclusions": [],
+    "product": "Folhas metálicas de aço carbono, ligado ou não ligado, de qualquer largura com espessura inferior a 0,5 mm",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO CAMEX Nº 765, DE 28 DE AGOSTO DE 2025; RESOLUÇÃO GECEX Nº 905, DE 3 DE JUNHO DE 2026; - DOU de 08/06/2026 - Dispõe sobre a apreciação do pedido de reconsideração apresentado pela Associação Brasileira de Embalagem de Aço em face da Resolução Gecex nº 765, de 28 de agosto de 2025, que aplicou medida antidumping definitiva, por um prazo de até cinco anos, às importações brasileiras de folhas metálicas originárias da China",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/folhas-metalicas-md",
+    "validityNote": "Prazo de vigência: 29/08/2030",
+    "validUntil": "29/08/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:57:52.767906+00:00"
+  },
+  {
+    "ncm": "72103010",
+    "ncmPatterns": [
+      "72103010",
+      "72103090",
+      "72104910",
+      "72104990",
+      "72106100",
+      "72106911",
+      "72106919",
+      "72106990",
+      "72122010",
+      "72122090",
+      "72123000",
+      "72259100",
+      "72259200",
+      "72259990",
+      "72269900"
+    ],
+    "ncmExclusions": [],
+    "product": "Laminados planos revestidos",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO CAMEX Nº 856/2026",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/laminados-planos-revestidos",
+    "validityNote": "Prazo de vigência: 19/02/2031",
+    "validUntil": "19/02/2031",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:57:55.598191+00:00"
+  },
+  {
+    "ncm": "72107010",
+    "ncmPatterns": [
+      "72107010",
+      "72107020",
+      "72124010",
+      "72124021",
+      "72124029"
+    ],
+    "ncmExclusions": [],
+    "product": "Aços pré-pintados",
+    "origins": [
+      "China",
+      "Índia"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO CAMEX Nº 849/2026; RESOLUÇÃO GECEX Nº 931, DE 2 DE JULHO DE 2026; - DOU de 03/07/2026 - Dispõe sobre a apreciação do pedido de reconsideração apresentado pela Linqing Hengtai em face da Resolução Gecex nº 849, de 30 de janeiro de 2026, que aplicou medida antidumping definitiva, por um prazo de até cinco anos, às importações brasileiras de aços pré-pintados, originárias da China e da Índia.",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/acos-pre-pintados",
+    "validityNote": "Prazo de vigência: 02/02/2031",
+    "validUntil": "02/02/2031",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [],
+      "índia": []
+    },
+    "syncedAt": "2026-08-28T13:57:38.781366+00:00"
+  },
+  {
+    "ncm": "72171019",
+    "ncmPatterns": [
+      "72171019",
+      "72171090"
+    ],
+    "ncmExclusions": [],
+    "product": "Fios de aço",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX nº 44/2017 - DOU de 07/07/2017; Resolução CAMEX nº 485/2023 - DOU de 16/06/2023 (Prorroga direito antidumping definitivo)",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/fios-de-aco",
+    "validityNote": "Prazo de vigência: 19/06/2028",
+    "validUntil": "19/06/2028",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [
+        {
+          "exporter": "Silvery Dragon Prestressed Materials Co., Ltd.",
+          "rate": 124.33,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Global Overseas Group Co., Ltd.",
+          "rate": 563.77,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Tianjin Huashi International Trade Co., Ltd.",
+          "rate": 563.77,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Tianjin Shengte Prestressed Concrete Steel Strand Co., Ltd.",
+          "rate": 563.77,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Demais exportadores",
+          "rate": 563.77,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:57:51.249268+00:00"
+  },
+  {
+    "ncm": "72193200",
+    "ncmPatterns": [
+      "72193200",
+      "72193300",
+      "72193400",
+      "72193500",
+      "72202094"
+    ],
+    "ncmExclusions": [],
+    "product": "Laminados de aço inoxidável",
+    "origins": [
+      "China",
+      "Taipé Chinês"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 79 - DOU de 04/10/2013; Resolução CAMEX Nº 112 - DOU de 20/12/2013; Resolução CAMEX Nº 117, DOU de 20/12/2013; Resolução CAMEX Nº 594, DOU de 27/05/2024; RESOLUÇÃO CAMEX Nº 634/2026, DOU de 09/08/2024; Dispõe sobre a apreciação de pedido de reconsideração apresentado em face da Resolução Gecex nº 594, de 24 de maio de 2024; e altera a redação do art. 1º da Resolução Gecex nº 594, de 24 de maio de 2024.; RESOLUÇÃO CAMEX Nº 798/2026; RESOLUÇÃO CAMEX Nº 880/2026",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/laminados-de-aco-inoxidavel",
+    "validityNote": "Prazo de vigência: 30/09/2030",
+    "validUntil": "30/09/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [],
+      "taipé chinês": []
+    },
+    "syncedAt": "2026-08-28T13:57:53.135626+00:00"
+  },
+  {
+    "ncm": "72251900",
+    "ncmPatterns": [
+      "72251900",
+      "72261900"
+    ],
+    "ncmExclusions": [],
+    "product": "Laminados planos de aço ao silício (aço GNO)",
+    "origins": [
+      "Alemanha",
+      "China",
+      "Coreia do Sul",
+      "Taipé Chinês."
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO GECEX Nº 68, DE 14 DE JULHO DE 2020; RESOLUÇÃO GECEX Nº 758, DE 10 DE JULHO DE 2025; RESOLUÇÃO GECEX Nº 857, DE 20 DE FEVEREIRO DE 2026",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/aco-gno",
+    "validityNote": "Prazo de vigência: 10/07/2030",
+    "validUntil": "10/07/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "alemanha": [],
+      "china": [],
+      "coreia do sul": [],
+      "taipé chinês.": []
+    },
+    "syncedAt": "2026-08-28T13:57:54.406080+00:00"
+  },
+  {
+    "ncm": "72283000",
+    "ncmPatterns": [
+      "72283000"
+    ],
+    "ncmExclusions": [],
+    "product": "Barras de aço",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "Resolução CAMEX nº 120/2016 - DOU de 28/11/2016; Resolução CAMEX nº 420/2022 - DOU de 25/11/2022",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/barras-de-aco",
+    "validityNote": "Prazo de vigência: 24/11/2027",
+    "validUntil": "24/11/2027",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [
+        {
+          "exporter": "Todos os produtores/exportadores chineses",
+          "rate": 437.09,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:57:42.078530+00:00"
+  },
+  {
+    "ncm": "73041900",
+    "ncmPatterns": [
+      "73041900"
+    ],
+    "ncmExclusions": [],
+    "product": "Tubos de aço carbono, sem costura, de condução (line pipe), com diâmetro de até cinco polegadas",
+    "origins": [
+      "China",
+      "Romênia"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "Resolução CAMEX N° 63 – DOU de 08/09/2011; Resolução CAMEX N° 66 – DOU de 22/08/2017; Resolução CAMEX Nº 38 - DOU de 22/08/2022; Resolução CAMEX Nº 497 - DOU de 24/07/2023",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-de-aco-carbono-sem-costura-china-romenia",
+    "validityNote": "Prazo de vigência: 21/07/2028",
+    "validUntil": "21/07/2028",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [],
+      "romênia": []
+    },
+    "syncedAt": "2026-08-28T13:58:08.232358+00:00"
+  },
+  {
+    "ncm": "73041900",
+    "ncmPatterns": [
+      "73041900"
+    ],
+    "ncmExclusions": [],
+    "product": "Tubos de aço carbono, sem costura, de condução (line pipe), utilizados para oleodutos e gasodutos, com diâmetro externo superior a 5 (cinco) polegadas nominais (141,3 mm), mas não superior a 14 (quatorze) polegadas nominais (355,6 mm)",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 94 - DOU de 04/11/2013 (aplica direito antidumping definitivo); RESOLUÇÃO CAMEX Nº 773, DE 25 DE JULHO DE 2025",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-de-aco-carbono-sem-costura-tubos-de-conducao",
+    "validityNote": "Prazo de vigência: 28/07/2030",
+    "validUntil": "28/07/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:58:08.639459+00:00"
+  },
+  {
+    "ncm": "73043110",
+    "ncmPatterns": [
+      "73043110",
+      "73043190",
+      "73043910",
+      "73043920",
+      "73043990"
+    ],
+    "ncmExclusions": [],
+    "product": "Tubos de aço carbono não ligado, sem costura, de seção circular, com diâmetro externo não superior a 374 mm",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "Resolução CAMEX nº 65/2016 - DOU de 21/07/2016; RESOLUÇÃO GECEX Nº 367, DE 18 DE JULHO DE 2022",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-carbono-china",
+    "validityNote": "Prazo de vigência: 20/07/2027",
+    "validUntil": "20/07/2027",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [
+        {
+          "exporter": "Cnh China Management Co. Ltd.; Dexin Steel Tube Co. Ltd.; Doosan Infracore (China) Co., Ltd; Fiat Powertrain Technologies Mana; Guangxi Liugong Machinery Co., Ltd.; Hangzhou Newpioneer Import & Export Co. Ltd.; Hebei Abter Steel Pipe Co. Ltd.; Hubei Xinyegang Steel Co. Ltd.; Hunan Standard Steelco. Ltd.; Jiangsu Liwan Precision Tube Manufacturing Co. Ltd.; King 9 Technology Company Limited; Liyang Jinkun Forging & Machining Co. Ltd.; Ls Machinery (Qingdao) Co. Ltd.; Minhoo Auto Metal Parts (Guangzhou) Co. Ltd.; Modine Thermal Systems Changzhou Co. Ltd.; Nanjing Develop Advanced Manufacturing Co. Ltd.; Roc-Master Piping Solutions Ltd.; Shenzhen Wei Tao-Line Industrial Equipment Co. Ltd.; Sichuan Saiwei Laite Gas Equipament Co. Ltd.; Suzhou Hong Yang Pipe Co. Ltd.; Weichai Powerweifangspares Parts Co. Ltd.; Wuxi Dmk Hydraulic Technology Co. Ltd.; Wuxi Sps Controls Technology Co. Ltd.; Xi'an Linkun Import & Export Co. Ltd.; Xuzhou Construction Machinery Group Imp. E Exp. Co. Ltd; Yangzhou Lontrin Steel Tube Co., Ltd =",
+          "rate": 1009.29,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Guangde Dingli Precision Steel Tube Co. Ltd.; Jiangsu Sunco Boiler Co. Ltd; Tianjin Pipe Group Corporation =",
+          "rate": 1356.9,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Demais Empresas =",
+          "rate": 1356.9,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:58:07.510205+00:00"
+  },
+  {
+    "ncm": "73064000",
+    "ncmPatterns": [
+      "73064000",
+      "73069020"
+    ],
+    "ncmExclusions": [],
+    "product": "Tubos com costura, de aços inoxidáveis austeníticos graus 304 e 316, de seção circular, com diâmetro externo igual ou superior a 6 mm e inferior a 2.032 mm, com espessura igual ou superior a 0,40 mm e igual ou inferior a 12,70 mm",
+    "origins": [
+      "Índia",
+      "Taipé Chinês"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO CAMEX Nº 764, DE 25 DE JULHO DE 2025; RESOLUÇÃO GECEX Nº 806, DE 23 DE OUTUBRO DE 2025; - DOU de 24/10/2025 - Dispõe sobre a apreciação do pedido de reconsideração apresentado pelas empresas Prakash Steelage Limited e Seth Steelage Private Limited em face da Resolução Gecex nº 764, de 25 de julho de 2025.",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-de-aco-inox-dp",
+    "validityNote": "Prazo de vigência: 28/07/2030",
+    "validUntil": "28/07/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "índia": [],
+      "taipé chinês": []
+    },
+    "syncedAt": "2026-08-28T13:58:09.366498+00:00"
+  },
+  {
+    "ncm": "73064000",
+    "ncmPatterns": [
+      "73064000",
+      "73069020"
+    ],
+    "ncmExclusions": [],
+    "product": "Tubos com costura, de aços inoxidáveis austeníticos graus 304 e 316, de seção circular, com diâmetro externo igual ou superior a 6 mm e inferior a 2.032 mm, com espessura igual ou superior a 0,40 mm e igual ou inferior a 12,70 mm",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "Circular SECEX Nº 44 – DOU de 25/07/2019; (Encerra a revisão da medida antidumping instituída pela Resolução CAMEX nº 59, sem prorrogação da referida medida relativa a Taipé Chinês); Resolução CAMEX Nº 755/2025 - DOU de 04/07/2025",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-de-aco-inoxidavel",
+    "validityNote": "Prazo de vigência: 04/07/2030",
+    "validUntil": "04/07/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:58:09.002201+00:00"
+  },
+  {
+    "ncm": "73110000",
+    "ncmPatterns": [
+      "73110000"
+    ],
+    "ncmExclusions": [],
+    "product": "Cilindros para GNV",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO GECEX Nº 225, DE 23 DE JULHO DE 2021",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/cilindos-gnv",
+    "validityNote": "Prazo de vigência: 27/07/2026",
+    "validUntil": "27/07/2026",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [
+        {
+          "exporter": "Hengyang Jinhua High Pressure Container Co., Ltd. =",
+          "rate": 0.0,
+          "unit": "USD_PER_UNIT",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Anhui Clean Power Energy Co Ltd. =",
+          "rate": 3.51,
+          "unit": "USD_PER_UNIT",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Sinoma Science & Technology (Chengdu) Co., Ltd. e Sinoma Science & Technology (Jiujiang) Co., Ltd =",
+          "rate": 14.32,
+          "unit": "USD_PER_UNIT",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Zhejiang Tianen Pressure Vessel Co., Ltd. =",
+          "rate": 64.41,
+          "unit": "USD_PER_UNIT",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Demais empresas =",
+          "rate": 64.41,
+          "unit": "USD_PER_UNIT",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:57:46.099494+00:00"
+  },
+  {
+    "ncm": "73121090",
+    "ncmPatterns": [
+      "73121090"
+    ],
+    "ncmExclusions": [],
+    "product": "Cordoalhas de aço",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "Resolução CAMEX nº 45/2017 - DOU de 07/07/2017; Resolução CAMEX nº 484/2023 - DOU de 22/06/2023",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/cordoalhas-de-aco",
+    "validityNote": "Prazo de vigência: 22/06/2028",
+    "validUntil": "22/06/2028",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [
+        {
+          "exporter": "Silvery Dragon Prestressed Materials Co., Ltd.",
+          "rate": 290.11,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Global Overseas Group Co., Ltd.",
+          "rate": 627.04,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Tianjin Chunpeng Prestressed Concrete Strand Co., Ltd.",
+          "rate": 627.04,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Tianjin Yuheng Prestressed Concrete Steel Strand Manufa Co., Ltd.",
+          "rate": 627.04,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Tianjin Shengte Prestressed Concrete Steel Strand Co., Ltd.",
+          "rate": 627.04,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Demais exportadores",
+          "rate": 627.04,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:57:46.485342+00:00"
+  },
+  {
+    "ncm": "81041100",
+    "ncmPatterns": [
+      "81041100"
+    ],
+    "ncmExclusions": [],
+    "product": "Magnésio metálico (China)",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 79 - DOU de 16/12/2009; Resolução CAMEX nº 91 - DOU de 25/09/2015; RESOLUÇÃO CAMEX Nº 253 - DOU de 24/09/2021; RESOLUÇÃO CAMEX Nº 892 - DOU de 08/05/2026",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/magnesio-metalico-china",
+    "validityNote": "Prazo de vigência: 24/09/2026",
+    "validUntil": "24/09/2026",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:57:57.814253+00:00"
+  },
+  {
+    "ncm": "81041100",
+    "ncmPatterns": [
+      "81041100"
+    ],
+    "ncmExclusions": [],
+    "product": "Magnésio metálico (Rússia)",
+    "origins": [
+      "Rússia"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX N° 18; Resolução CAMEX N° 10/2023 – DOU de 28/03/2023; Resolução CAMEX N° 569/2024 – DOU de 12/03/2024",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/magnesio-metalico-russia",
+    "validityNote": "Prazo de vigência: 28/03/2029",
+    "validUntil": "28/03/2029",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "rússia": [
+        {
+          "exporter": "Todos os produtores",
+          "rate": 890.73,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:57:58.179458+00:00"
+  },
+  {
+    "ncm": "81043000",
+    "ncmPatterns": [
+      "81043000",
+      "81049000"
+    ],
+    "ncmExclusions": [],
+    "product": "Magnésio em pó",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 28 - DOU de 11/10/2004; Resolução CAMEX Nº 74 - DOU de 07/10/2010; Resolução CAMEX nº 66 - DOU de 21/07/2016; RESOLUÇÃO GECEX Nº 366, DE 18 DE JULHO DE 2022",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/magnesio-em-po",
+    "validityNote": "Prazo de vigência: 19/07/2027",
+    "validUntil": "19/07/2027",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [
+        {
+          "exporter": "Todos os produtores =",
+          "rate": 0.99,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:57:57.425598+00:00"
+  },
+  {
+    "ncm": "83011000",
+    "ncmPatterns": [
+      "83011000"
+    ],
+    "ncmExclusions": [],
+    "product": "Cadeados",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 95 - DOU de 13/11/2013; Resolução GECEX Nº 9 - DOU de 13/11/2019; RESOLUÇÃO GECEX Nº 7; CIRCULAR SECEX nº 67, de 7 de outubro de 2020; Inicia avaliação dos elementos probatórios para a retomada da cobrança do direito antidumping, suspenso pela Resolução GECEX no9, de 12 de novembro de 2019, publicada no Diário Oficial da União (D.O.U.) de 13 de novembro de 2019, nas importações brasileiras de cadeados, comumente classificadas no subitem 8301.10.00 da Nomenclatura Comum do MERCOSUL - NCM, originárias da China; RESOLUÇÃO GECEX Nº 142, DE 31 DE DEZEMBRO DE 2020; RESOLUÇÃO GECEX Nº 803, DE 23 DE OUTUBRO DE 2025",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/cadeados",
+    "validityNote": "Prazo de vigência: 24/10/2025",
+    "validUntil": "24/10/2025",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:57:43.556808+00:00"
+  },
+  {
+    "ncm": "83017000",
+    "ncmPatterns": [
+      "83017000"
+    ],
+    "ncmExclusions": [],
+    "product": "Chaves de latão",
+    "origins": [
+      "China",
+      "Colômbia",
+      "Peru"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Provisório",
+    "legalFoundation": "Resolução CAMEX N° 615 – DOU de 15/07/2024 -",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/chaves-de-latao",
+    "validityNote": "Prazo de vigência: 16/07/2029",
+    "validUntil": "16/07/2029",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [],
+      "colômbia": [],
+      "peru": []
+    },
+    "syncedAt": "2026-08-28T13:57:45.735736+00:00"
+  },
+  {
+    "ncm": "84145110",
+    "ncmPatterns": [
+      "84145110"
+    ],
+    "ncmExclusions": [],
+    "product": "Ventiladores de mesa",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito antidumping definitivo",
+    "legalFoundation": "RESOLUÇÃO CAMEX Nº 725, DE 20 DE MAIO DE 2025",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/ventiladores-de-mesa",
+    "validityNote": "Prazo de vigência: 20/05/2030",
+    "validUntil": "20/05/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [
+        {
+          "exporter": "Alíquota específica de",
+          "rate": 11.76,
+          "unit": "USD_PER_UNIT",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:58:10.454074+00:00"
+  },
+  {
+    "ncm": "85182100",
+    "ncmPatterns": [
+      "85182100",
+      "85182200",
+      "85182990"
+    ],
+    "ncmExclusions": [],
+    "product": "Alto-falantes",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX nº 66/2007 - DOU DE 13/12/2007; Resolução CAMEX nº 101/2013 - DOU DE 29/11/2013; Resolução CAMEX nº 11/2014 – DOU de 20/02/2014; Resolução CAMEX nº 83/2014 - DOU de 19/09/2014; Resolução CAMEX nº 99/2016 - DOU de 01/11/2016; Resolução CAMEX n° 16/2019 - DOU de 29/11/2019; Resolução CAMEX nº 817/2025 - DOU de 28/11/2025",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/alto-falantes",
+    "validityNote": "Prazo de vigência: 28/11/2030",
+    "validUntil": "28/11/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [
+        {
+          "exporter": "Todas as empresas",
+          "rate": 78.3,
+          "unit": "AD_VALOREM",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:57:40.986569+00:00"
+  },
+  {
+    "ncm": "85447010",
+    "ncmPatterns": [
+      "85447010"
+    ],
+    "ncmExclusions": [],
+    "product": "Cabos de fibra ópticas",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO CAMEX Nº 837/2025 - DOU de 22/12/2025",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/cabos-de-fibra-opticas",
+    "validityNote": "Prazo de vigência: 22/12/2030",
+    "validUntil": "22/12/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:57:43.170389+00:00"
+  },
+  {
+    "ncm": "90011011",
+    "ncmPatterns": [
+      "90011011"
+    ],
+    "ncmExclusions": [],
+    "product": "Fibras ópticas",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO CAMEX Nº 829/2025 DOU de 22/12/2025",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/fibras-opticas",
+    "validityNote": "Prazo de vigência: 22/12/2030",
+    "validUntil": "22/12/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:57:50.160965+00:00"
+  },
+  {
+    "ncm": "90183111",
+    "ncmPatterns": [
+      "90183111"
+    ],
+    "ncmExclusions": [],
+    "product": "Seringas descartáveis",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX nº 58/2015 (DOU de 22/06/2015); Resolução GECEX Nº 23/2020; RESOLUÇÃO GECEX Nº 145, DE 6 DE JANEIRO DE 2021; RESOLUÇÃO GECEX Nº 216, DE 21 DE JUNHO DE 2021; RESOLUÇÃO GECEX Nº 487, DE 16 DE JUNHO DE 2023; - DOU de 19/06/2023 - Reaplica direito antidumping definitivo, que havia sido prorrogado por um prazo de até 5 (cinco) anos e imediatamente suspenso, por razões de interesse público, nos termos da Resolução GECEX nº 216, de 21 de junho de 2021, e da Resolução GECEX nº 351, de 27 de maio de 2022, sobre as importações brasileiras de seringas descartáveis de uso geral, de plástico, com capacidade de 1ml, 3ml, 5ml, 10ml ou 20ml, com ou sem agulhas, originárias da República Popular da China.",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/seringas-descartaveis",
+    "validityNote": "Prazo de vigência: 22/06/2026",
+    "validUntil": "22/06/2026",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:58:07.146244+00:00"
+  },
+  {
+    "ncm": "90183219",
+    "ncmPatterns": [
+      "90183219"
+    ],
+    "ncmExclusions": [],
+    "product": "Agulhas hipodérmicas",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO CAMEX Nº 855/2026; RESOLUÇÃO GECEX Nº 930, DE 10 DE JULHO DE 2026; ispõe sobre a apreciação do pedido de reconsideração apresentado pela Yangzhou Medline International Co., Ltd. e Yangzhou Medline Industry Co., Ltd. em face da Resolução Gecex nº 855, de 13 de fevereiro de 2026, que aplicou direito antidumping definitivo, por um prazo de até cinco anos, às importações brasileiras de agulhas hipodérmicas, originárias da China",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/agulhas-hipodermicas",
+    "validityNote": "Prazo de vigência: 19/02/2031",
+    "validUntil": "19/02/2031",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:57:40.237206+00:00"
+  },
+  {
+    "ncm": "96020010",
+    "ncmPatterns": [
+      "96020010"
+    ],
+    "ncmExclusions": [],
+    "product": "Cápsulas duras de gelatina vazia",
+    "origins": [
+      "Estados Unidos da América",
+      "México"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX N° 470 – DOU de 10/05/2023 -; Resolução CAMEX N° 486 – DOU de 19/06/2023; Altera o art. 1º da Resolução Gecex/Camex nº 470/2023",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/capsulas-duras-de-gelatina-vazia",
+    "validityNote": "Prazo de vigência: 10/05/2028",
+    "validUntil": "10/05/2028",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "estados unidos da américa": [],
+      "méxico": []
+    },
+    "syncedAt": "2026-08-28T13:57:44.645726+00:00"
+  },
+  {
+    "ncm": "96032900",
+    "ncmPatterns": [
+      "96032900"
+    ],
+    "ncmExclusions": [],
+    "product": "Escovas para cabelo",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX Nº 99 - DOU DE 26/11/2013; Resolução CAMEX Nº 10 – DOU de 20/02/2014; Resolução CAMEX N°12 - DOU de 22/11/2019; Resolução CAMEX Nº 801 - DOU de 24/10/2025; Resolução CAMEX Nº 879 - DOU de 0604/2026; Circular SECEX nº 66 - DOU de 13/12/2011",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/escovas-para-cabelo",
+    "validityNote": "Prazo de vigência: 24/10/2030",
+    "validUntil": "24/10/2030",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": []
+    },
+    "syncedAt": "2026-08-28T13:57:47.940931+00:00"
+  },
+  {
+    "ncm": "96081000",
+    "ncmPatterns": [
+      "96081000"
+    ],
+    "ncmExclusions": [],
+    "product": "Canetas esferográficas",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "Resolução CAMEX N° 24 – DOU de 29/04/2010; Resolução CAMEX Nº 11 - DOU 19/02/2016; CIRCULAR SECEX Nº 32, DE 18 DE MAIO DE 2020; RESOLUÇÃO GECEX Nº 301, DE 16 DEFEVEREIRO DE 2022",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/canetas-esferograficas",
+    "validityNote": "Prazo de vigência: 17/02/2027",
+    "validUntil": "17/02/2027",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [
+        {
+          "exporter": "Todas as empresas =",
+          "rate": 6.07,
+          "unit": "USD_PER_TON",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:57:44.283065+00:00"
+  },
+  {
+    "ncm": "96091000",
+    "ncmPatterns": [
+      "96091000"
+    ],
+    "ncmExclusions": [],
+    "product": "Lápis",
+    "origins": [
+      "China"
+    ],
+    "measure": "antidumping",
+    "measureTypeText": "Direito Antidumping Definitivo",
+    "legalFoundation": "RESOLUÇÃO GECEX Nº 141, DE 19 DE JANEIRO DE 2021",
+    "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+    "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/lapis",
+    "validityNote": "Prazo de vigência: 21/01/2026",
+    "validUntil": "21/01/2026",
+    "collectionSuspended": false,
+    "exportersByOrigin": {
+      "china": [
+        {
+          "exporter": "Axus Stationery (Shanghai) Co. Ltd. =",
+          "rate": 5.55,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Zhejiang Pengsheng Stationery Co Ltd. =",
+          "rate": 2.78,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Jiangxi Jishui Jixing Stationery Co Ltd. =",
+          "rate": 0.57,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Zhejiang Jiangshan Longteng Pen Industry Co. Ltd. =",
+          "rate": 0.36,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Suzhou Huazhong Stationery Co. Ltd =",
+          "rate": 5.55,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Beifa Group Co. Ltd, Binzhou Psl Pencil Co., Ltd, Bnw Fortune Co.,Limited, Caran Dache S.A., Colart Tianjin Art Materials Co Ltd, Dalian Asian Stationery Co., Ltd, Dalian Golden Time Enterprise Co., Ltd, Derwent, Dongyang Sewing Equipment, Fila Dixon Stationery 9kunshai Co., Ltd, Guangdong Youngly Stationery Co., Ltd, Guangming Pencil Co., Ltd, Hebei Ambang Industry Group Limited, Hebei Sinotools Industrial Co.,Ltd., Histar International Limited, Jiande Yuanfeng Tool Co., Ltd, Jiangsu Sainty Sumex Tools Corp. Ltd., Jiangsu Universal Industrial Co., Ltd., Jiangyan Jingong Tools Product Co.,Ltd, Jinan Bee Writing Instrument Co Ltd, Jinan Famefirst Stationery Co, Lta, Jinan Sinocolor Trade Co., Ltd, Jinxu Import & Export Co., Limited, Linshu Deshili Import and Export Co Ltd, Lishui Deyuan Arts and Stationery Co.,Ltd, Linyi Guangming Pencil Co Ltd, Lishui Beike Trade Co., Ltd, Luohe Shuangye Stationery Co Ltd, Mitsubishi Pencil (China) Ltd, Mengcheng County Jinyuanda Pen Making Co., Ltd, Nanjing Codeal Corp, Ltd., Ningbo Alaska Packing and Manufacturing Ltd., Ningbo Doublefly Imp and Exp Corp, Ningbo Epene Stationery Co.,Ltd, Ningbo Fengya Industry & Trade Co., Ltd, Ningbo Hengrui Culture and Education Appliance Co., Ltd, Ningbo Jiandong Fortune, Ningbo Kaikai Stationery Co.,Ltd, Ningbo Senior Stationery Co., Ltd, Ningbo Whole Sun Stationery Co., Ltd, Ningbo Xinteng Needle Co.,Ltd, Qingyuan Hongyun Pen Industry Co., Ltd, Quzhou Down Stationery Co., Ltd, Shanghai Amc International Trading Co., Ltd, Shanghai Harden Tools Co.,Ltd, Shanghai Ming Bao Tools Co Ltd, Shanghai Pioneer Stationery Co. Ltd, Shanghai Reach Industrial Co Ltd, Shantou Chenghai Canxin Plastic Factory, Shenzhen Xinhua Ling Stationery Manufacturing Co Ltd, Shenzhen Flanger Musical Instruments Co., Limited, Shenzhen Hart Stationery Co. Ltd., Skyglory (China) Industrial Company Limited, Skyglory (Yw) Stationery Co. Ltd, Suzhou Aipiteke Co., Ltd, Suzhou Maped Office Supplies Mfg Co., Ltd, Weihai Gold Horse Pen Industry Co., Ltd, Wenzhou Evengrown Stationery and Gift Co. Ltd., Yiwu King Top Import & Export Co.,Ltd, Yiwy Hengyu Pencil Factory, Yongkang Fuda Tools Co.,Ltd, Yuyao Hualun Import and Export Co., Ltd., Zhangqiu Hongda Pencil Co., Ltd., Zhanjiang Youngly Stationery Co., Ltd., Zhejiang Abd Industry Trade Co., Ltd, Zhejiang Hongye Pencil Industry Co Ltd, Zhejiang Huaxing Pencil Co., Ltd, Zhejiang Sailing Imp&Exp Co.,Ltd, Zhejiang Zhendong Stationery Co. Ltd =",
+          "rate": 1.77,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        },
+        {
+          "exporter": "Demais empresas =",
+          "rate": 5.55,
+          "unit": "USD_PER_KG",
+          "collectionSuspended": false
+        }
+      ]
+    },
+    "syncedAt": "2026-08-28T13:57:55.963226+00:00"
+  }
+]
