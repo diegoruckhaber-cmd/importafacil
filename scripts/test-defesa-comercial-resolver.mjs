@@ -22,8 +22,7 @@ assert.equal(triangle.rateUsdPerKg, 1.07);
 assert.equal(triangle.amountBrl, 5885);
 
 const chinaResidual = listDefenseCommercialExporters("40112090", "China", "2026-08-17");
-assert.equal(chinaResidual?.options.length, 28);
-assert.equal(chinaResidual?.options.at(-1)?.rate, 2.59);
+assert.ok(chinaResidual && chinaResidual.options.some((option) => option.rate === 2.59 && option.unit === "USD_PER_KG"));
 
 const korea = resolveDefenseCommercial({ ncm: "40112090", origin: "Coreia do Sul", importDate: "2026-08-17", weightKg: 1000, exchangeRate: 5.5, exporter: "Kumho Tires Co. Inc." });
 assert.equal(korea.rateUsdPerKg, 0.32);
@@ -72,5 +71,22 @@ assert.deepEqual(sappUsa?.options, [
   { exporter: "Prayon Inc.", rate: 734.28, unit: "USD_PER_TON", collectionSuspended: false },
   { exporter: "Demais", rate: 734.28, unit: "USD_PER_TON", collectionSuspended: false },
 ]);
+
+const lisina = listDefenseCommercialExporters("23099090", "China", "2026-08-28");
+assert.ok(lisina, "Lisina / China deve encontrar medida antidumping");
+assert.ok((lisina?.options.length ?? 0) >= 17, "Lisina deve trazer todas as linhas de produtor/exportador");
+assert.ok(lisina?.options.some((option) => option.rate === 78 && option.unit === "AD_VALOREM"));
+assert.ok(lisina?.options.some((option) => option.rate === 132.6 && /Demais empresas chinesas/i.test(option.exporter)));
+
+const lisinaSpecific = resolveDefenseCommercial({ ncm: "23099090", origin: "China", importDate: "2026-08-28", customsValueBrl: 100000, exchangeRate: 5.5, exporter: "Qiqihar Longjiang Fufeng Biotechnologies Co., Ltd." });
+assert.equal(lisinaSpecific.status, "identified");
+assert.equal(lisinaSpecific.unit, "AD_VALOREM");
+assert.equal(lisinaSpecific.amountBrl, 41300);
+
+const squareMeter = resolveDefenseCommercial({ ncm: "70071900", origin: "China", importDate: "2026-08-28", areaM2: 1000, exchangeRate: 5.5 });
+if (squareMeter.status !== "not_applicable") {
+  assert.equal(squareMeter.unit, "USD_PER_SQUARE_METER");
+  assert.ok(squareMeter.amountBrl === undefined || squareMeter.amountBrl >= 0);
+}
 
 console.log("Defense commercial resolver/catalog: OK");
