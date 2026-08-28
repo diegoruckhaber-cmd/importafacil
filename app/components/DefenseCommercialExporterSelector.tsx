@@ -18,6 +18,7 @@ const unitLabel = (unit: string) => {
   if (unit === "USD_PER_PAIR") return "US$/par";
   if (unit === "USD_PER_UNIT") return "US$/unidade";
   if (unit === "USD_PER_THOUSAND_UNITS") return "US$/mil unidades";
+  if (unit === "USD_PER_SQUARE_METER") return "US$/m²";
   if (unit === "AD_VALOREM") return "%";
   return unit;
 };
@@ -38,7 +39,7 @@ export default function DefenseCommercialExporterSelector({ ncm, origin, date, v
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
       try {
-        const response = await fetch(`/api/defesa-comercial-options?ncm=${encodeURIComponent(normalizedNcm)}&origin=${encodeURIComponent(origin)}&date=${encodeURIComponent(date)}`, { signal: controller.signal });
+        const response = await fetch(`/api/defesa-comercial-options?ncm=${encodeURIComponent(normalizedNcm)}&origin=${encodeURIComponent(origin)}&date=${encodeURIComponent(date)}`, { signal: controller.signal, cache: "no-store" });
         if (!response.ok) return;
         const data = await response.json();
         const next = Array.isArray(data.options) ? data.options : [];
