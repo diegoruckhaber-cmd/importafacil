@@ -40,13 +40,37 @@ jobs:
           assert len(data) >= 40, f'Expected at least 40 measures, got {len(data)}'
           assert all(item.get('ncm') and item.get('origins') and item.get('sourceUrl') for item in data)
           assert not any('encerrada' in (item.get('product') or '').lower() for item in data), 'Ended measure leaked into active catalog'
+          missing = [
+              (item['ncm'], item['product'], origin)
+              for item in data
+              for origin, options in item.get('exportersByOrigin', {}).items()
+              if not options
+          ]
+          assert not missing, f'Active measure/origin without parsed right: {missing[:20]}'
+          malformed = [
+              (item['ncm'], option['exporter'])
+              for item in data
+              for options in item.get('exportersByOrigin', {}).values()
+              for option in options
+              if 'prazo da vigência' in (option.get('exporter') or '').lower() or 'prazo de vigência' in (option.get('exporter') or '').lower()
+          ]
+          assert not malformed, f'Validity text was parsed as exporter: {malformed[:10]}'
           sapp = next((item for item in data if item.get('ncm') == '28353920' and item.get('product') == 'Pirofosfato ácido de sódio (SAPP)'), None)
           assert sapp, 'SAPP measure missing from generated catalog'
           assert len(sapp.get('exportersByOrigin', {}).get('canadá', [])) == 2, 'SAPP Canada exporter table was not parsed'
           assert len(sapp.get('exportersByOrigin', {}).get('estados unidos da américa', [])) == 3, 'SAPP USA exporter table was not parsed'
           lisina = next((item for item in data if item.get('ncm') == '23099090'), None)
-          assert lisina and len(lisina.get('exportersByOrigin', {}).get('china', [])) >= 5, 'Lisina exporter table was not parsed'
-          print(f'Validated {len(data)} antidumping measures')
+          assert lisina and len(lisina.get('exportersByOrigin', {}).get('china', [])) >= 17, 'Lisina exporter table was not fully parsed'
+          assert any(option.get('rate') == 78 and option.get('unit') == 'AD_VALOREM' for option in lisina['exportersByOrigin']['china'])
+          assert any(option.get('rate') == 132.6 for option in lisina['exportersByOrigin']['china'])
+          square_meter_units = [
+              option for item in data
+              for options in item.get('exportersByOrigin', {}).values()
+              for option in options
+              if option.get('unit') == 'USD_PER_SQUARE_METER'
+          ]
+          assert square_meter_units, 'No USD_PER_SQUARE_METER measure parsed from official catalog'
+          print(f'Validated {len(data)} antidumping measures; all origins have parsed rights')
           PY
 
       - name: Run defense commercial resolver tests
