@@ -87,18 +87,14 @@ function mergedOptions(candidates: GeneratedMeasure[], normalizedOrigin: string)
   const merged: DefenseCommercialExporterOption[] = [];
   for (const candidate of candidates) {
     for (const rawOption of optionsForOrigin(candidate, normalizedOrigin)) {
+      const rawExporter = String(rawOption.exporter ?? "").trim();
+      // Alguns registros antigos do catálogo vieram com o valor do direito
+      // gravado no campo de produtor/exportador (ex.: "1.066,30").
+      // Esses registros são descartados porque os dados oficiais acima
+      // já fornecem o produtor/exportador correto.
+      if (/^[0-9.,]+$/.test(rawExporter)) continue;
+
       const option = { ...rawOption };
-      // Defesa comercial deve exibir o produtor/exportador separado do valor do direito.
-      // Corrige registros antigos/importações de planilha em que o nome foi deslocado para a coluna da alíquota.
-      if (/^\d{1,3}(?:[.,]\d{1,2})?$/.test(String(option.exporter).trim())) {
-        if (candidate.ncm === "28353920" && normalizedOrigin === "canada") {
-          option.exporter = Number(option.rate) === 546.3 ? "Innophos Canada Inc." : "Demais";
-        } else if (candidate.ncm === "28353920" && normalizedOrigin === "estados unidos da america") {
-          const names = ["Innophos Inc.", "Prayon Inc.", "Demais"];
-          const idx = optionsForOrigin(candidate, normalizedOrigin).findIndex((item) => item === rawOption);
-          option.exporter = names[idx] ?? "Demais";
-        }
-      }
       const signature = `${normalize(option.exporter)}|${option.rate}|${option.unit}|${Boolean(option.collectionSuspended)}`;
       if (seen.has(signature)) continue;
       seen.add(signature);
