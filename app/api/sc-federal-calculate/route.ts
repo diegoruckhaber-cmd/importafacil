@@ -85,8 +85,10 @@ export async function POST(request: Request) {
 
     const federal = loadFederal(ncm, date);
     const merchandiseValueBrl = quantity * fobUnit * exchange;
-    const customsValue = merchandiseValueBrl + freight * exchange + insurance * exchange;
-    const customsValueForDefense = customsValue;
+    // The engine adds freight and insurance as customs-base expenses exactly once.
+    // Keeping the item's base as FOB preserves the correct customs value = FOB + freight + insurance.
+    const customsValue = merchandiseValueBrl;
+    const customsValueForDefense = merchandiseValueBrl + freight * exchange + insurance * exchange;
     const itemId = "ITEM-001";
     const defense = resolveDefenseCommercial({
       ncm,
