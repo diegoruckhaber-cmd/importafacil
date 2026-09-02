@@ -1,4 +1,4 @@
-import { decideSCItem, type SCItemDecisionInput, type SCDecision } from "./sc-decision-engine";
+import { decideSCItem, type SCItemDecisionInput, type SCDecision } from "./sc-decision-engine.ts";
 
 export type SCMultiItemResult = {
   items: SCDecision[];
