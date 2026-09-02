@@ -59,9 +59,14 @@ assert.equal(cargoTireChina.status, "identified", "pneu de carga China deve cont
 assert.equal(cargoTireChina.continuationAfterNominalExpiry, true);
 assert.ok(cargoTireChina.warnings.some((warning) => /continuidade da medida durante revisão/i.test(warning)));
 
-const bloodTubesChina = resolveDefenseCommercial({ ncm: "38221990", origin: "China", importDate: AUDIT_DATE, quantity: 1000, customsValueBrl: 100000, exchangeRate: 5.5 });
-assert.notEqual(bloodTubesChina.status, "not_applicable", "tubos de coleta / China permanecem identificados durante revisão final");
-assert.equal(bloodTubesChina.continuationAfterNominalExpiry, true);
-assert.ok(bloodTubesChina.warnings.some((warning) => /continuidade da medida durante revisão/i.test(warning)));
+const cargoTireKorea = resolveDefenseCommercial({ ncm: "40112090", origin: "Coreia do Sul", importDate: "2026-08-17", weightKg: 1000, exchangeRate: 5.5, exporter: "Kumho Tires Co. Inc." });
+assert.equal(cargoTireKorea.status, "identified", "Coreia do Sul deve permanecer ativa durante revisão auditada");
+assert.equal(cargoTireKorea.continuationAfterNominalExpiry, true);
+assert.equal(cargoTireKorea.collectionSuspended, false);
+assert.ok(cargoTireKorea.warnings.some((warning) => /continuidade da medida durante revisão/i.test(warning)));
+
+const cargoTireJapan = resolveDefenseCommercial({ ncm: "40112090", origin: "Japão", importDate: "2026-08-17", weightKg: 1000, exchangeRate: 5.5, exporter: "Sumitomo Rubber Industries" });
+assert.equal(cargoTireJapan.collectionSuspended, true, "suspensão auditada deve permanecer restrita ao Japão");
+assert.equal(cargoTireJapan.amountBrl, undefined);
 
 console.log(`defense-commercial validity guard: OK (${guarded} nominal-expiry scenarios blocked)`);
