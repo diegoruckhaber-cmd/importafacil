@@ -165,6 +165,33 @@ function addOption(options, currentOrigin, exporter, detected, line) {
   options[currentOrigin.toLowerCase()].push({ exporter: cleanExporter, rate: detected.rate, unit: detected.unit, collectionSuspended: /suspens/i.test(line) });
 }
 
+function resolveSuspensionScope(sectionLines, origins, options, text) {
+  const suspendedLines = sectionLines.filter((line) => /suspens/i.test(line));
+  const suspendedOrigins = new Set();
+
+  for (const line of suspendedLines) {
+    const normalizedLine = line.toLowerCase();
+    for (const candidate of origins) {
+      const normalizedCandidate = origin(candidate).toLowerCase();
+      const aliases = new Set([candidate.toLowerCase(), normalizedCandidate]);
+      if (normalizedCandidate === "coreia do sul") aliases.add("coreia");
+      if (normalizedCandidate === "estados unidos da américa") aliases.add("estados unidos");
+      for (const alias of aliases) {
+        if (alias && normalizedLine.includes(alias)) suspendedOrigins.add(normalizedCandidate);
+      }
+    }
+  }
+
+  for (const suspendedOrigin of suspendedOrigins) {
+    const rows = options[suspendedOrigin] ?? [];
+    options[suspendedOrigin] = rows.map((row) => ({ ...row, collectionSuspended: true }));
+  }
+
+  const anySuspension = /cobrança suspensa|medida suspensa|imediata suspensão|imediatamente suspens/i.test(text);
+  const wholeMeasureSuspended = anySuspension && suspendedOrigins.size === 0;
+  return { wholeMeasureSuspended, suspendedOrigins: [...suspendedOrigins] };
+}
+
 export function parsePage(url, html) {
   const text = stripHtml(html);
   const lines = text.split("\n").map(clean).filter(Boolean);
@@ -179,7 +206,6 @@ export function parsePage(url, html) {
   if (!ncm.patterns.length) return null;
   const origins = originsRaw.split(/,|;|\s+e\s+/).map(origin).filter(Boolean);
   const validity = text.match(/Prazo (?:de|da) [Vv]ig[eê]ncia:?\s*(\d{2}\/\d{2}\/\d{4})/)?.[1] ?? null;
-  const suspended = /cobrança suspensa|medida suspensa/i.test(text);
   const sectionMatch = text.match(/Direito\s+Aplicado\s*:?\s*([\s\S]*?)(?=Prazo\s+(?:de|da)\s+Vig[eê]ncia|Compartilhe|Fonte:|$)/i);
   const sectionText = sectionMatch?.[1] ?? "";
   const sectionLines = sectionText.split("\n").map(clean).filter(Boolean);
@@ -218,6 +244,7 @@ export function parsePage(url, html) {
     });
   }
 
+  const suspension = resolveSuspensionScope(sectionLines, origins, options, text);
   const legal = lines.filter((line) => /RESOLU[ÇC][AÃ]O\s+(?:GECEX|CAMEX)|CIRCULAR\s+SECEX/i.test(line)).slice(0, 8).join("; ");
   const title = clean((html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i)?.[1] ?? "").replace(/<[^>]+>/g, " "));
   return {
@@ -231,9 +258,9 @@ export function parsePage(url, html) {
     legalFoundation: legal,
     source: "MDIC/SECEX — Medidas de defesa comercial em vigor",
     sourceUrl: url,
-    validityNote: [validity ? `Prazo de vigência: ${validity}` : "", suspended ? "Cobrança suspensa." : ""].filter(Boolean).join(" "),
+    validityNote: [validity ? `Prazo de vigência: ${validity}` : "", suspension.wholeMeasureSuspended ? "Cobrança suspensa." : ""].filter(Boolean).join(" "),
     validUntil: validity,
-    collectionSuspended: suspended,
+    collectionSuspended: suspension.wholeMeasureSuspended,
     exportersByOrigin: options,
     syncedAt: new Date().toISOString(),
   };
