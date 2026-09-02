@@ -1,5 +1,8 @@
-import generatedData from "../data/defesa-comercial-mdic.json";
-import { DEFENSE_COMMERCIAL_MEASURES as LEGACY_DEFENSE_COMMERCIAL_MEASURES, type DefenseCommercialExporterOption, type DefenseCommercialMeasure, type DefenseCommercialUnit } from "./defesa-comercial-catalog";
+import fs from "node:fs";
+import path from "node:path";
+import { DEFENSE_COMMERCIAL_MEASURES as LEGACY_DEFENSE_COMMERCIAL_MEASURES, type DefenseCommercialExporterOption, type DefenseCommercialMeasure, type DefenseCommercialUnit } from "./defesa-comercial-catalog.ts";
+
+const generatedData = JSON.parse(fs.readFileSync(path.join(process.cwd(), "data", "defesa-comercial-mdic.json"), "utf8"));
 
 export const normalize = (value: string) => value.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\*,:;]+$/g, "").trim();
 
@@ -88,10 +91,6 @@ function mergedOptions(candidates: GeneratedMeasure[], normalizedOrigin: string)
   for (const candidate of candidates) {
     for (const rawOption of optionsForOrigin(candidate, normalizedOrigin)) {
       const rawExporter = String(rawOption.exporter ?? "").trim();
-      // Alguns registros antigos do catálogo vieram com o valor do direito
-      // gravado no campo de produtor/exportador (ex.: "1.066,30").
-      // Esses registros são descartados porque os dados oficiais acima
-      // já fornecem o produtor/exportador correto.
       if (/^[0-9.,]+$/.test(rawExporter)) continue;
 
       const option = { ...rawOption };

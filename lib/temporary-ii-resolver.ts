@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { assertTemporaryIICatalog } from "./temporary-ii-catalog-validator.ts";
 
 export type TemporaryIITreatmentType = "general" | "ex" | "quota";
 
@@ -35,12 +36,8 @@ function inferTreatmentType(item: TemporaryIIAlert): TemporaryIITreatmentType {
 
 export function loadTemporaryIIAlerts(): TemporaryIIAlert[] {
   const data = JSON.parse(fs.readFileSync(TEMPORARY_II_PATH, "utf8"));
-  if (!Array.isArray(data)) throw new Error("Catálogo de elevações temporárias do II inválido.");
-  return data
-    .filter((item): item is TemporaryIIAlert =>
-      Boolean(item && typeof item.ncm === "string" && Number.isFinite(item.temporaryRate) && typeof item.validFrom === "string" && typeof item.validTo === "string")
-    )
-    .map((item) => ({ ...item, treatmentType: inferTreatmentType(item) }));
+  assertTemporaryIICatalog(data);
+  return (data as TemporaryIIAlert[]).map((item) => ({ ...item, treatmentType: inferTreatmentType(item) }));
 }
 
 export function resolveTemporaryII(ncm: string, date: string, standardRate: number): TemporaryIIResolution | undefined {

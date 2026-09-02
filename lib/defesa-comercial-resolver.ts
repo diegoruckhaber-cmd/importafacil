@@ -1,4 +1,4 @@
-import { findDefenseCommercialMeasure, resolveDefenseCommercialExporter, type DefenseCommercialUnit } from "./defesa-comercial-registry";
+import { findDefenseCommercialMeasure, resolveDefenseCommercialExporter, type DefenseCommercialUnit } from "./defesa-comercial-registry.ts";
 
 export type ExtendedDefenseCommercialUnit = DefenseCommercialUnit | "USD_PER_PAIR" | "USD_PER_SQUARE_METER";
 export type DefenseCommercialInput = { ncm: string; origin: string; importDate: string; weightKg?: number; quantity?: number; areaM2?: number; exporter?: string; exchangeRate?: number; customsValueBrl?: number };

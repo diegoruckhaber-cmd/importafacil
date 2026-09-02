@@ -11,8 +11,7 @@ const failures = [];
 const startedAt = Date.now();
 for (const file of tests) {
   console.log(`\n=== ${file} ===`);
-  const command = process.platform === 'win32' ? 'node_modules/.bin/tsx.cmd' : 'node_modules/.bin/tsx';
-  const result = spawnSync(command, [path.join('scripts', file)], {
+  const result = spawnSync(process.execPath, ['--experimental-strip-types', path.join('scripts', file)], {
     stdio: 'inherit',
     shell: false,
   });

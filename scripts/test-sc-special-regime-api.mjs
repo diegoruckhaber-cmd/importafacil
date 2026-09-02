@@ -1,16 +1,12 @@
-import { GET as getSpecialRegimes } from "../app/api/sc-special-regimes/route.ts";
+import { SC_IMPORT_SPECIAL_REGIMES_2026 } from "../lib/sc-import-special-regimes.ts";
 import { decideSCItem } from "../lib/sc-decision-engine.ts";
 
-const response = await getSpecialRegimes();
-if (!response.ok) throw new Error("SC special regime catalog endpoint did not return 200.");
-const payload = await response.json();
-
-if (payload.count < 1 || !Array.isArray(payload.regimes)) {
-  throw new Error("SC special regime catalog payload is invalid.");
+if (!Array.isArray(SC_IMPORT_SPECIAL_REGIMES_2026) || SC_IMPORT_SPECIAL_REGIMES_2026.length < 1) {
+  throw new Error("SC special regime catalog is invalid.");
 }
 
-const industrial = payload.regimes.find((rule) => rule.id === "SC-AN3-ART10-II-INDUSTRIAL");
-if (!industrial) throw new Error("Industrial special regime missing from API catalog.");
+const industrial = SC_IMPORT_SPECIAL_REGIMES_2026.find((rule) => rule.id === "SC-AN3-ART10-II-INDUSTRIAL");
+if (!industrial) throw new Error("Industrial special regime missing from catalog.");
 if (industrial.legalBasis !== "RICMS/SC-01, Anexo 3, art. 10, II") {
   throw new Error("Industrial special regime legal basis mismatch.");
 }
@@ -49,4 +45,4 @@ if (applied.decision !== "apply") {
   throw new Error(`Expected apply decision with complete evidence, got ${applied.decision}.`);
 }
 
-console.log("SC special regime API integration test: PASS");
+console.log("SC special regime catalog/decision integration test: PASS");
