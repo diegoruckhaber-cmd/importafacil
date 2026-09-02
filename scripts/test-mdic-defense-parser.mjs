@@ -35,4 +35,28 @@ assert.ok(parsed.exportersByOrigin["estados unidos da américa"].some((option) =
 assert.ok(parsed.exportersByOrigin["taipé chinês"].some((option) => option.exporter === "Top High Image Corporate" && option.rate === 0 && option.unit === "USD_PER_KG"));
 assert.ok(parsed.exportersByOrigin.china.some((option) => option.exporter === "Empresa Chinesa Ltd." && option.rate === 2.09));
 
-console.log("MDIC defense parser: annotated origin/prose rights OK");
+const mixedSuspensionHtml = `
+<html><body>
+<h1>Pneus de carga</h1>
+<p>Tipo de Medida: Direito Antidumping Definitivo e Compromisso de Preço</p>
+<p>NCM: 4011.20.90</p>
+<p>Países de Origem: Coreia do Sul, Japão e Tailândia</p>
+<h2>Direito Aplicado</h2>
+<p>Coreia</p>
+<p>- Kumho Tires Co. Inc. = US$ 0,32/kg</p>
+<p>Japão*</p>
+<p>- Sumitomo Rubber Industries = US$ 0,21/kg*</p>
+<p>Tailândia</p>
+<p>- Zhongce Rubber Co. Ltd = US$ 0,55/kg</p>
+<p>*Observação: Cobrança suspensa para as importações originárias do Japão</p>
+<p>Prazo da Vigência: 22/03/2026</p>
+</body></html>`;
+
+const mixed = parsePage("https://www.gov.br/mdic/pneus-de-carga", mixedSuspensionHtml);
+assert.ok(mixed, "página com suspensão por origem deve ser reconhecida");
+assert.equal(mixed.collectionSuspended, false, "suspensão do Japão não pode suspender toda a medida");
+assert.equal(mixed.exportersByOrigin["coreia do sul"][0].collectionSuspended, false);
+assert.equal(mixed.exportersByOrigin["japão"][0].collectionSuspended, true);
+assert.equal(mixed.exportersByOrigin["tailândia"][0].collectionSuspended, false);
+
+console.log("MDIC defense parser: annotated origin/prose rights and scoped suspension OK");
