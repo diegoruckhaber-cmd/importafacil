@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { resolveDefenseCommercial } from "../lib/defesa-comercial-resolver.ts";
-import { listDefenseCommercialExporters } from "../lib/defesa-comercial-registry.ts";
+import { listDefenseCommercialExporters, listMatchingDefenseCommercialScopes } from "../lib/defesa-comercial-registry.ts";
 
 const pending = resolveDefenseCommercial({ ncm: "40112090", origin: "China", importDate: "2026-08-17" });
 assert.equal(pending.status, "requires_input");
@@ -83,17 +83,30 @@ assert.equal(lisinaSpecific.status, "identified");
 assert.equal(lisinaSpecific.unit, "AD_VALOREM");
 assert.equal(lisinaSpecific.amountBrl, 41300);
 
-const squareMeter = resolveDefenseCommercial({ ncm: "70071900", origin: "China", importDate: "2026-08-28", areaM2: 1000, exchangeRate: 5.5 });
-if (squareMeter.status !== "not_applicable") {
-  if (squareMeter.exporterTreatment === "requires_validation") {
-    assert.equal(squareMeter.status, "requires_input");
-    assert.equal(squareMeter.amountBrl, undefined);
-    assert.ok(squareMeter.warnings.some((warning) => /validação/i.test(warning)));
-  } else {
-    assert.equal(squareMeter.unit, "USD_PER_SQUARE_METER");
-    assert.ok(squareMeter.amountBrl === undefined || squareMeter.amountBrl >= 0);
-  }
+// NCMs que contêm mais de um escopo material de produto não podem herdar automaticamente
+// a matriz da medida com mais linhas de exportador. Sem atributos de escopo, o cálculo é bloqueado.
+for (const scenario of [
+  { ncm: "70071900", origin: "China", labels: ["Vidros automotivos", "Vidros para eletrodomésticos"] },
+  { ncm: "72107010", origin: "China", labels: ["Chapas Grossas", "Aços pré-pintados"] },
+  { ncm: "73041900", origin: "China", labels: ["até cinco polegadas", "superior a 5"] },
+]) {
+  const scopes = listMatchingDefenseCommercialScopes(scenario.ncm, scenario.origin);
+  assert.ok(scopes.length >= 2, `${scenario.ncm}/${scenario.origin} deve manter múltiplos escopos identificados`);
+  const ambiguous = listDefenseCommercialExporters(scenario.ncm, scenario.origin, "2026-09-02");
+  assert.ok(ambiguous?.ambiguous, `${scenario.ncm}/${scenario.origin} deve ser marcado como ambíguo`);
+  assert.equal(ambiguous?.options.length, 0, "matrizes de escopos distintos não podem ser mescladas");
+  const resolution = resolveDefenseCommercial({ ncm: scenario.ncm, origin: scenario.origin, importDate: "2026-09-02", weightKg: 1000, areaM2: 1000, customsValueBrl: 100000, exchangeRate: 5.5 });
+  assert.equal(resolution.status, "requires_input");
+  assert.equal(resolution.exporterTreatment, "requires_validation");
+  assert.equal(resolution.amountBrl, undefined);
+  assert.ok(resolution.warnings.some((warning) => /mais de um escopo/i.test(warning)));
 }
+
+// Origens cuja prorrogação foi oficialmente encerrada não podem aparecer como medida ativa.
+const bloodTubesGermany = resolveDefenseCommercial({ ncm: "38221990", origin: "Alemanha", importDate: "2026-09-02", customsValueBrl: 100000, exchangeRate: 5.5 });
+assert.equal(bloodTubesGermany.status, "not_applicable");
+const plateSouthAfrica = resolveDefenseCommercial({ ncm: "72085100", origin: "África do Sul", importDate: "2026-09-02", weightKg: 1000, exchangeRate: 5.5 });
+assert.equal(plateSouthAfrica.status, "not_applicable");
 
 // A medida existe no catálogo oficial, mas o crawler ainda não conseguiu resolver a matriz por exportador.
 // Esse cenário nunca pode virar "not_applicable", pois isso criaria um falso negativo fiscal.

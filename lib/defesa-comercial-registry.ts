@@ -15,8 +15,14 @@ const ORIGIN_ALIASES: Record<string, string> = {
 };
 export const normalizeOrigin = (value: string) => ORIGIN_ALIASES[normalize(value)] ?? normalize(value);
 
-type GeneratedMeasure = DefenseCommercialMeasure & { ncmPatterns?: string[]; ncmExclusions?: string[]; sourceUrl?: string; collectionSuspended?: boolean; validUntil?: string };
+type GeneratedMeasure = DefenseCommercialMeasure & { ncmPatterns?: string[]; ncmExclusions?: string[]; sourceUrl?: string; collectionSuspended?: boolean; validUntil?: string; importDate?: string };
 const generated = (Array.isArray(generatedData) ? generatedData : []) as unknown as GeneratedMeasure[];
+
+const OFFICIAL_INACTIVE_ORIGINS: Record<string, string[]> = {
+  "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-de-coleta-de-sangue": ["alemanha"],
+  "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/laminados-planos-de-baixo-carbono-e-baixa-liga-chapas-grossas": ["africa do sul"],
+  "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-de-carga": ["china"],
+};
 
 const OFFICIAL_REGRESSION_OVERRIDES: GeneratedMeasure[] = [
   {
@@ -75,13 +81,36 @@ function optionsForOrigin(measure: GeneratedMeasure, normalizedOrigin: string): 
   return entry?.[1] ?? [];
 }
 
+function isOfficiallyInactiveOrigin(measure: GeneratedMeasure, normalizedOrigin: string) {
+  if (!measure.sourceUrl) return false;
+  return (OFFICIAL_INACTIVE_ORIGINS[measure.sourceUrl] ?? []).some((origin) => normalizeOrigin(origin) === normalizedOrigin);
+}
+
 function matchingMeasures(ncm: string, normalizedOrigin: string) {
   const normalizedNcm = ncm.replace(/\D/g, "");
   return DEFENSE_COMMERCIAL_MEASURES.filter((candidate) => {
     const generatedCandidate = candidate as GeneratedMeasure;
     const matchesNcm = candidate.ncm === normalizedNcm || generatedCandidate.ncmPatterns?.some((pattern) => normalizedNcm === pattern || normalizedNcm.startsWith(pattern));
     const excluded = generatedCandidate.ncmExclusions?.some((item) => item === normalizedNcm);
-    return Boolean(matchesNcm && !excluded && candidate.origins.some((item) => normalizeOrigin(item) === normalizedOrigin));
+    return Boolean(matchesNcm && !excluded && !isOfficiallyInactiveOrigin(generatedCandidate, normalizedOrigin) && candidate.origins.some((item) => normalizeOrigin(item) === normalizedOrigin));
+  });
+}
+
+function scopeIdentity(measure: GeneratedMeasure) {
+  return `${normalize(measure.product)}|${measure.sourceUrl ?? normalize(measure.legalFoundation ?? "")}`;
+}
+
+function distinctScopes(candidates: GeneratedMeasure[]) {
+  const hasOfficialSource = candidates.some((candidate) => Boolean(candidate.sourceUrl));
+  const seen = new Set<string>();
+  return candidates.filter((candidate) => {
+    // Source-less legacy rows are rate supplements. When an official MDIC scope exists,
+    // they must not create a second legal/product scope on their own.
+    if (hasOfficialSource && !candidate.sourceUrl) return false;
+    const identity = scopeIdentity(candidate);
+    if (seen.has(identity)) return false;
+    seen.add(identity);
+    return true;
   });
 }
 
@@ -103,12 +132,33 @@ function mergedOptions(candidates: GeneratedMeasure[], normalizedOrigin: string)
   return merged;
 }
 
+export function listMatchingDefenseCommercialScopes(ncm: string, origin: string) {
+  const normalizedOrigin = normalizeOrigin(origin);
+  return distinctScopes(matchingMeasures(ncm, normalizedOrigin)).map((candidate) => ({
+    product: candidate.product,
+    legalFoundation: candidate.legalFoundation,
+    sourceUrl: candidate.sourceUrl,
+    validUntil: candidate.validUntil,
+  }));
+}
+
 export function findDefenseCommercialMeasure(ncm: string, origin: string, importDate?: string) {
   const normalizedOrigin = normalizeOrigin(origin);
   const candidates = matchingMeasures(ncm, normalizedOrigin);
   if (!candidates.length) return undefined;
   const selected = [...candidates].sort((a, b) => optionsForOrigin(b, normalizedOrigin).length - optionsForOrigin(a, normalizedOrigin).length)[0];
-  return { ...selected, importDate, exportersByOrigin: { ...selected.exportersByOrigin, [normalizedOrigin]: mergedOptions(candidates, normalizedOrigin) } };
+  const scopes = distinctScopes(candidates);
+  const scopeAmbiguous = scopes.length > 1;
+  return {
+    ...selected,
+    importDate,
+    scopeAmbiguous,
+    matchingScopes: scopes.map((candidate) => ({ product: candidate.product, sourceUrl: candidate.sourceUrl, legalFoundation: candidate.legalFoundation, validUntil: candidate.validUntil })),
+    exportersByOrigin: {
+      ...selected.exportersByOrigin,
+      [normalizedOrigin]: scopeAmbiguous ? optionsForOrigin(selected, normalizedOrigin) : mergedOptions(candidates, normalizedOrigin),
+    },
+  };
 }
 
 export function listDefenseCommercialExporters(ncm: string, origin: string, importDate?: string) {
@@ -117,12 +167,19 @@ export function listDefenseCommercialExporters(ncm: string, origin: string, impo
   if (!candidates.length) return null;
   const measure = findDefenseCommercialMeasure(ncm, normalizedOrigin, importDate);
   if (!measure) return null;
-  return { measure, options: mergedOptions(candidates, normalizedOrigin) };
+  const scopes = distinctScopes(candidates);
+  const ambiguous = scopes.length > 1;
+  return {
+    measure,
+    ambiguous,
+    matchingScopes: scopes.map((candidate) => ({ product: candidate.product, sourceUrl: candidate.sourceUrl, legalFoundation: candidate.legalFoundation, validUntil: candidate.validUntil })),
+    options: ambiguous ? [] : mergedOptions(candidates, normalizedOrigin),
+  };
 }
 
 export function resolveDefenseCommercialExporter(ncm: string, origin: string, exporter?: string, importDate?: string) {
   const result = listDefenseCommercialExporters(ncm, origin, importDate);
-  if (!result) return undefined;
+  if (!result || result.ambiguous) return undefined;
   const normalizedExporter = normalize(exporter ?? "");
   if (!normalizedExporter) return result.options.find((option) => /demais|todas as empresas|todos os produtores/i.test(option.exporter)) ?? result.options.at(-1);
   return result.options.find((option) => normalize(option.exporter) === normalizedExporter);
