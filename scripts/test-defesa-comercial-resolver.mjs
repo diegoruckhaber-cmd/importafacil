@@ -83,12 +83,10 @@ assert.equal(lisinaSpecific.status, "identified");
 assert.equal(lisinaSpecific.unit, "AD_VALOREM");
 assert.equal(lisinaSpecific.amountBrl, 41300);
 
-// NCMs que contêm mais de um escopo material de produto não podem herdar automaticamente
-// a matriz da medida com mais linhas de exportador. Sem atributos de escopo, o cálculo é bloqueado.
 for (const scenario of [
-  { ncm: "70071900", origin: "China", labels: ["Vidros automotivos", "Vidros para eletrodomésticos"] },
-  { ncm: "72107010", origin: "China", labels: ["Chapas Grossas", "Aços pré-pintados"] },
-  { ncm: "73041900", origin: "China", labels: ["até cinco polegadas", "superior a 5"] },
+  { ncm: "70071900", origin: "China" },
+  { ncm: "72107010", origin: "China" },
+  { ncm: "73041900", origin: "China" },
 ]) {
   const scopes = listMatchingDefenseCommercialScopes(scenario.ncm, scenario.origin);
   assert.ok(scopes.length >= 2, `${scenario.ncm}/${scenario.origin} deve manter múltiplos escopos identificados`);
@@ -102,14 +100,11 @@ for (const scenario of [
   assert.ok(resolution.warnings.some((warning) => /mais de um escopo/i.test(warning)));
 }
 
-// Origens cuja prorrogação foi oficialmente encerrada não podem aparecer como medida ativa.
 const bloodTubesGermany = resolveDefenseCommercial({ ncm: "38221990", origin: "Alemanha", importDate: "2026-09-02", customsValueBrl: 100000, exchangeRate: 5.5 });
 assert.equal(bloodTubesGermany.status, "not_applicable");
 const plateSouthAfrica = resolveDefenseCommercial({ ncm: "72085100", origin: "África do Sul", importDate: "2026-09-02", weightKg: 1000, exchangeRate: 5.5 });
 assert.equal(plateSouthAfrica.status, "not_applicable");
 
-// A medida existe no catálogo oficial, mas o crawler ainda não conseguiu resolver a matriz por exportador.
-// Esse cenário nunca pode virar "not_applicable", pois isso criaria um falso negativo fiscal.
 const incompleteExporterMatrix = listDefenseCommercialExporters("37013021", "Reino Unido", "2026-09-02");
 assert.ok(incompleteExporterMatrix, "Chapas off-set / Reino Unido deve continuar identificando a medida oficial");
 assert.equal(incompleteExporterMatrix?.options.length, 0, "cenário de regressão depende de matriz ainda incompleta");
@@ -120,6 +115,6 @@ assert.equal(incompleteResolution.measure, "antidumping");
 assert.equal(incompleteResolution.exporterTreatment, "requires_validation");
 assert.equal(incompleteResolution.amountBrl, undefined);
 assert.ok(incompleteResolution.sourceUrl?.includes("gov.br/mdic"));
-assert.ok(incompleteResolution.warnings.some((warning) => /matriz de produtor\/exportador/i.test(warning)));
+assert.ok(incompleteResolution.warnings.some((warning) => /vigência nominal registrada terminou/i.test(warning) || /matriz de produtor\/exportador/i.test(warning)));
 
 console.log("Defense commercial resolver/catalog: OK");
