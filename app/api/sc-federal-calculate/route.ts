@@ -7,31 +7,13 @@ import { resolveSCBenefit } from "../../../lib/sc-benefit-resolution";
 import { resolveImportContributionRates } from "../../../lib/import-contribution-rates";
 import { resolveDefenseCommercial } from "../../../lib/defesa-comercial-resolver";
 import { resolveSCImportAdditionalCharges, type ImportDeclarationType, type ImportTransportMode } from "../../../lib/sc-import-additional-charges";
+import { buildTemporaryIIWarning, resolveTemporaryII, type TemporaryIIResolution } from "../../../lib/temporary-ii-resolver";
 
 type SnapshotRecord = { sourceType: "mdic-ii" | "rfb-ipi"; ncm: string; rate: number; sheet: string };
 type Snapshot = { sources: { published?: string; mdic?: { published?: string }; rfbTipi?: { updated?: string } }; records: SnapshotRecord[] };
-type TemporaryIIAlert = { ncm: string; temporaryRate: number; validFrom: string; validTo: string; legalBasis: string; description: string };
 
 const SNAPSHOT_PATH = path.join(process.cwd(), "data", "federal", "official-snapshot-2026-07.json");
-const TEMPORARY_II_PATH = path.join(process.cwd(), "data", "federal", "temporary-ii-alerts-2026.json");
 const normalizeNcm = (value: string) => value.replace(/\D/g, "");
-
-function loadTemporaryIIAlerts(): TemporaryIIAlert[] {
-  try {
-    const data = JSON.parse(fs.readFileSync(TEMPORARY_II_PATH, "utf8"));
-    return Array.isArray(data) ? data.filter((item) => item && typeof item.ncm === "string") : [];
-  } catch {
-    return [];
-  }
-}
-
-function resolveTemporaryIIAlert(ncm: string, date: string, standardRate: number): TemporaryIIAlert | undefined {
-  const matches = loadTemporaryIIAlerts().filter((item) =>
-    normalizeNcm(item.ncm) === ncm && item.validFrom <= date && date <= item.validTo && item.temporaryRate > standardRate
-  );
-  if (!matches.length) return undefined;
-  return matches.sort((a, b) => b.temporaryRate - a.temporaryRate)[0];
-}
 
 function resolveRate(records: SnapshotRecord[], label: string) {
   if (!records.length) throw new Error(`${label} não localizado para a NCM no snapshot oficial.`);
@@ -50,13 +32,11 @@ function loadFederal(ncm: string, date: string) {
   const contributions = resolveImportContributionRates(ncm);
   const ii = resolveRate(records.filter((record) => record.sourceType === "mdic-ii"), "II");
   const ipi = resolveRate(records.filter((record) => record.sourceType === "rfb-ipi"), "IPI");
-  const temporaryIIAlert = resolveTemporaryIIAlert(ncm, date, ii.rate);
+  const temporaryII = resolveTemporaryII(ncm, date, ii.rate);
   const warnings = [
     ii.warning,
     ipi.warning,
-    temporaryIIAlert
-      ? `⚠️ ATENÇÃO: existe elevação temporária do II para esta NCM. Alíquota padrão: ${ii.rate}%; alíquota temporária: ${temporaryIIAlert.temporaryRate}%; vigência de ${temporaryIIAlert.validFrom} a ${temporaryIIAlert.validTo}. O cálculo permanece pela alíquota padrão (${ii.rate}%). Validar a aplicação da medida, inclusive eventual Ex/quota, no registro da declaração. Fundamento: ${temporaryIIAlert.legalBasis}.`
-      : undefined,
+    temporaryII ? buildTemporaryIIWarning(temporaryII, ii.rate) : undefined,
   ].filter((value): value is string => Boolean(value));
   return {
     iiRate: ii.rate,
@@ -65,7 +45,7 @@ function loadFederal(ncm: string, date: string) {
     cofinsImportRate: contributions.cofinsImportRate,
     contributionSource: contributions.source,
     warnings,
-    temporaryIIAlert,
+    temporaryII,
     snapshot: {
       mdicPublished: snapshot.sources.mdic?.published ?? null,
       tipiUpdated: snapshot.sources.rfbTipi?.updated ?? null,
@@ -208,7 +188,7 @@ export async function POST(request: Request) {
       federal: {
         ncm,
         origin,
-        ii: { rate: federal.iiRate, automatic: true, warnings: federal.warnings, temporaryAlert: federal.temporaryIIAlert ?? null },
+        ii: { rate: federal.iiRate, automatic: true, warnings: federal.warnings, temporaryAlert: federal.temporaryII?.primary ?? null, temporaryTreatments: federal.temporaryII?.alternatives ?? [] },
         ipi: { rate: federal.ipiRate, automatic: true, warnings: federal.warnings },
         pisImport: { rate: federal.pisImportRate, automatic: true, source: federal.contributionSource },
         cofinsImport: { rate: federal.cofinsImportRate, automatic: true, source: federal.contributionSource },
