@@ -112,3 +112,5 @@ jobs:
           fi
           git commit -m "chore: controlled MDIC defense catalog sync [mdic-sync-result]"
           git push origin HEAD:audit/mdic-controlled-sync
+
+# trigger controlled audit
