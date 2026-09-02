@@ -89,4 +89,18 @@ if (squareMeter.status !== "not_applicable") {
   assert.ok(squareMeter.amountBrl === undefined || squareMeter.amountBrl >= 0);
 }
 
+// A medida existe no catálogo oficial, mas o crawler ainda não conseguiu resolver a matriz por exportador.
+// Esse cenário nunca pode virar "not_applicable", pois isso criaria um falso negativo fiscal.
+const incompleteExporterMatrix = listDefenseCommercialExporters("37013021", "Reino Unido", "2026-09-02");
+assert.ok(incompleteExporterMatrix, "Chapas off-set / Reino Unido deve continuar identificando a medida oficial");
+assert.equal(incompleteExporterMatrix?.options.length, 0, "cenário de regressão depende de matriz ainda incompleta");
+
+const incompleteResolution = resolveDefenseCommercial({ ncm: "37013021", origin: "Reino Unido", importDate: "2026-09-02", exchangeRate: 5.5 });
+assert.equal(incompleteResolution.status, "requires_input");
+assert.equal(incompleteResolution.measure, "antidumping");
+assert.equal(incompleteResolution.exporterTreatment, "requires_validation");
+assert.equal(incompleteResolution.amountBrl, undefined);
+assert.ok(incompleteResolution.sourceUrl?.includes("gov.br/mdic"));
+assert.ok(incompleteResolution.warnings.some((warning) => /matriz de produtor\/exportador/i.test(warning)));
+
 console.log("Defense commercial resolver/catalog: OK");
