@@ -1,0 +1,114 @@
+name: Controlled MDIC defense sync audit
+
+on:
+  push:
+    branches:
+      - audit/mdic-controlled-sync
+
+permissions:
+  contents: write
+
+jobs:
+  sync-audit:
+    if: ${{ !contains(github.event.head_commit.message, '[mdic-sync-result]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: audit/mdic-controlled-sync
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Preserve baseline catalog
+        run: cp data/defesa-comercial-mdic.json /tmp/defesa-comercial-mdic.before.json
+
+      - name: Synchronize official MDIC catalog with retry
+        shell: bash
+        run: |
+          set -euo pipefail
+          attempt=1
+          while true; do
+            echo "MDIC sync attempt ${attempt}/3"
+            if node scripts/sync-mdic-defesa-comercial.mjs > /tmp/mdic-sync-summary.json; then
+              cat /tmp/mdic-sync-summary.json
+              break
+            fi
+            if [ "$attempt" -ge 3 ]; then
+              echo "MDIC synchronization failed after 3 attempts."
+              exit 1
+            fi
+            attempt=$((attempt + 1))
+            sleep $((attempt * 10))
+          done
+
+      - name: Build controlled comparison report
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const crypto = require('crypto');
+          const beforePath = '/tmp/defesa-comercial-mdic.before.json';
+          const afterPath = 'data/defesa-comercial-mdic.json';
+          const beforeRaw = fs.readFileSync(beforePath, 'utf8');
+          const afterRaw = fs.readFileSync(afterPath, 'utf8');
+          const before = JSON.parse(beforeRaw);
+          const after = JSON.parse(afterRaw);
+          const hash = (v) => crypto.createHash('sha256').update(v).digest('hex');
+          const key = (x) => `${x.ncm}|${x.product}|${x.sourceUrl}`;
+          const beforeMap = new Map(before.map((x) => [key(x), x]));
+          const afterMap = new Map(after.map((x) => [key(x), x]));
+          const added = [...afterMap.keys()].filter((k) => !beforeMap.has(k));
+          const removed = [...beforeMap.keys()].filter((k) => !afterMap.has(k));
+          const changed = [...afterMap.keys()].filter((k) => beforeMap.has(k) && JSON.stringify(beforeMap.get(k)) !== JSON.stringify(afterMap.get(k)));
+          const missingExporterOptions = after.flatMap((item) => Object.entries(item.exportersByOrigin || {})
+            .filter(([, opts]) => !Array.isArray(opts) || opts.length === 0)
+            .map(([origin]) => ({ ncm: item.ncm, product: item.product, origin, sourceUrl: item.sourceUrl })));
+          const report = {
+            generatedAt: new Date().toISOString(),
+            baseline: { measures: before.length, sha256: hash(beforeRaw) },
+            synchronized: { measures: after.length, sha256: hash(afterRaw) },
+            diff: {
+              addedCount: added.length,
+              removedCount: removed.length,
+              changedCount: changed.length,
+              added: added.slice(0, 100),
+              removed: removed.slice(0, 100),
+              changed: changed.slice(0, 100)
+            },
+            quality: {
+              missingExporterOptionCount: missingExporterOptions.length,
+              missingExporterOptions
+            }
+          };
+          fs.mkdirSync('data/audit', { recursive: true });
+          fs.writeFileSync('data/audit/mdic-defense-sync-report.json', JSON.stringify(report, null, 2) + '\n');
+          console.log(JSON.stringify(report, null, 2));
+          NODE
+
+      - name: Validate complete engine against synchronized catalog
+        run: npm run test:all
+
+      - name: Validate production build
+        run: npm run build
+
+      - name: Commit audited synchronization result
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/defesa-comercial-mdic.json data/audit/mdic-defense-sync-report.json
+          if git diff --cached --quiet; then
+            echo "No catalog changes detected."
+            exit 0
+          fi
+          git commit -m "chore: controlled MDIC defense catalog sync [mdic-sync-result]"
+          git push origin HEAD:audit/mdic-controlled-sync
