@@ -15,7 +15,7 @@ const ORIGIN_ALIASES: Record<string, string> = {
 };
 export const normalizeOrigin = (value: string) => ORIGIN_ALIASES[normalize(value)] ?? normalize(value);
 
-type GeneratedMeasure = DefenseCommercialMeasure & { ncmPatterns?: string[]; ncmExclusions?: string[]; sourceUrl?: string; collectionSuspended?: boolean; validUntil?: string; importDate?: string };
+type GeneratedMeasure = DefenseCommercialMeasure & { ncmPatterns?: string[]; ncmExclusions?: string[]; sourceUrl?: string; collectionSuspended?: boolean; validUntil?: string; importDate?: string; continuationAfterNominalExpiry?: boolean };
 const generated = (Array.isArray(generatedData) ? generatedData : []) as unknown as GeneratedMeasure[];
 
 const OFFICIAL_INACTIVE_ORIGINS: Record<string, string[]> = {
@@ -23,6 +23,14 @@ const OFFICIAL_INACTIVE_ORIGINS: Record<string, string[]> = {
   "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/laminados-planos-de-baixo-carbono-e-baixa-liga-chapas-grossas": ["africa do sul"],
   "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-de-carga": ["china"],
 };
+
+// A data nominal da medida não pode ser usada para encerrar automaticamente direitos que a própria
+// legislação mantém em vigor durante revisão de final de período. Somente fontes auditadas entram aqui.
+const OFFICIAL_CONTINUATION_AFTER_NOMINAL_EXPIRY = new Set([
+  "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-de-coleta-de-sangue",
+  "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-de-carga",
+  "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-de-carga-china",
+]);
 
 const OFFICIAL_REGRESSION_OVERRIDES: GeneratedMeasure[] = [
   {
@@ -104,8 +112,6 @@ function distinctScopes(candidates: GeneratedMeasure[]) {
   const hasOfficialSource = candidates.some((candidate) => Boolean(candidate.sourceUrl));
   const seen = new Set<string>();
   return candidates.filter((candidate) => {
-    // Source-less legacy rows are rate supplements. When an official MDIC scope exists,
-    // they must not create a second legal/product scope on their own.
     if (hasOfficialSource && !candidate.sourceUrl) return false;
     const identity = scopeIdentity(candidate);
     if (seen.has(identity)) return false;
@@ -121,7 +127,6 @@ function mergedOptions(candidates: GeneratedMeasure[], normalizedOrigin: string)
     for (const rawOption of optionsForOrigin(candidate, normalizedOrigin)) {
       const rawExporter = String(rawOption.exporter ?? "").trim();
       if (/^[0-9.,]+$/.test(rawExporter)) continue;
-
       const option = { ...rawOption };
       const signature = `${normalize(option.exporter)}|${option.rate}|${option.unit}|${Boolean(option.collectionSuspended)}`;
       if (seen.has(signature)) continue;
@@ -146,12 +151,15 @@ export function findDefenseCommercialMeasure(ncm: string, origin: string, import
   const normalizedOrigin = normalizeOrigin(origin);
   const candidates = matchingMeasures(ncm, normalizedOrigin);
   if (!candidates.length) return undefined;
-  const selected = [...candidates].sort((a, b) => optionsForOrigin(b, normalizedOrigin).length - optionsForOrigin(a, normalizedOrigin).length)[0];
   const scopes = distinctScopes(candidates);
+  const selectedPool = scopes.length ? scopes : candidates;
+  const selected = [...selectedPool].sort((a, b) => optionsForOrigin(b, normalizedOrigin).length - optionsForOrigin(a, normalizedOrigin).length)[0];
   const scopeAmbiguous = scopes.length > 1;
+  const continuationAfterNominalExpiry = Boolean(selected.sourceUrl && OFFICIAL_CONTINUATION_AFTER_NOMINAL_EXPIRY.has(selected.sourceUrl));
   return {
     ...selected,
     importDate,
+    continuationAfterNominalExpiry,
     scopeAmbiguous,
     matchingScopes: scopes.map((candidate) => ({ product: candidate.product, sourceUrl: candidate.sourceUrl, legalFoundation: candidate.legalFoundation, validUntil: candidate.validUntil })),
     exportersByOrigin: {
