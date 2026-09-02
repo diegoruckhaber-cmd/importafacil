@@ -101,11 +101,12 @@ function scopeIdentity(measure: GeneratedMeasure) {
 }
 
 function distinctScopes(candidates: GeneratedMeasure[]) {
-  const sourceBackedProducts = candidates.filter((candidate) => Boolean(candidate.sourceUrl)).map((candidate) => normalize(candidate.product));
+  const hasOfficialSource = candidates.some((candidate) => Boolean(candidate.sourceUrl));
   const seen = new Set<string>();
   return candidates.filter((candidate) => {
-    const product = normalize(candidate.product);
-    if (!candidate.sourceUrl && sourceBackedProducts.some((officialProduct) => officialProduct === product || officialProduct.startsWith(`${product} (`) || product.startsWith(`${officialProduct} (`))) return false;
+    // Source-less legacy rows are rate supplements. When an official MDIC scope exists,
+    // they must not create a second legal/product scope on their own.
+    if (hasOfficialSource && !candidate.sourceUrl) return false;
     const identity = scopeIdentity(candidate);
     if (seen.has(identity)) return false;
     seen.add(identity);
