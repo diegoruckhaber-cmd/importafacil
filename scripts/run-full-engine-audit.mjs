@@ -11,8 +11,8 @@ const failures = [];
 const startedAt = Date.now();
 for (const file of tests) {
   console.log(`\n=== ${file} ===`);
-  const command = process.platform === 'win32' ? 'npx.cmd' : 'npx';
-  const result = spawnSync(command, ['--yes', 'tsx@4.20.5', path.join('scripts', file)], {
+  const command = process.platform === 'win32' ? 'node_modules/.bin/tsx.cmd' : 'node_modules/.bin/tsx';
+  const result = spawnSync(command, [path.join('scripts', file)], {
     stdio: 'inherit',
     shell: false,
   });
