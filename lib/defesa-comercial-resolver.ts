@@ -18,6 +18,8 @@ export type DefenseCommercialResolution = {
   legalFoundation: string;
   source: string;
   sourceUrl?: string;
+  validUntil?: string;
+  continuationAfterNominalExpiry?: boolean;
   warnings: string[];
 };
 
@@ -25,8 +27,25 @@ type GeneratedMeasureMetadata = {
   sourceUrl?: string;
   collectionSuspended?: boolean;
   scopeAmbiguous?: boolean;
+  validUntil?: string;
+  continuationAfterNominalExpiry?: boolean;
   matchingScopes?: Array<{ product: string; sourceUrl?: string; legalFoundation?: string; validUntil?: string }>;
 };
+
+function ddmmyyyyToIso(value?: string) {
+  const match = String(value ?? "").match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!match) return undefined;
+  const iso = `${match[3]}-${match[2]}-${match[1]}`;
+  const date = new Date(`${iso}T00:00:00Z`);
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== iso) return undefined;
+  return iso;
+}
+
+function isIsoDate(value?: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value ?? ""))) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
 
 function calculateAmountBrl(unit: ExtendedDefenseCommercialUnit, rate: number, input: DefenseCommercialInput, exchange: number) {
   if (unit === "AD_VALOREM") {
@@ -64,6 +83,32 @@ export function resolveDefenseCommercial(input: DefenseCommercialInput): Defense
   if (!measure) return { status: "not_applicable", product: "", ncm, origin: input.origin, exporterTreatment: "requires_validation", legalFoundation: "", source: "", warnings: [] };
 
   const metadata = measure as typeof measure & GeneratedMeasureMetadata;
+  const nominalExpiryIso = ddmmyyyyToIso(metadata.validUntil);
+  const importDateIsValid = isIsoDate(input.importDate);
+  const pastNominalExpiry = Boolean(importDateIsValid && nominalExpiryIso && input.importDate > nominalExpiryIso);
+
+  if (pastNominalExpiry && !metadata.continuationAfterNominalExpiry) {
+    return {
+      status: "requires_input",
+      measure: measure.measure,
+      product: measure.product,
+      ncm,
+      origin: input.origin,
+      exporterTreatment: "requires_validation",
+      collectionSuspended: Boolean(metadata.collectionSuspended),
+      legalFoundation: measure.legalFoundation,
+      source: measure.source,
+      sourceUrl: metadata.sourceUrl,
+      validUntil: metadata.validUntil,
+      continuationAfterNominalExpiry: false,
+      warnings: [
+        `Medida antidumping identificada para NCM ${ncm} originária de ${input.origin}.`,
+        measure.validityNote,
+        `A vigência nominal registrada terminou em ${metadata.validUntil} e não há continuidade pós-vigência auditada no catálogo. O direito antidumping não foi calculado automaticamente; valide a situação jurídica atual na fonte oficial.`,
+      ].filter(Boolean),
+    };
+  }
+
   const resolved = resolveDefenseCommercialExporter(ncm, input.origin, input.exporter, input.importDate);
   if (!resolved) {
     const ambiguityWarning = metadata.scopeAmbiguous
@@ -80,9 +125,12 @@ export function resolveDefenseCommercial(input: DefenseCommercialInput): Defense
       legalFoundation: measure.legalFoundation,
       source: measure.source,
       sourceUrl: metadata.sourceUrl,
+      validUntil: metadata.validUntil,
+      continuationAfterNominalExpiry: Boolean(metadata.continuationAfterNominalExpiry),
       warnings: [
         `Medida antidumping identificada para NCM ${ncm} originária de ${input.origin}.`,
         measure.validityNote,
+        pastNominalExpiry && metadata.continuationAfterNominalExpiry ? "A vigência nominal foi alcançada, mas a continuidade da medida durante revisão de final de período foi auditada para esta fonte oficial." : "",
         ambiguityWarning,
       ].filter(Boolean),
     };
@@ -90,6 +138,7 @@ export function resolveDefenseCommercial(input: DefenseCommercialInput): Defense
 
   const exchange = Number(input.exchangeRate ?? 0);
   const warnings = [`Medida antidumping identificada para NCM ${ncm} originária de ${input.origin}.`, measure.validityNote].filter(Boolean);
+  if (pastNominalExpiry && metadata.continuationAfterNominalExpiry) warnings.push("A vigência nominal foi alcançada, mas a continuidade da medida durante revisão de final de período foi auditada para esta fonte oficial.");
   const exporter = resolved;
   const isResidual = /demais|todas as empresas|todos os produtores/i.test(exporter.exporter);
   if (isResidual && !input.exporter?.trim()) warnings.push(`Sem produtor/exportador informado; foi usada provisoriamente a categoria residual (${exporter.rate} na unidade da medida).`);
@@ -107,6 +156,7 @@ export function resolveDefenseCommercial(input: DefenseCommercialInput): Defense
     status: canCalculate ? "identified" : "requires_input", measure: measure.measure, product: measure.product, ncm, origin: input.origin,
     unit, rate: exporter.rate, rateUsdPerKg: unit === "USD_PER_KG" ? exporter.rate : undefined, amountBrl: canCalculate ? amountCandidate : undefined,
     exporter: exporter.exporter, exporterTreatment: isResidual ? "default_other_companies" : "specific_company",
-    collectionSuspended: Boolean(exporter.collectionSuspended || metadata.collectionSuspended), legalFoundation: measure.legalFoundation, source: measure.source, sourceUrl: metadata.sourceUrl, warnings,
+    collectionSuspended: Boolean(exporter.collectionSuspended || metadata.collectionSuspended), legalFoundation: measure.legalFoundation, source: measure.source, sourceUrl: metadata.sourceUrl,
+    validUntil: metadata.validUntil, continuationAfterNominalExpiry: Boolean(metadata.continuationAfterNominalExpiry), warnings,
   };
 }
