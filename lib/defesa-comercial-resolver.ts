@@ -21,7 +21,12 @@ export type DefenseCommercialResolution = {
   warnings: string[];
 };
 
-type GeneratedMeasureMetadata = { sourceUrl?: string; collectionSuspended?: boolean };
+type GeneratedMeasureMetadata = {
+  sourceUrl?: string;
+  collectionSuspended?: boolean;
+  scopeAmbiguous?: boolean;
+  matchingScopes?: Array<{ product: string; sourceUrl?: string; legalFoundation?: string; validUntil?: string }>;
+};
 
 function calculateAmountBrl(unit: ExtendedDefenseCommercialUnit, rate: number, input: DefenseCommercialInput, exchange: number) {
   if (unit === "AD_VALOREM") {
@@ -61,6 +66,9 @@ export function resolveDefenseCommercial(input: DefenseCommercialInput): Defense
   const metadata = measure as typeof measure & GeneratedMeasureMetadata;
   const resolved = resolveDefenseCommercialExporter(ncm, input.origin, input.exporter, input.importDate);
   if (!resolved) {
+    const ambiguityWarning = metadata.scopeAmbiguous
+      ? `Mais de um escopo de produto/medida de defesa comercial coincide com a NCM ${ncm} e a origem ${input.origin} (${(metadata.matchingScopes ?? []).map((scope) => scope.product).join("; ")}). A NCM e a origem, isoladamente, não são suficientes para escolher o direito aplicável; nenhum valor de antidumping foi calculado automaticamente.`
+      : "A medida oficial foi localizada, mas a matriz de produtor/exportador e direito aplicável não pôde ser resolvida automaticamente. O cálculo do antidumping foi bloqueado e requer validação na fonte oficial antes da conclusão da simulação.";
     return {
       status: "requires_input",
       measure: measure.measure,
@@ -75,7 +83,7 @@ export function resolveDefenseCommercial(input: DefenseCommercialInput): Defense
       warnings: [
         `Medida antidumping identificada para NCM ${ncm} originária de ${input.origin}.`,
         measure.validityNote,
-        "A medida oficial foi localizada, mas a matriz de produtor/exportador e direito aplicável não pôde ser resolvida automaticamente. O cálculo do antidumping foi bloqueado e requer validação na fonte oficial antes da conclusão da simulação.",
+        ambiguityWarning,
       ].filter(Boolean),
     };
   }
