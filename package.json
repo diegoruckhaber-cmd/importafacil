@@ -37,19 +37,20 @@
     "test:defesa-comercial": "node --experimental-strip-types scripts/test-defesa-comercial-resolver.mjs",
     "test:sc-import-additional-charges": "node --experimental-strip-types scripts/test-sc-import-additional-charges.mjs",
     "test:temporary-ii": "node scripts/test-temporary-ii-alerts.mjs",
+    "test:temporary-ii-resolver": "node --experimental-strip-types scripts/test-temporary-ii-resolver.mjs",
     "test:audit-core": "node --experimental-strip-types scripts/test-core-engine-audit.mjs",
     "test:all": "node scripts/run-full-engine-audit.mjs"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.57.0",
+    "@supabase/supabase-js": "2.57.0",
     "next": "16.3.0",
     "react": "19.2.0",
     "react-dom": "19.2.0"
   },
   "devDependencies": {
-    "typescript": "latest",
-    "@types/node": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest"
+    "typescript": "5.9.2",
+    "@types/node": "24.10.1",
+    "@types/react": "19.2.0",
+    "@types/react-dom": "19.2.0"
   }
 }
