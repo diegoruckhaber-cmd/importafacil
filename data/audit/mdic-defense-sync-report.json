@@ -1,0 +1,173 @@
+{
+  "generatedAt": "2026-09-02T19:08:53.625Z",
+  "baseline": {
+    "measures": 86,
+    "sha256": "6ce67d9e9cc4196e7f4474b11c26250e2678e610bf2246a60929b9501e13dbcc"
+  },
+  "synchronized": {
+    "measures": 87,
+    "sha256": "2e6908f4eedbe25f476538858b397225c8d6d5471093f178cb2dda97c0937736"
+  },
+  "diff": {
+    "addedCount": 1,
+    "removedCount": 0,
+    "changedCount": 86,
+    "added": [
+      "40111000|Pneus de automóveis (China)|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-de-automoveis-china"
+    ],
+    "removed": [],
+    "changed": [
+      "04021010|Leite em pó|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/leite-em-po",
+      "07032010|Alhos|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/alhos",
+      "20041000|Batatas congeladas|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/batatas-congeladas",
+      "23099090|Lisina|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/lisina-md",
+      "28353920|Pirofosfato ácido de sódio (SAPP)|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pirofosfato-acido-de-sodio-sapp",
+      "29051300|n-Butanol (AFS e RUS)|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/n-butanol-2",
+      "29051300|n-Butanol|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/n-butanol",
+      "29094310|EBMEG (Alemanha)|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/ebmeg-alemanha",
+      "29094310|EBMEG (França)|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/ebmeg-franca",
+      "29153100|Ésteres acéticos|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/esteres-aceticos",
+      "29161230|Acrilato de butila (EUA)|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/acrilato-de-butila-eua",
+      "29161230|Acrilato de butila|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/acrilato-de-butila",
+      "29161230|Acrilato de butila|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/Acrilato-de-butila",
+      "29171210|Ácido Adípico|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/acido-adipico",
+      "29173500|Anidrido ftálico|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/anidrido-ftalico",
+      "29173500|Anidrido ftálico|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/anidrido-ftalico-dp",
+      "29181400|Ácido cítrico|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/acido-citrico",
+      "29181400|Ácido cítrico|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/acido-citrico-2",
+      "29221100|Etanolaminas (monoetanolaminas e dietanolaminas)|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/etanolaminas-ch",
+      "29221100|Etanolaminas|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/etanolaminas",
+      "32061110|Pigmentos de dióxido de titânio|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pigmentos-dioxido-titanio-md",
+      "37013021|Chapas off-set|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/chapas-off-set",
+      "38221990|Tubos de plástico para coleta de sangue|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-de-coleta-de-sangue",
+      "39011030|Resinas de polietileno|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/resinas-polietileno",
+      "39021020|Resina de polipropileno (África do Sul e Índia)|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/resina-de-polipropileno",
+      "39021020|Resina de polipropileno (EUA)|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/resina-de-polipropileno-eua",
+      "39041010|PVC-S (China)|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pvc-s-china-e-coreia-do-sul",
+      "39041010|PVC-S (EUA e México)|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pvc-s-eua-e-mexico",
+      "39072939|Poliol poliéteres|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/poliol-polieteres-pv",
+      "39076100|Resina PET|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/resina-pet",
+      "40025900|Borracha nitrílica (NBR)|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/borracha-nitrilica-nbr",
+      "40091100|Tubos de borracha elastomérica|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-de-borracha-elastomerica",
+      "40111000|Pneus de automóveis|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-de-automoveis",
+      "40112090|Pneus de carga (China)|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-de-carga-china",
+      "40112090|Pneus de carga|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-de-carga",
+      "40114000|Pneus de motocicletas|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-de-motocicletas",
+      "40117010|Pneus agrícolas|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-agricolas",
+      "40151200|Luvas para procedimentos não cirúrgicos|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/Luvas-para-procedimentos-nao-cirurgicos",
+      "48101389|Cartão semirrígido|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/cartao-semirrigido",
+      "54023111|Fios de náilon|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/fios-de-nailon",
+      "54023111|Fios de náilon|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/fios-de-nailon-dp",
+      "54023310|Fios de poliéster|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/fios-de-poliester",
+      "55032090|Fibras de poliéster|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/fibras-de-poliester-md",
+      "60041031|Malhas de poliéster|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/malhas-de-poliester",
+      "60041041|Malhas de viscose|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/malhas-de-viscose",
+      "63051000|Sacos de juta|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/sacos-de-juta",
+      "6402|Calçados|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/calcados",
+      "69039091|Filtros cerâmicos refratários|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/filtros-ceramicos-refratarios",
+      "69072100|Porcelanato técnico (medida encerrada)|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/porcelanato-tecnico",
+      "69111010|Objetos de louça para mesa|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/objetos-de-louca-para-mesa",
+      "70052900|Vidros planos flotados incolores|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/vidros-planos-flotados",
+      "70052900|Vidros planos flotados incolores|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/vidros-planos-flotados-incolores",
+      "70071100|Vidros automotivos|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/vidros-automotivos",
+      "70071900|Vidros para eletrodomésticos da linha fria|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/vidros-para-eletrodomesticos-da-linha-fria",
+      "70099100|Espelhos|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/espelhos",
+      "72085100|Laminados planos de baixo carbono e baixa liga (Chapas Grossas)|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/laminados-planos-de-baixo-carbono-e-baixa-liga-chapas-grossas",
+      "72091500|Laminados planos de aço carbono, ligados ou não ligados, em forma de chapas ou em bobinas, laminados a frio|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/laminados-planos-a-frio",
+      "72101200|Folhas metálicas de aço carbono, ligado ou não ligado, de qualquer largura com espessura inferior a 0,5 mm|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/folhas-metalicas-md",
+      "72103010|Laminados planos revestidos|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/laminados-planos-revestidos",
+      "72107010|Aços pré-pintados|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/acos-pre-pintados",
+      "72171019|Fios de aço|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/fios-de-aco",
+      "72193200|Laminados de aço inoxidável|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/laminados-de-aco-inoxidavel",
+      "72251900|Laminados planos de aço ao silício (aço GNO)|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/aco-gno",
+      "72283000|Barras de aço|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/barras-de-aco",
+      "73041900|Tubos de aço carbono, sem costura, de condução (line pipe), com diâmetro de até cinco polegadas|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-de-aco-carbono-sem-costura-china-romenia",
+      "73041900|Tubos de aço carbono, sem costura, de condução (line pipe), utilizados para oleodutos e gasodutos, com diâmetro externo superior a 5 (cinco) polegadas nominais (141,3 mm), mas não superior a 14 (quatorze) polegadas nominais (355,6 mm)|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-de-aco-carbono-sem-costura-tubos-de-conducao",
+      "73043110|Tubos de aço carbono não ligado, sem costura, de seção circular, com diâmetro externo não superior a 374 mm|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-carbono-china",
+      "73064000|Tubos com costura, de aços inoxidáveis austeníticos graus 304 e 316, de seção circular, com diâmetro externo igual ou superior a 6 mm e inferior a 2.032 mm, com espessura igual ou superior a 0,40 mm e igual ou inferior a 12,70 mm|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-de-aco-inox-dp",
+      "73064000|Tubos com costura, de aços inoxidáveis austeníticos graus 304 e 316, de seção circular, com diâmetro externo igual ou superior a 6 mm e inferior a 2.032 mm, com espessura igual ou superior a 0,40 mm e igual ou inferior a 12,70 mm|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-de-aco-inoxidavel",
+      "73110000|Cilindros para GNV|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/cilindos-gnv",
+      "73121090|Cordoalhas de aço|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/cordoalhas-de-aco",
+      "81041100|Magnésio metálico (China)|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/magnesio-metalico-china",
+      "81041100|Magnésio metálico (Rússia)|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/magnesio-metalico-russia",
+      "81043000|Magnésio em pó|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/magnesio-em-po",
+      "83011000|Cadeados|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/cadeados",
+      "83017000|Chaves de latão|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/chaves-de-latao",
+      "84145110|Ventiladores de mesa|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/ventiladores-de-mesa",
+      "85182100|Alto-falantes|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/alto-falantes",
+      "85447010|Cabos de fibra ópticas|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/cabos-de-fibra-opticas",
+      "90011011|Fibras ópticas|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/fibras-opticas",
+      "90183111|Seringas descartáveis|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/seringas-descartaveis",
+      "90183219|Agulhas hipodérmicas|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/agulhas-hipodermicas",
+      "96020010|Cápsulas duras de gelatina vazia|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/capsulas-duras-de-gelatina-vazia",
+      "96032900|Escovas para cabelo|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/escovas-para-cabelo",
+      "96081000|Canetas esferográficas|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/canetas-esferograficas",
+      "96091000|Lápis|https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/lapis"
+    ]
+  },
+  "quality": {
+    "missingExporterOptionCount": 10,
+    "missingExporterOptions": [
+      {
+        "ncm": "38221990",
+        "product": "Tubos de plástico para coleta de sangue",
+        "origin": "alemanha",
+        "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-de-coleta-de-sangue"
+      },
+      {
+        "ncm": "40111000",
+        "product": "Pneus de automóveis",
+        "origin": "taipé chinês",
+        "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-de-automoveis"
+      },
+      {
+        "ncm": "40117010",
+        "product": "Pneus agrícolas",
+        "origin": "china",
+        "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-agricolas"
+      },
+      {
+        "ncm": "70071100",
+        "product": "Vidros automotivos",
+        "origin": "china",
+        "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/vidros-automotivos"
+      },
+      {
+        "ncm": "72085100",
+        "product": "Laminados planos de baixo carbono e baixa liga (Chapas Grossas)",
+        "origin": "áfrica do sul",
+        "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/laminados-planos-de-baixo-carbono-e-baixa-liga-chapas-grossas"
+      },
+      {
+        "ncm": "83017000",
+        "product": "Chaves de latão",
+        "origin": "china",
+        "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/chaves-de-latao"
+      },
+      {
+        "ncm": "83017000",
+        "product": "Chaves de latão",
+        "origin": "colômbia",
+        "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/chaves-de-latao"
+      },
+      {
+        "ncm": "83017000",
+        "product": "Chaves de latão",
+        "origin": "peru",
+        "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/chaves-de-latao"
+      },
+      {
+        "ncm": "96020010",
+        "product": "Cápsulas duras de gelatina vazia",
+        "origin": "estados unidos da américa",
+        "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/capsulas-duras-de-gelatina-vazia"
+      },
+      {
+        "ncm": "96020010",
+        "product": "Cápsulas duras de gelatina vazia",
+        "origin": "méxico",
+        "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/capsulas-duras-de-gelatina-vazia"
+      }
+    ]
+  }
+}
