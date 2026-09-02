@@ -7,7 +7,7 @@ import { resolveSCBenefit } from "../../../lib/sc-benefit-resolution";
 import { resolveImportContributionRates } from "../../../lib/import-contribution-rates";
 import { resolveDefenseCommercial } from "../../../lib/defesa-comercial-resolver";
 import { resolveSCImportAdditionalCharges, type ImportDeclarationType, type ImportTransportMode } from "../../../lib/sc-import-additional-charges";
-import { buildTemporaryIIWarning, resolveTemporaryII, type TemporaryIIResolution } from "../../../lib/temporary-ii-resolver";
+import { buildTemporaryIIWarning, resolveTemporaryII } from "../../../lib/temporary-ii-resolver";
 
 type SnapshotRecord = { sourceType: "mdic-ii" | "rfb-ipi"; ncm: string; rate: number; sheet: string };
 type Snapshot = { sources: { published?: string; mdic?: { published?: string }; rfbTipi?: { updated?: string } }; records: SnapshotRecord[] };
@@ -188,7 +188,15 @@ export async function POST(request: Request) {
       federal: {
         ncm,
         origin,
-        ii: { rate: federal.iiRate, automatic: true, warnings: federal.warnings, temporaryAlert: federal.temporaryII?.primary ?? null, temporaryTreatments: federal.temporaryII?.alternatives ?? [] },
+        ii: {
+          rate: federal.iiRate,
+          automatic: true,
+          warnings: federal.warnings,
+          temporaryAlert: federal.temporaryII?.primary ?? null,
+          temporaryTreatments: federal.temporaryII?.treatments ?? [],
+          hasSpecificTemporaryTreatment: federal.temporaryII?.hasSpecificTreatment ?? false,
+          hasQuotaTemporaryTreatment: federal.temporaryII?.hasQuotaTreatment ?? false,
+        },
         ipi: { rate: federal.ipiRate, automatic: true, warnings: federal.warnings },
         pisImport: { rate: federal.pisImportRate, automatic: true, source: federal.contributionSource },
         cofinsImport: { rate: federal.cofinsImportRate, automatic: true, source: federal.contributionSource },
