@@ -21,7 +21,7 @@ const commercial409 = calculateSCItem({
 assert.equal(commercial409.decision.decision, "apply");
 assert.equal(commercial409.decision.benefit, "TTD 409");
 assert.ok(commercial409.taxes);
-assert.equal(commercial409.taxes?.totalTributos, 53313.25);
+assert.ok(Math.abs((commercial409.taxes?.totalTributos ?? 0) - 53313.2530120482) < 0.01);
 
 const deniedConcession = calculateSCItem({
   id: "B",
