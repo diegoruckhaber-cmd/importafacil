@@ -35,7 +35,10 @@
     "test:import-scenario-recommendation": "node --experimental-strip-types scripts/test-import-scenario-recommendation.mjs",
     "test:tax-profile-sale-context": "node --experimental-strip-types scripts/test-tax-profile-sale-context.mjs",
     "test:defesa-comercial": "node --experimental-strip-types scripts/test-defesa-comercial-resolver.mjs",
-    "test:sc-import-additional-charges": "node --experimental-strip-types scripts/test-sc-import-additional-charges.mjs"
+    "test:sc-import-additional-charges": "node --experimental-strip-types scripts/test-sc-import-additional-charges.mjs",
+    "test:temporary-ii": "node scripts/test-temporary-ii-alerts.mjs",
+    "test:audit-core": "node --experimental-strip-types scripts/test-core-engine-audit.mjs",
+    "test:all": "node scripts/run-full-engine-audit.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",

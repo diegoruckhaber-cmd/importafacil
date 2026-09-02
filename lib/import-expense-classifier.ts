@@ -47,9 +47,10 @@ export function summarizeImportExpenses(expenses: ClassifiedExpense[]) {
       summary.total += expense.amount;
       if (expense.includedInCustomsValue) summary.customsValue += expense.amount;
       if (expense.includedInImportICMSBase) summary.icmsImportBase += expense.amount;
-      if (!expense.includedInCustomsValue && !expense.includedInImportICMSBase) summary.costOnly += expense.amount;
+      if (expense.taxBaseTreatment === "cost_only") summary.costOnly += expense.amount;
+      if (expense.taxBaseTreatment === "conditional") summary.conditional += expense.amount;
       return summary;
     },
-    { total: 0, customsValue: 0, icmsImportBase: 0, costOnly: 0 },
+    { total: 0, customsValue: 0, icmsImportBase: 0, costOnly: 0, conditional: 0 },
   );
 }

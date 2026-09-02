@@ -14,8 +14,9 @@ const result = calculateSCImportOperation({
   icmsRate: 17,
 });
 
-if (result.valorAduaneiro !== 61600) throw new Error(JSON.stringify(result));
-if (result.taxes.ii.calculated !== 7392) throw new Error(JSON.stringify(result));
+// R$ 55.000 mercadoria + R$ 6.600 frete + R$ 550 seguro.
+if (result.valorAduaneiro !== 62150) throw new Error(JSON.stringify(result));
+if (result.taxes.ii.calculated !== 7458) throw new Error(JSON.stringify(result));
 if (result.taxes.icms.payable <= 0) throw new Error(JSON.stringify(result));
 if (result.landedCostPerUnitBeforeBenefit <= 0) throw new Error(JSON.stringify(result));
 
