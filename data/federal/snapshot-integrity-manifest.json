@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "snapshots": [
+    {
+      "path": "data/federal/official-snapshot-2026-07.json",
+      "blobSha": "6bba13b82ea7368b3a4209bb0ac3b270de29edcd"
+    },
+    {
+      "path": "data/federal/temporary-ii-alerts-2026.json",
+      "blobSha": "bee82a63e3453c6e04cdb8e1e494c5c744b46adc"
+    }
+  ]
+}
