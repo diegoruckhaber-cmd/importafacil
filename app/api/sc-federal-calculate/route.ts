@@ -10,28 +10,27 @@ import { resolveSCImportAdditionalCharges, type ImportDeclarationType, type Impo
 
 type SnapshotRecord = { sourceType: "mdic-ii" | "rfb-ipi"; ncm: string; rate: number; sheet: string };
 type Snapshot = { sources: { published?: string; mdic?: { published?: string }; rfbTipi?: { updated?: string } }; records: SnapshotRecord[] };
-type TemporaryIIAlert = { ncm: string; standardRate: number; temporaryRate: number; validFrom: string; validTo: string; legalBasis: string; description: string };
+type TemporaryIIAlert = { ncm: string; temporaryRate: number; validFrom: string; validTo: string; legalBasis: string; description: string };
 
 const SNAPSHOT_PATH = path.join(process.cwd(), "data", "federal", "official-snapshot-2026-07.json");
+const TEMPORARY_II_PATH = path.join(process.cwd(), "data", "federal", "temporary-ii-alerts-2026.json");
 const normalizeNcm = (value: string) => value.replace(/\D/g, "");
 
-// Temporary tariff measures are alerts only: the calculation remains based on
-// the standard rate stored in the federal snapshot. The user must be warned
-// whenever the import date falls inside the temporary measure's validity.
-const TEMPORARY_II_ALERTS: TemporaryIIAlert[] = [
-  {
-    ncm: "28353920",
-    standardRate: 9,
-    temporaryRate: 17.5,
-    validFrom: "2026-01-19",
-    validTo: "2027-01-18",
-    legalBasis: "Resolução GECEX nº 845, de 15/01/2026, Anexo Único",
-    description: "Pirofosfatos de sódio",
-  },
-];
+function loadTemporaryIIAlerts(): TemporaryIIAlert[] {
+  try {
+    const data = JSON.parse(fs.readFileSync(TEMPORARY_II_PATH, "utf8"));
+    return Array.isArray(data) ? data.filter((item) => item && typeof item.ncm === "string") : [];
+  } catch {
+    return [];
+  }
+}
 
-function resolveTemporaryIIAlert(ncm: string, date: string): TemporaryIIAlert | undefined {
-  return TEMPORARY_II_ALERTS.find((item) => item.ncm === ncm && item.validFrom <= date && date <= item.validTo);
+function resolveTemporaryIIAlert(ncm: string, date: string, standardRate: number): TemporaryIIAlert | undefined {
+  const matches = loadTemporaryIIAlerts().filter((item) =>
+    normalizeNcm(item.ncm) === ncm && item.validFrom <= date && date <= item.validTo && item.temporaryRate > standardRate
+  );
+  if (!matches.length) return undefined;
+  return matches.sort((a, b) => b.temporaryRate - a.temporaryRate)[0];
 }
 
 function resolveRate(records: SnapshotRecord[], label: string) {
@@ -51,12 +50,12 @@ function loadFederal(ncm: string, date: string) {
   const contributions = resolveImportContributionRates(ncm);
   const ii = resolveRate(records.filter((record) => record.sourceType === "mdic-ii"), "II");
   const ipi = resolveRate(records.filter((record) => record.sourceType === "rfb-ipi"), "IPI");
-  const temporaryIIAlert = resolveTemporaryIIAlert(ncm, date);
+  const temporaryIIAlert = resolveTemporaryIIAlert(ncm, date, ii.rate);
   const warnings = [
     ii.warning,
     ipi.warning,
     temporaryIIAlert
-      ? `⚠️ ATENÇÃO: existe elevação temporária do II para esta NCM. Alíquota padrão: ${temporaryIIAlert.standardRate}%; alíquota temporária: ${temporaryIIAlert.temporaryRate}%; vigência de ${temporaryIIAlert.validFrom} a ${temporaryIIAlert.validTo}. O cálculo permanece pela alíquota padrão (${temporaryIIAlert.standardRate}%) para não alterar a base oficial do simulador. Validar a alíquota aplicável no registro da declaração.`
+      ? `⚠️ ATENÇÃO: existe elevação temporária do II para esta NCM. Alíquota padrão: ${ii.rate}%; alíquota temporária: ${temporaryIIAlert.temporaryRate}%; vigência de ${temporaryIIAlert.validFrom} a ${temporaryIIAlert.validTo}. O cálculo permanece pela alíquota padrão (${ii.rate}%). Validar a aplicação da medida, inclusive eventual Ex/quota, no registro da declaração. Fundamento: ${temporaryIIAlert.legalBasis}.`
       : undefined,
   ].filter((value): value is string => Boolean(value));
   return {
@@ -115,8 +114,6 @@ export async function POST(request: Request) {
 
     const federal = loadFederal(ncm, date);
     const merchandiseValueBrl = quantity * fobUnit * exchange;
-    // The engine adds freight and insurance as customs-base expenses exactly once.
-    // Keeping the item's base as FOB preserves the correct customs value = FOB + freight + insurance.
     const customsValue = merchandiseValueBrl;
     const customsValueForDefense = merchandiseValueBrl + freight * exchange + insurance * exchange;
     const itemId = "ITEM-001";
