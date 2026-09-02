@@ -85,8 +85,14 @@ assert.equal(lisinaSpecific.amountBrl, 41300);
 
 const squareMeter = resolveDefenseCommercial({ ncm: "70071900", origin: "China", importDate: "2026-08-28", areaM2: 1000, exchangeRate: 5.5 });
 if (squareMeter.status !== "not_applicable") {
-  assert.equal(squareMeter.unit, "USD_PER_SQUARE_METER");
-  assert.ok(squareMeter.amountBrl === undefined || squareMeter.amountBrl >= 0);
+  if (squareMeter.exporterTreatment === "requires_validation") {
+    assert.equal(squareMeter.status, "requires_input");
+    assert.equal(squareMeter.amountBrl, undefined);
+    assert.ok(squareMeter.warnings.some((warning) => /validação/i.test(warning)));
+  } else {
+    assert.equal(squareMeter.unit, "USD_PER_SQUARE_METER");
+    assert.ok(squareMeter.amountBrl === undefined || squareMeter.amountBrl >= 0);
+  }
 }
 
 // A medida existe no catálogo oficial, mas o crawler ainda não conseguiu resolver a matriz por exportador.
