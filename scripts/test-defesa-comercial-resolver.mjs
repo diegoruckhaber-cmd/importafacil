@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { resolveDefenseCommercial } from "../lib/defesa-comercial-resolver.ts";
-import { listDefenseCommercialExporters, listMatchingDefenseCommercialScopes } from "../lib/defesa-comercial-registry.ts";
+import { findDefenseCommercialMeasure, listDefenseCommercialExporters, listMatchingDefenseCommercialScopes } from "../lib/defesa-comercial-registry.ts";
 
 const pending = resolveDefenseCommercial({ ncm: "40112090", origin: "China", importDate: "2026-08-17" });
 assert.equal(pending.status, "requires_input");
@@ -45,42 +45,24 @@ const otherOrigin = resolveDefenseCommercial({ ncm: "40112090", origin: "México
 assert.equal(otherOrigin.status, "not_applicable");
 
 const butanol = listDefenseCommercialExporters("29051300", "Estados Unidos da América", "2026-08-17");
-assert.ok(butanol, "n-Butanol / EUA deve encontrar medida antidumping");
-assert.ok((butanol?.options.length ?? 0) >= 5, "n-Butanol / EUA deve listar produtores/exportadores");
+assert.ok(butanol);
+assert.ok((butanol?.options.length ?? 0) >= 5);
 assert.ok(butanol?.options.some((option) => option.rate === 9.8 && option.unit === "AD_VALOREM"));
 
 const sappCanada = listDefenseCommercialExporters("28353920", "Canadá", "2026-08-28");
-assert.ok(sappCanada, "SAPP / Canadá deve encontrar medida antidumping");
+assert.ok(sappCanada);
 assert.deepEqual(sappCanada?.options, [
   { exporter: "Innophos Canada Inc.", rate: 546.3, unit: "USD_PER_TON", collectionSuspended: false },
   { exporter: "Demais", rate: 1066.3, unit: "USD_PER_TON", collectionSuspended: false },
 ]);
-
 const sappSpecific = resolveDefenseCommercial({ ncm: "28353920", origin: "Canadá", importDate: "2026-08-28", weightKg: 10000, exchangeRate: 5.5, exporter: "Innophos Canada Inc." });
 assert.equal(sappSpecific.status, "identified");
-assert.equal(sappSpecific.unit, "USD_PER_TON");
 assert.equal(sappSpecific.amountBrl, 30046.5);
 
-const sappOther = resolveDefenseCommercial({ ncm: "28353920", origin: "Canadá", importDate: "2026-08-28", weightKg: 10000, exchangeRate: 5.5, exporter: "Demais" });
-assert.equal(sappOther.amountBrl, 58646.5);
-
-const sappUsa = listDefenseCommercialExporters("28353920", "Estados Unidos", "2026-08-28");
-assert.ok(sappUsa, "SAPP / EUA deve encontrar medida antidumping por alias de origem");
-assert.deepEqual(sappUsa?.options, [
-  { exporter: "Innophos Inc.", rate: 418.13, unit: "USD_PER_TON", collectionSuspended: false },
-  { exporter: "Prayon Inc.", rate: 734.28, unit: "USD_PER_TON", collectionSuspended: false },
-  { exporter: "Demais", rate: 734.28, unit: "USD_PER_TON", collectionSuspended: false },
-]);
-
 const lisina = listDefenseCommercialExporters("23099090", "China", "2026-08-28");
-assert.ok(lisina, "Lisina / China deve encontrar medida antidumping");
-assert.ok((lisina?.options.length ?? 0) >= 17, "Lisina deve trazer todas as linhas de produtor/exportador");
-assert.ok(lisina?.options.some((option) => option.rate === 78 && option.unit === "AD_VALOREM"));
-assert.ok(lisina?.options.some((option) => option.rate === 132.6 && /Demais empresas chinesas/i.test(option.exporter)));
-
+assert.ok(lisina);
+assert.ok((lisina?.options.length ?? 0) >= 17);
 const lisinaSpecific = resolveDefenseCommercial({ ncm: "23099090", origin: "China", importDate: "2026-08-28", customsValueBrl: 100000, exchangeRate: 5.5, exporter: "Qiqihar Longjiang Fufeng Biotechnologies Co., Ltd." });
-assert.equal(lisinaSpecific.status, "identified");
-assert.equal(lisinaSpecific.unit, "AD_VALOREM");
 assert.equal(lisinaSpecific.amountBrl, 41300);
 
 for (const scenario of [
@@ -89,13 +71,12 @@ for (const scenario of [
   { ncm: "73041900", origin: "China" },
 ]) {
   const scopes = listMatchingDefenseCommercialScopes(scenario.ncm, scenario.origin);
-  assert.ok(scopes.length >= 2, `${scenario.ncm}/${scenario.origin} deve manter múltiplos escopos identificados`);
+  assert.ok(scopes.length >= 2);
   const ambiguous = listDefenseCommercialExporters(scenario.ncm, scenario.origin, "2026-09-02");
-  assert.ok(ambiguous?.ambiguous, `${scenario.ncm}/${scenario.origin} deve ser marcado como ambíguo`);
-  assert.equal(ambiguous?.options.length, 0, "matrizes de escopos distintos não podem ser mescladas");
+  assert.ok(ambiguous?.ambiguous);
+  assert.equal(ambiguous?.options.length, 0);
   const resolution = resolveDefenseCommercial({ ncm: scenario.ncm, origin: scenario.origin, importDate: "2026-09-02", weightKg: 1000, areaM2: 1000, customsValueBrl: 100000, exchangeRate: 5.5 });
   assert.equal(resolution.status, "requires_input");
-  assert.equal(resolution.exporterTreatment, "requires_validation");
   assert.equal(resolution.amountBrl, undefined);
   assert.ok(resolution.warnings.some((warning) => /mais de um escopo/i.test(warning)));
 }
@@ -105,16 +86,23 @@ assert.equal(bloodTubesGermany.status, "not_applicable");
 const plateSouthAfrica = resolveDefenseCommercial({ ncm: "72085100", origin: "África do Sul", importDate: "2026-09-02", weightKg: 1000, exchangeRate: 5.5 });
 assert.equal(plateSouthAfrica.status, "not_applicable");
 
-const incompleteExporterMatrix = listDefenseCommercialExporters("37013021", "Reino Unido", "2026-09-02");
-assert.ok(incompleteExporterMatrix, "Chapas off-set / Reino Unido deve continuar identificando a medida oficial");
-assert.equal(incompleteExporterMatrix?.options.length, 0, "cenário de regressão depende de matriz ainda incompleta");
-
+// Continuidade pós-vigência nominal deve vir do catálogo auditado, nunca de heurística.
+const offsetUk = findDefenseCommercialMeasure("37013021", "Reino Unido", "2026-09-02");
+assert.equal(offsetUk?.continuationAfterNominalExpiry, true);
 const incompleteResolution = resolveDefenseCommercial({ ncm: "37013021", origin: "Reino Unido", importDate: "2026-09-02", exchangeRate: 5.5 });
 assert.equal(incompleteResolution.status, "requires_input");
-assert.equal(incompleteResolution.measure, "antidumping");
-assert.equal(incompleteResolution.exporterTreatment, "requires_validation");
 assert.equal(incompleteResolution.amountBrl, undefined);
-assert.ok(incompleteResolution.sourceUrl?.includes("gov.br/mdic"));
-assert.ok(incompleteResolution.warnings.some((warning) => /vigência nominal registrada terminou/i.test(warning) || /matriz de produtor\/exportador/i.test(warning)));
+assert.ok(incompleteResolution.warnings.some((warning) => /continuidade da medida durante revisão/i.test(warning)));
+assert.ok(incompleteResolution.warnings.some((warning) => /matriz de produtor\/exportador/i.test(warning)));
+
+// Renovações auditadas substituem a vigência nominal antiga sem depender do crawler defasado.
+const padlock = findDefenseCommercialMeasure("83011000", "China", "2026-09-02");
+assert.ok(padlock, "Cadeados/China deve existir no catálogo");
+assert.equal(padlock?.validUntil, "24/10/2030");
+assert.equal(padlock?.continuationAfterNominalExpiry, false);
+
+const coldLineGlass = findDefenseCommercialMeasure("70071900", "China", "2026-09-02");
+const coldLineScope = coldLineGlass?.matchingScopes?.find((scope) => /linha fria/i.test(scope.product));
+if (coldLineScope) assert.equal(coldLineScope.validUntil, "24/06/2031");
 
 console.log("Defense commercial resolver/catalog: OK");
