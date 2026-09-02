@@ -18,8 +18,7 @@ export const normalizeOrigin = (value: string) => ORIGIN_ALIASES[normalize(value
 type GeneratedMeasure = DefenseCommercialMeasure & { ncmPatterns?: string[]; ncmExclusions?: string[]; sourceUrl?: string; collectionSuspended?: boolean; validUntil?: string; importDate?: string };
 const generated = (Array.isArray(generatedData) ? generatedData : []) as unknown as GeneratedMeasure[];
 
-// Origins explicitly encerradas na fonte oficial não podem continuar sendo tratadas como ativas
-// apenas porque aparecem no histórico da página do MDIC.
+// Origens cuja prorrogação foi oficialmente encerrada não permanecem ativas só porque ainda aparecem no histórico da página do MDIC.
 const OFFICIAL_INACTIVE_ORIGINS: Record<string, string[]> = {
   "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-de-coleta-de-sangue": ["alemanha"],
   "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/laminados-planos-de-baixo-carbono-e-baixa-liga-chapas-grossas": ["africa do sul"],
@@ -102,8 +101,10 @@ function scopeIdentity(measure: GeneratedMeasure) {
 }
 
 function distinctScopes(candidates: GeneratedMeasure[]) {
+  const sourceBackedProducts = new Set(candidates.filter((candidate) => Boolean(candidate.sourceUrl)).map((candidate) => normalize(candidate.product)));
   const seen = new Set<string>();
   return candidates.filter((candidate) => {
+    if (!candidate.sourceUrl && sourceBackedProducts.has(normalize(candidate.product))) return false;
     const identity = scopeIdentity(candidate);
     if (seen.has(identity)) return false;
     seen.add(identity);
