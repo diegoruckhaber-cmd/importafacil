@@ -1,5 +1,5 @@
-import { decideSCItem, type SCItemDecisionInput, type SCDecision } from "./sc-decision-engine";
-import { compareSCBenefit, type SCBenefitEffect } from "./sc-benefit-effects";
+import { decideSCItem, type SCItemDecisionInput, type SCDecision } from "./sc-decision-engine.ts";
+import { compareSCBenefit, type SCBenefitEffect } from "./sc-benefit-effects.ts";
 
 export type SCEndToEndItem = SCItemDecisionInput & {
   normalICMS?: number;
