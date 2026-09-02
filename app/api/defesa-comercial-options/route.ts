@@ -8,10 +8,15 @@ export async function GET(request: Request) {
   const date = url.searchParams.get("date") ?? "";
   const result = listDefenseCommercialExporters(ncm, origin, date);
 
-  if (!result) return NextResponse.json({ applicable: false, options: [] }, { headers: { "Cache-Control": "no-store" } });
+  if (!result) return NextResponse.json({ applicable: false, options: [], requiresValidation: false }, { headers: { "Cache-Control": "no-store" } });
 
+  const requiresValidation = result.options.length === 0;
   return NextResponse.json({
     applicable: true,
+    requiresValidation,
+    warning: requiresValidation
+      ? "Medida de defesa comercial identificada, mas o tratamento por produtor/exportador não foi extraído automaticamente. Valide a fonte oficial antes de concluir o cálculo."
+      : null,
     measure: {
       ncm: result.measure.ncm,
       product: result.measure.product,
