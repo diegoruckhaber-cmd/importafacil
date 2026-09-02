@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { assertTemporaryIICatalog } from "./temporary-ii-catalog-validator";
+import { assertTemporaryIICatalog } from "./temporary-ii-catalog-validator.ts";
 
 export type TemporaryIITreatmentType = "general" | "ex" | "quota";
 
