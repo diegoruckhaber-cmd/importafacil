@@ -3,9 +3,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/sync-mdic-defesa-comercial.mjs",
     "build": "next build",
     "start": "next start",
+    "sync:defesa-comercial": "node scripts/sync-mdic-defesa-comercial.mjs",
     "test:engine": "node --experimental-strip-types scripts/test-tributary-engine.mjs",
     "test:federal-2026": "node --experimental-strip-types scripts/test-federal-2026-import-rules.mjs",
     "test:federal-ii-2026": "node --experimental-strip-types scripts/test-federal-ii-2026-rules.mjs",
