@@ -31,6 +31,7 @@ jobs:
         run: cp data/defesa-comercial-mdic.json /tmp/defesa-comercial-mdic.before.json
 
       - name: Synchronize official MDIC catalog with retry
+        id: sync
         shell: bash
         run: |
           set -euo pipefail
@@ -50,6 +51,7 @@ jobs:
           done
 
       - name: Build controlled comparison report
+        if: steps.sync.outcome == 'success'
         shell: bash
         run: |
           node <<'NODE'
@@ -63,8 +65,12 @@ jobs:
           const after = JSON.parse(afterRaw);
           const hash = (v) => crypto.createHash('sha256').update(v).digest('hex');
           const key = (x) => `${x.ncm}|${x.product}|${x.sourceUrl}`;
-          const beforeMap = new Map(before.map((x) => [key(x), x]));
-          const afterMap = new Map(after.map((x) => [key(x), x]));
+          const comparable = (x) => {
+            const { syncedAt, ...rest } = x;
+            return rest;
+          };
+          const beforeMap = new Map(before.map((x) => [key(x), comparable(x)]));
+          const afterMap = new Map(after.map((x) => [key(x), comparable(x)]));
           const added = [...afterMap.keys()].filter((k) => !beforeMap.has(k));
           const removed = [...beforeMap.keys()].filter((k) => !afterMap.has(k));
           const changed = [...afterMap.keys()].filter((k) => beforeMap.has(k) && JSON.stringify(beforeMap.get(k)) !== JSON.stringify(afterMap.get(k)));
@@ -94,12 +100,19 @@ jobs:
           NODE
 
       - name: Validate complete engine against synchronized catalog
+        id: engine_tests
+        if: steps.sync.outcome == 'success'
+        continue-on-error: true
         run: npm run test:all
 
       - name: Validate production build
+        id: production_build
+        if: steps.sync.outcome == 'success'
+        continue-on-error: true
         run: npm run build
 
       - name: Commit audited synchronization result
+        if: always() && steps.sync.outcome == 'success'
         shell: bash
         run: |
           set -euo pipefail
@@ -113,4 +126,11 @@ jobs:
           git commit -m "chore: controlled MDIC defense catalog sync [mdic-sync-result]"
           git push origin HEAD:audit/mdic-controlled-sync
 
-# trigger controlled audit
+      - name: Enforce audit gate
+        if: always() && steps.sync.outcome == 'success'
+        shell: bash
+        run: |
+          if [ "${{ steps.engine_tests.outcome }}" != "success" ] || [ "${{ steps.production_build.outcome }}" != "success" ]; then
+            echo "Synchronized catalog was preserved for review, but validation did not pass."
+            exit 1
+          fi
