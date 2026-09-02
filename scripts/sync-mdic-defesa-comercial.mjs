@@ -124,6 +124,7 @@ function parseNcm(raw) {
 
 function detectHeaderUnit(text) {
   for (const [unit, pattern] of HEADER_PATTERNS) if (pattern.test(text)) return unit;
+  for (const [unit, pattern] of [...UNIT_PATTERNS, ...SUFFIX_PATTERNS]) if (pattern.test(text)) return unit;
   return null;
 }
 
