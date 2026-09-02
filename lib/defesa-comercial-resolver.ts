@@ -32,6 +32,17 @@ type GeneratedMeasureMetadata = {
   matchingScopes?: Array<{ product: string; sourceUrl?: string; legalFoundation?: string; validUntil?: string }>;
 };
 
+function normalizeText(value?: string) {
+  return String(value ?? "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\*,:;]+$/g, "").trim();
+}
+
+function effectiveMeasureSuspension(metadata: GeneratedMeasureMetadata, origin: string) {
+  // O snapshot versionado ainda carrega a suspensão histórica como flag global na página
+  // de pneus de carga. A fonte oficial auditada restringe a suspensão ao Japão.
+  if (metadata.sourceUrl?.endsWith("/pneus-de-carga")) return normalizeText(origin) === "japao";
+  return Boolean(metadata.collectionSuspended);
+}
+
 function ddmmyyyyToIso(value?: string) {
   const match = String(value ?? "").match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (!match) return undefined;
@@ -83,6 +94,7 @@ export function resolveDefenseCommercial(input: DefenseCommercialInput): Defense
   if (!measure) return { status: "not_applicable", product: "", ncm, origin: input.origin, exporterTreatment: "requires_validation", legalFoundation: "", source: "", warnings: [] };
 
   const metadata = measure as typeof measure & GeneratedMeasureMetadata;
+  const measureSuspended = effectiveMeasureSuspension(metadata, input.origin);
   const nominalExpiryIso = ddmmyyyyToIso(metadata.validUntil);
   const importDateIsValid = isIsoDate(input.importDate);
   const pastNominalExpiry = Boolean(importDateIsValid && nominalExpiryIso && input.importDate > nominalExpiryIso);
@@ -95,7 +107,7 @@ export function resolveDefenseCommercial(input: DefenseCommercialInput): Defense
       ncm,
       origin: input.origin,
       exporterTreatment: "requires_validation",
-      collectionSuspended: Boolean(metadata.collectionSuspended),
+      collectionSuspended: measureSuspended,
       legalFoundation: measure.legalFoundation,
       source: measure.source,
       sourceUrl: metadata.sourceUrl,
@@ -121,7 +133,7 @@ export function resolveDefenseCommercial(input: DefenseCommercialInput): Defense
       ncm,
       origin: input.origin,
       exporterTreatment: "requires_validation",
-      collectionSuspended: Boolean(metadata.collectionSuspended),
+      collectionSuspended: measureSuspended,
       legalFoundation: measure.legalFoundation,
       source: measure.source,
       sourceUrl: metadata.sourceUrl,
@@ -144,19 +156,19 @@ export function resolveDefenseCommercial(input: DefenseCommercialInput): Defense
   if (isResidual && !input.exporter?.trim()) warnings.push(`Sem produtor/exportador informado; foi usada provisoriamente a categoria residual (${exporter.rate} na unidade da medida).`);
   else if (isResidual) warnings.push(`O produtor/exportador informado não possui tratamento individual cadastrado; aplica-se a categoria residual (${exporter.rate} na unidade da medida).`);
   else warnings.push(`Alíquota antidumping resolvida para o produtor/exportador selecionado: ${exporter.rate} na unidade da medida.`);
-  if (exporter.collectionSuspended || metadata.collectionSuspended) warnings.push("A cobrança da medida está suspensa para esta origem; o direito é identificado, mas não compõe o valor a recolher enquanto a suspensão estiver vigente.");
+  if (exporter.collectionSuspended || measureSuspended) warnings.push("A cobrança da medida está suspensa para esta origem; o direito é identificado, mas não compõe o valor a recolher enquanto a suspensão estiver vigente.");
   if (!Number.isFinite(exchange) || exchange <= 0) warnings.push("Câmbio necessário para converter o direito antidumping de US$ para R$.");
 
   const unit = exporter.unit as ExtendedDefenseCommercialUnit;
   const amountCandidate = calculateAmountBrl(unit, exporter.rate, input, exchange);
   if (amountCandidate === undefined) warnings.push(`Direito antidumping com unidade ${unit}; ${requirementForUnit(unit)}.`);
-  const canCalculate = amountCandidate !== undefined && (unit === "AD_VALOREM" || (Number.isFinite(exchange) && exchange > 0)) && !exporter.collectionSuspended && !metadata.collectionSuspended;
+  const canCalculate = amountCandidate !== undefined && (unit === "AD_VALOREM" || (Number.isFinite(exchange) && exchange > 0)) && !exporter.collectionSuspended && !measureSuspended;
 
   return {
     status: canCalculate ? "identified" : "requires_input", measure: measure.measure, product: measure.product, ncm, origin: input.origin,
     unit, rate: exporter.rate, rateUsdPerKg: unit === "USD_PER_KG" ? exporter.rate : undefined, amountBrl: canCalculate ? amountCandidate : undefined,
     exporter: exporter.exporter, exporterTreatment: isResidual ? "default_other_companies" : "specific_company",
-    collectionSuspended: Boolean(exporter.collectionSuspended || metadata.collectionSuspended), legalFoundation: measure.legalFoundation, source: measure.source, sourceUrl: metadata.sourceUrl,
+    collectionSuspended: Boolean(exporter.collectionSuspended || measureSuspended), legalFoundation: measure.legalFoundation, source: measure.source, sourceUrl: metadata.sourceUrl,
     validUntil: metadata.validUntil, continuationAfterNominalExpiry: Boolean(metadata.continuationAfterNominalExpiry), warnings,
   };
 }
