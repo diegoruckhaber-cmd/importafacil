@@ -21,6 +21,7 @@ const generated = (Array.isArray(generatedData) ? generatedData : []) as unknown
 const OFFICIAL_INACTIVE_ORIGINS: Record<string, string[]> = {
   "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-de-coleta-de-sangue": ["alemanha"],
   "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/laminados-planos-de-baixo-carbono-e-baixa-liga-chapas-grossas": ["africa do sul"],
+  "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-de-carga": ["china"],
 };
 
 const OFFICIAL_REGRESSION_OVERRIDES: GeneratedMeasure[] = [
