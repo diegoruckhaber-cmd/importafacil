@@ -10,8 +10,29 @@ import { resolveSCImportAdditionalCharges, type ImportDeclarationType, type Impo
 
 type SnapshotRecord = { sourceType: "mdic-ii" | "rfb-ipi"; ncm: string; rate: number; sheet: string };
 type Snapshot = { sources: { published?: string; mdic?: { published?: string }; rfbTipi?: { updated?: string } }; records: SnapshotRecord[] };
+type TemporaryIIAlert = { ncm: string; standardRate: number; temporaryRate: number; validFrom: string; validTo: string; legalBasis: string; description: string };
+
 const SNAPSHOT_PATH = path.join(process.cwd(), "data", "federal", "official-snapshot-2026-07.json");
 const normalizeNcm = (value: string) => value.replace(/\D/g, "");
+
+// Temporary tariff measures are alerts only: the calculation remains based on
+// the standard rate stored in the federal snapshot. The user must be warned
+// whenever the import date falls inside the temporary measure's validity.
+const TEMPORARY_II_ALERTS: TemporaryIIAlert[] = [
+  {
+    ncm: "28353920",
+    standardRate: 9,
+    temporaryRate: 17.5,
+    validFrom: "2026-01-19",
+    validTo: "2027-01-18",
+    legalBasis: "Resolução GECEX nº 845, de 15/01/2026, Anexo Único",
+    description: "Pirofosfatos de sódio",
+  },
+];
+
+function resolveTemporaryIIAlert(ncm: string, date: string): TemporaryIIAlert | undefined {
+  return TEMPORARY_II_ALERTS.find((item) => item.ncm === ncm && item.validFrom <= date && date <= item.validTo);
+}
 
 function resolveRate(records: SnapshotRecord[], label: string) {
   if (!records.length) throw new Error(`${label} não localizado para a NCM no snapshot oficial.`);
@@ -30,13 +51,22 @@ function loadFederal(ncm: string, date: string) {
   const contributions = resolveImportContributionRates(ncm);
   const ii = resolveRate(records.filter((record) => record.sourceType === "mdic-ii"), "II");
   const ipi = resolveRate(records.filter((record) => record.sourceType === "rfb-ipi"), "IPI");
+  const temporaryIIAlert = resolveTemporaryIIAlert(ncm, date);
+  const warnings = [
+    ii.warning,
+    ipi.warning,
+    temporaryIIAlert
+      ? `⚠️ ATENÇÃO: existe elevação temporária do II para esta NCM. Alíquota padrão: ${temporaryIIAlert.standardRate}%; alíquota temporária: ${temporaryIIAlert.temporaryRate}%; vigência de ${temporaryIIAlert.validFrom} a ${temporaryIIAlert.validTo}. O cálculo permanece pela alíquota padrão (${temporaryIIAlert.standardRate}%) para não alterar a base oficial do simulador. Validar a alíquota aplicável no registro da declaração.`
+      : undefined,
+  ].filter((value): value is string => Boolean(value));
   return {
     iiRate: ii.rate,
     ipiRate: ipi.rate,
     pisImportRate: contributions.pisImportRate,
     cofinsImportRate: contributions.cofinsImportRate,
     contributionSource: contributions.source,
-    warnings: [ii.warning, ipi.warning].filter((value): value is string => Boolean(value)),
+    warnings,
+    temporaryIIAlert,
     snapshot: {
       mdicPublished: snapshot.sources.mdic?.published ?? null,
       tipiUpdated: snapshot.sources.rfbTipi?.updated ?? null,
@@ -181,7 +211,7 @@ export async function POST(request: Request) {
       federal: {
         ncm,
         origin,
-        ii: { rate: federal.iiRate, automatic: true, warnings: federal.warnings },
+        ii: { rate: federal.iiRate, automatic: true, warnings: federal.warnings, temporaryAlert: federal.temporaryIIAlert ?? null },
         ipi: { rate: federal.ipiRate, automatic: true, warnings: federal.warnings },
         pisImport: { rate: federal.pisImportRate, automatic: true, source: federal.contributionSource },
         cofinsImport: { rate: federal.cofinsImportRate, automatic: true, source: federal.contributionSource },
