@@ -56,10 +56,30 @@ function requirementForUnit(unit: ExtendedDefenseCommercialUnit) {
 export function resolveDefenseCommercial(input: DefenseCommercialInput): DefenseCommercialResolution {
   const ncm = input.ncm.replace(/\D/g, "");
   const measure = findDefenseCommercialMeasure(ncm, input.origin, input.importDate);
-  const resolved = resolveDefenseCommercialExporter(ncm, input.origin, input.exporter, input.importDate);
-  if (!measure || !resolved) return { status: "not_applicable", product: "", ncm, origin: input.origin, exporterTreatment: "requires_validation", legalFoundation: "", source: "", warnings: [] };
+  if (!measure) return { status: "not_applicable", product: "", ncm, origin: input.origin, exporterTreatment: "requires_validation", legalFoundation: "", source: "", warnings: [] };
 
   const metadata = measure as typeof measure & GeneratedMeasureMetadata;
+  const resolved = resolveDefenseCommercialExporter(ncm, input.origin, input.exporter, input.importDate);
+  if (!resolved) {
+    return {
+      status: "requires_input",
+      measure: measure.measure,
+      product: measure.product,
+      ncm,
+      origin: input.origin,
+      exporterTreatment: "requires_validation",
+      collectionSuspended: Boolean(metadata.collectionSuspended),
+      legalFoundation: measure.legalFoundation,
+      source: measure.source,
+      sourceUrl: metadata.sourceUrl,
+      warnings: [
+        `Medida antidumping identificada para NCM ${ncm} originária de ${input.origin}.`,
+        measure.validityNote,
+        "A medida oficial foi localizada, mas a matriz de produtor/exportador e direito aplicável não pôde ser resolvida automaticamente. O cálculo do antidumping foi bloqueado e requer validação na fonte oficial antes da conclusão da simulação.",
+      ].filter(Boolean),
+    };
+  }
+
   const exchange = Number(input.exchangeRate ?? 0);
   const warnings = [`Medida antidumping identificada para NCM ${ncm} originária de ${input.origin}.`, measure.validityNote].filter(Boolean);
   const exporter = resolved;
