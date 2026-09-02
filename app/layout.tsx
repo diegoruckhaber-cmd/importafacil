@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import TemporaryIIAlertEnhancer from "./TemporaryIIAlertEnhancer";
 
 export const metadata: Metadata = {
   title: "ImportaFácil | Simulador de Importação",
@@ -14,5 +15,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({children}:{children:React.ReactNode}) {
-  return <html lang="pt-BR"><body>{children}</body></html>;
+  return <html lang="pt-BR"><body><TemporaryIIAlertEnhancer />{children}</body></html>;
 }
