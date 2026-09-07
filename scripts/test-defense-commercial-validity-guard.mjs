@@ -45,6 +45,7 @@ const inactive = new Set([
 ]);
 
 let guarded = 0;
+let unauditedResolvableExpired = 0;
 for (const measure of catalog) {
   const expiry = toIso(measure.validUntil);
   if (!expiry || expiry >= AUDIT_DATE || auditedActiveSources.has(measure.sourceUrl)) continue;
@@ -54,6 +55,7 @@ for (const measure of catalog) {
     const entry = Object.entries(measure.exportersByOrigin ?? {}).find(([key]) => key.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() === originKey);
     const options = entry?.[1] ?? [];
     if (!options.length) continue;
+    unauditedResolvableExpired += 1;
 
     const resolution = resolveDefenseCommercial({
       ncm: measure.ncm,
@@ -73,7 +75,7 @@ for (const measure of catalog) {
     guarded += 1;
   }
 }
-assert.ok(guarded > 0, "auditoria deve cobrir ao menos uma medida nominalmente expirada com matriz resolvida e sem disposição auditada");
+assert.equal(guarded, unauditedResolvableExpired, "toda medida nominalmente expirada, resolvível e não auditada deve ser bloqueada");
 
 const cargoTireChina = resolveDefenseCommercial({ ncm: "40112090", origin: "China", importDate: "2026-08-17", weightKg: 1000, exchangeRate: 5.5, exporter: "Shandong Linglong Tyre Co., Ltd." });
 assert.equal(cargoTireChina.status, "identified", "pneu de carga China deve continuar calculável durante revisão auditada");
@@ -98,4 +100,4 @@ const coldLineGlass = resolveDefenseCommercial({ ncm: "70071900", origin: "China
 assert.ok(!coldLineGlass.warnings.some((warning) => /vigência nominal registrada terminou/i.test(warning)), "vidros de linha fria renovados não podem ser tratados como expirados");
 assert.equal(coldLineGlass.status, "requires_input", "NCM 70071900 continua bloqueada por ambiguidade material de escopo");
 
-console.log(`defense-commercial validity guard: OK (${guarded} nominal-expiry scenarios blocked; ${validityAudit.entries.length} audited dispositions validated)`);
+console.log(`defense-commercial validity guard: OK (${guarded} unaudited nominal-expiry scenarios blocked; ${validityAudit.entries.length} audited dispositions validated)`);
