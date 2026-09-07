@@ -3,76 +3,36 @@
   "auditedAt": "2026-09-07",
   "entries": [
     {
-      "ncm": "83017000",
-      "ncmPatterns": ["83017000"],
-      "ncmExclusions": [],
-      "product": "Chaves de latão",
-      "origins": ["China", "Colômbia", "Peru"],
-      "measure": "antidumping",
-      "legalFoundation": "Resolução CAMEX nº 615, DOU de 15/07/2024",
-      "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
-      "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/chaves-de-latao",
-      "validityNote": "Prazo de vigência: 16/07/2029",
-      "validUntil": "16/07/2029",
-      "collectionSuspended": false,
-      "exportersByOrigin": {
-        "china": [
-          { "exporter": "Todos os produtores/exportadores", "rate": 24.57, "unit": "USD_PER_KG", "collectionSuspended": false }
-        ],
-        "colômbia": [
-          { "exporter": "Silca South America S.A.", "rate": 1.25, "unit": "USD_PER_KG", "collectionSuspended": false },
-          { "exporter": "Demais empresas", "rate": 5.66, "unit": "USD_PER_KG", "collectionSuspended": false }
-        ],
-        "peru": [
-          { "exporter": "Grupo Klaus S.A.C.", "rate": 8.0, "unit": "USD_PER_KG", "collectionSuspended": false },
-          { "exporter": "Demais empresas", "rate": 8.88, "unit": "USD_PER_KG", "collectionSuspended": false }
-        ]
-      }
+      "ncm": "83017000", "ncmPatterns": ["83017000"], "ncmExclusions": [], "product": "Chaves de latão", "origins": ["China", "Colômbia", "Peru"], "measure": "antidumping", "legalFoundation": "Resolução CAMEX nº 615, DOU de 15/07/2024", "source": "MDIC/SECEX — Medidas de defesa comercial em vigor", "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/chaves-de-latao", "validityNote": "Prazo de vigência: 16/07/2029", "validUntil": "16/07/2029", "collectionSuspended": false,
+      "exportersByOrigin": {"china":[{"exporter":"Todos os produtores/exportadores","rate":24.57,"unit":"USD_PER_KG","collectionSuspended":false}],"colômbia":[{"exporter":"Silca South America S.A.","rate":1.25,"unit":"USD_PER_KG","collectionSuspended":false},{"exporter":"Demais empresas","rate":5.66,"unit":"USD_PER_KG","collectionSuspended":false}],"peru":[{"exporter":"Grupo Klaus S.A.C.","rate":8.0,"unit":"USD_PER_KG","collectionSuspended":false},{"exporter":"Demais empresas","rate":8.88,"unit":"USD_PER_KG","collectionSuspended":false}]}
     },
     {
-      "ncm": "83011000",
-      "ncmPatterns": ["83011000"],
-      "ncmExclusions": [],
-      "product": "Cadeados",
-      "origins": ["China"],
-      "measure": "antidumping",
-      "legalFoundation": "Resolução GECEX nº 803, de 23/10/2025",
-      "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
-      "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/cadeados",
-      "validityNote": "Prazo de vigência auditado: 24/10/2030",
-      "validUntil": "24/10/2030",
-      "collectionSuspended": false,
-      "exportersByOrigin": {
-        "china": [
-          { "exporter": "Todos os produtores/exportadores", "rate": 10.11, "unit": "USD_PER_KG", "collectionSuspended": false }
-        ]
-      }
+      "ncm": "83011000", "ncmPatterns": ["83011000"], "ncmExclusions": [], "product": "Cadeados", "origins": ["China"], "measure": "antidumping", "legalFoundation": "Resolução GECEX nº 803, de 23/10/2025", "source": "MDIC/SECEX — Medidas de defesa comercial em vigor", "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/cadeados", "validityNote": "Prazo de vigência auditado: 24/10/2030", "validUntil": "24/10/2030", "collectionSuspended": false,
+      "exportersByOrigin": {"china":[{"exporter":"Todos os produtores/exportadores","rate":10.11,"unit":"USD_PER_KG","collectionSuspended":false}]}
     },
     {
-      "ncm": "39076100",
-      "ncmPatterns": ["39076100"],
-      "ncmExclusions": [],
-      "product": "Resina PET (Malásia e Vietnã)",
-      "origins": ["Malásia", "Vietnã"],
-      "measure": "antidumping",
-      "legalFoundation": "Resolução GECEX nº 958, de 2 de setembro de 2026, DOU de 04/09/2026",
-      "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
-      "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/resina-pet-mv",
-      "validityNote": "Prazo de vigência: 04/09/2031",
-      "validUntil": "04/09/2031",
-      "collectionSuspended": false,
-      "exportersByOrigin": {
-        "malásia": [
-          { "exporter": "Recron (Malaysia) Sdn Bhd.", "rate": 24.28, "unit": "USD_PER_TON", "collectionSuspended": false },
-          { "exporter": "Demais empresas", "rate": 116.5, "unit": "USD_PER_TON", "collectionSuspended": false }
-        ],
-        "vietnã": [
-          { "exporter": "Billion Industrial (Vietnam) Co., Ltd", "rate": 160.87, "unit": "USD_PER_TON", "collectionSuspended": false },
-          { "exporter": "Haosheng Vina Co. Ltd.", "rate": 160.87, "unit": "USD_PER_TON", "collectionSuspended": false },
-          { "exporter": "Stavian Chemical Joint Stock Company", "rate": 160.87, "unit": "USD_PER_TON", "collectionSuspended": false },
-          { "exporter": "Demais empresas", "rate": 160.87, "unit": "USD_PER_TON", "collectionSuspended": false }
-        ]
-      }
+      "ncm": "39076100", "ncmPatterns": ["39076100"], "ncmExclusions": [], "product": "Resina PET (Malásia e Vietnã)", "origins": ["Malásia", "Vietnã"], "measure": "antidumping", "legalFoundation": "Resolução GECEX nº 958, de 2 de setembro de 2026, DOU de 04/09/2026", "source": "MDIC/SECEX — Medidas de defesa comercial em vigor", "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/resina-pet-mv", "validityNote": "Prazo de vigência: 04/09/2031", "validUntil": "04/09/2031", "collectionSuspended": false,
+      "exportersByOrigin": {"malásia":[{"exporter":"Recron (Malaysia) Sdn Bhd.","rate":24.28,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Demais empresas","rate":116.5,"unit":"USD_PER_TON","collectionSuspended":false}],"vietnã":[{"exporter":"Billion Industrial (Vietnam) Co., Ltd","rate":160.87,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Haosheng Vina Co. Ltd.","rate":160.87,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Stavian Chemical Joint Stock Company","rate":160.87,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Demais empresas","rate":160.87,"unit":"USD_PER_TON","collectionSuspended":false}]}
+    },
+    {
+      "ncm":"29171210", "ncmPatterns":["29171210"], "ncmExclusions":[], "product":"Ácido adípico", "origins":["Alemanha","China","Estados Unidos","França","Itália"], "measure":"antidumping", "legalFoundation":"Resolução GECEX nº 185, de 30/03/2021; revisão iniciada pela Circular SECEX nº 24, de 30/03/2026", "source":"MDIC/SECEX — Medidas de defesa comercial em vigor", "sourceUrl":"https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/acido-adipico", "validityNote":"Medida em vigor durante revisão de final de período iniciada em 31/03/2026.", "collectionSuspended":false,
+      "exportersByOrigin":{"alemanha":[{"exporter":"Todos os produtores/exportadores","rate":241.16,"unit":"USD_PER_TON","collectionSuspended":false}],"china":[{"exporter":"Todos os produtores/exportadores","rate":321.05,"unit":"USD_PER_TON","collectionSuspended":false}],"estados unidos":[{"exporter":"Todos os produtores/exportadores","rate":150.45,"unit":"USD_PER_TON","collectionSuspended":false}],"frança":[{"exporter":"Todos os produtores/exportadores","rate":184.63,"unit":"USD_PER_TON","collectionSuspended":false}],"itália":[{"exporter":"Todos os produtores/exportadores","rate":201.98,"unit":"USD_PER_TON","collectionSuspended":false}]}
+    },
+    {
+      "ncm":"70099100", "ncmPatterns":["70099100"], "ncmExclusions":[], "product":"Espelhos não emoldurados", "origins":["China","México"], "measure":"antidumping", "legalFoundation":"Resolução GECEX nº 302, de 16/02/2022", "source":"MDIC/SECEX — Medidas de defesa comercial em vigor", "sourceUrl":"https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/espelhos", "validityNote":"Prazo nominal 17/02/2027; medida permanece em vigor durante revisão. Cobrança suspensa para o México.", "validUntil":"17/02/2027", "collectionSuspended":false,
+      "exportersByOrigin":{"china":[{"exporter":"Todos os produtores/exportadores","rate":211.98,"unit":"USD_PER_TON","collectionSuspended":false}],"méxico":[{"exporter":"Todos os produtores/exportadores","rate":133.35,"unit":"USD_PER_TON","collectionSuspended":true}]}
+    },
+    {
+      "ncm":"29051300", "ncmPatterns":["29051300"], "ncmExclusions":[], "product":"n-Butanol", "origins":["Estados Unidos","África do Sul","Rússia"], "measure":"antidumping", "legalFoundation":"Resolução GECEX nº 507/2023 (EUA) e Resolução GECEX nº 432/2022 (África do Sul e Rússia)", "source":"MDIC/SECEX — Medidas de defesa comercial em vigor", "sourceUrl":"https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/n-butanol", "validityNote":"EUA até 18/08/2028; África do Sul e Rússia até 21/12/2027.", "collectionSuspended":false,
+      "exportersByOrigin":{"estados unidos":[{"exporter":"The Dow Chemical Company","rate":28.4,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"Union Carbide Corporation","rate":28.4,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"Basf Corporation","rate":24.7,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"Oxea Corporation","rate":9.8,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"Eastman Chemical Company","rate":14.1,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"Demais empresas","rate":28.4,"unit":"AD_VALOREM","collectionSuspended":false}],"áfrica do sul":[{"exporter":"Sasol South Africa (Proprietary) Limited","rate":29.6,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"Demais empresas","rate":67.1,"unit":"AD_VALOREM","collectionSuspended":false}],"rússia":[{"exporter":"Todos os produtores/exportadores","rate":54.7,"unit":"AD_VALOREM","collectionSuspended":false}]}
+    },
+    {
+      "ncm":"29153100", "ncmPatterns":["29153100","29153931"], "ncmExclusions":[], "product":"Ésteres acéticos", "origins":["Estados Unidos","México"], "measure":"antidumping", "legalFoundation":"Resolução GECEX nº 506/2023", "source":"MDIC/SECEX — Medidas de defesa comercial em vigor", "sourceUrl":"https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/esteres-aceticos", "validityNote":"Prazo de vigência: 18/08/2028. A medida não se aplica a produtos acondicionados em embalagens com capacidade não superior a 4 litros; esse requisito de escopo deve ser validado antes da cobrança.", "validUntil":"18/08/2028", "collectionSuspended":false,
+      "exportersByOrigin":{"estados unidos":[{"exporter":"Oxea Corporation","rate":110.88,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Ungerer & Company","rate":110.88,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Advanced Biotech","rate":110.88,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Sigma Aldrich Co","rate":110.88,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Bio-Grade Chem","rate":110.88,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Tedia Company","rate":110.88,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Givaudan Flavors Corporation","rate":110.88,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Fisher Scientific","rate":110.88,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Robertet Fragrances Inc","rate":110.88,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Pharmco-Aaper","rate":110.88,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Penta Manufacturing Company","rate":110.88,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Frutarom Usa Incorporated","rate":110.88,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Firmenich Incorporated","rate":110.88,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Takasago International Corporation","rate":110.88,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"The Dow Chemical Company","rate":148.17,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Demais empresas","rate":148.17,"unit":"USD_PER_TON","collectionSuspended":false}],"méxico":[{"exporter":"Grupo Celanese S. De R.L. de C.V","rate":198.46,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Mallinckrodt Baker Inc.","rate":571.84,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Ungerer & Company Prime Citrus De Mexico","rate":571.84,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Avantor Performance Materials S.A. de C.V.","rate":571.84,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Sigma Aldrich Quimicas A De C V","rate":571.84,"unit":"USD_PER_TON","collectionSuspended":false},{"exporter":"Demais empresas","rate":647.94,"unit":"USD_PER_TON","collectionSuspended":false}]}
+    },
+    {
+      "ncm":"20041000", "ncmPatterns":["20041000"], "ncmExclusions":[], "product":"Batatas congeladas", "origins":["Alemanha","Bélgica","França","Países Baixos"], "measure":"antidumping", "legalFoundation":"Resolução CAMEX nº 451/2023", "source":"MDIC/SECEX — Medidas de defesa comercial em vigor", "sourceUrl":"https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/batatas-congeladas", "validityNote":"Prazo de vigência: 17/02/2028. Há exclusão de escopo para determinadas batatas pré-fritas congeladas borrifadas com especiarias, conforme Resolução GECEX nº 140/2020; validar descrição do produto.", "validUntil":"17/02/2028", "collectionSuspended":false,
+      "exportersByOrigin":{"alemanha":[{"exporter":"Agrarfrost GMBH & Co","rate":39.7,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"Wernsing Feinkost GMBH","rate":6.3,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"Schne - Frost Ernst Schnetkamp GMBH & CO","rate":40.5,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"Demais empresas","rate":43.2,"unit":"AD_VALOREM","collectionSuspended":false}],"bélgica":[{"exporter":"Ecofrost S.A.","rate":10.8,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"Lutosa S.A.","rate":12.7,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"Clarebout Potatoes NV","rate":6.3,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"NV Mydibel SA","rate":8.4,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"Agristo NV","rate":9.4,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"Bart's Potato Company / Eurofreez NV / Farm Frites Belgium NV","rate":11.2,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"Demais empresas","rate":17.2,"unit":"AD_VALOREM","collectionSuspended":false}],"frança":[{"exporter":"McCain Alimentaire SAS","rate":35.9,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"Demais empresas","rate":35.9,"unit":"AD_VALOREM","collectionSuspended":false}],"países baixos":[{"exporter":"Agristo BV","rate":0,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"Farm Frites BV","rate":2.0,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"Aviko BV","rate":2.0,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"McCain Foods Holland B.V.","rate":16.9,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"McCain Foods Europe BV.","rate":16.9,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"Lamb Weston Meijer VOF","rate":16.9,"unit":"AD_VALOREM","collectionSuspended":false},{"exporter":"Demais empresas","rate":16.9,"unit":"AD_VALOREM","collectionSuspended":false}]}
     }
   ]
 }
