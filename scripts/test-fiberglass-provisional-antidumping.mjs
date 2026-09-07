@@ -1,0 +1,21 @@
+import assert from "node:assert/strict";
+import { listDefenseCommercialExporters } from "../lib/defesa-comercial-registry.ts";
+import { resolveDefenseCommercial } from "../lib/defesa-comercial-resolver.ts";
+
+const china = listDefenseCommercialExporters("70191290", "China", "2026-09-07");
+assert.ok(china);
+assert.equal(china.ambiguous, false);
+assert.ok(china.options.some((x) => x.exporter === "Taishan Fiberglass Inc" && x.rate === 211.78 && x.unit === "USD_PER_TON"));
+assert.ok(china.options.some((x) => x.exporter === "Demais empresas" && x.rate === 456.44));
+const specific = resolveDefenseCommercial({ ncm:"70191290", origin:"China", importDate:"2026-09-07", weightKg:1000, exchangeRate:5.5, exporter:"Taishan Fiberglass Inc" });
+assert.equal(specific.status, "identified");
+assert.equal(specific.amountBrl, 1164.79);
+const residual = resolveDefenseCommercial({ ncm:"70191290", origin:"China", importDate:"2026-09-07", weightKg:1000, exchangeRate:5.5 });
+assert.equal(residual.rate, 456.44);
+assert.equal(residual.amountBrl, 2510.42);
+const egypt = resolveDefenseCommercial({ ncm:"70191290", origin:"Egito", importDate:"2026-09-07", weightKg:1000, exchangeRate:5.5 });
+assert.equal(egypt.rate, 243.42);
+assert.equal(egypt.amountBrl, 1338.81);
+const other = resolveDefenseCommercial({ ncm:"70191290", origin:"Índia", importDate:"2026-09-07", weightKg:1000, exchangeRate:5.5 });
+assert.equal(other.status, "not_applicable");
+console.log("fiberglass provisional antidumping: OK");
