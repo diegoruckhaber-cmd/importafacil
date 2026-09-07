@@ -16,6 +16,8 @@ export type DefenseCommercialMeasure = {
   source: string;
   validityNote: string;
   exportersByOrigin: Record<string, DefenseCommercialExporterOption[]>;
+  requiresScopeValidation?: boolean;
+  scopeCondition?: string;
 };
 
 const normalize = (value: string) =>
