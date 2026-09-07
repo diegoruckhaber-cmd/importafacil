@@ -4,6 +4,7 @@ import { DEFENSE_COMMERCIAL_MEASURES as LEGACY_DEFENSE_COMMERCIAL_MEASURES, type
 
 const generatedData = JSON.parse(fs.readFileSync(path.join(process.cwd(), "data", "defesa-comercial-mdic.json"), "utf8"));
 const validityAuditData = JSON.parse(fs.readFileSync(path.join(process.cwd(), "data", "defesa-comercial-validity-audit-2026.json"), "utf8"));
+const auditedOverridesData = JSON.parse(fs.readFileSync(path.join(process.cwd(), "data", "defesa-comercial-audited-overrides-2026.json"), "utf8"));
 
 export const normalize = (value: string) => value.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\*,:;]+$/g, "").trim();
 
@@ -19,6 +20,7 @@ export const normalizeOrigin = (value: string) => ORIGIN_ALIASES[normalize(value
 type GeneratedMeasure = DefenseCommercialMeasure & { ncmPatterns?: string[]; ncmExclusions?: string[]; sourceUrl?: string; collectionSuspended?: boolean; validUntil?: string; importDate?: string; continuationAfterNominalExpiry?: boolean; validityAuditLegalBasis?: string };
 type ValidityAuditEntry = { product: string; sourceUrl: string; nominalValidUntil: string; disposition: "continuation_review" | "renewed"; effectiveValidUntil?: string; legalBasis: string };
 const generated = (Array.isArray(generatedData) ? generatedData : []) as unknown as GeneratedMeasure[];
+const auditedOverrides = (Array.isArray(auditedOverridesData?.entries) ? auditedOverridesData.entries : []) as unknown as GeneratedMeasure[];
 const validityAuditEntries = (Array.isArray(validityAuditData?.entries) ? validityAuditData.entries : []) as ValidityAuditEntry[];
 const validityAuditBySource = new Map(validityAuditEntries.map((entry) => [entry.sourceUrl, entry]));
 
@@ -75,6 +77,7 @@ const OFFICIAL_REGRESSION_OVERRIDES: GeneratedMeasure[] = [
 
 export const DEFENSE_COMMERCIAL_MEASURES: GeneratedMeasure[] = [
   ...generated,
+  ...auditedOverrides,
   ...OFFICIAL_REGRESSION_OVERRIDES,
   ...LEGACY_DEFENSE_COMMERCIAL_MEASURES,
 ];

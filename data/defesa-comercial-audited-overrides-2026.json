@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "auditedAt": "2026-09-07",
+  "entries": [
+    {
+      "ncm": "83017000",
+      "ncmPatterns": ["83017000"],
+      "ncmExclusions": [],
+      "product": "Chaves de latão",
+      "origins": ["China", "Colômbia", "Peru"],
+      "measure": "antidumping",
+      "legalFoundation": "Resolução CAMEX nº 615, DOU de 15/07/2024",
+      "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+      "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/chaves-de-latao",
+      "validityNote": "Prazo de vigência: 16/07/2029",
+      "validUntil": "16/07/2029",
+      "collectionSuspended": false,
+      "exportersByOrigin": {
+        "china": [
+          { "exporter": "Todos os produtores/exportadores", "rate": 24.57, "unit": "USD_PER_KG", "collectionSuspended": false }
+        ],
+        "colômbia": [
+          { "exporter": "Silca South America S.A.", "rate": 1.25, "unit": "USD_PER_KG", "collectionSuspended": false },
+          { "exporter": "Demais empresas", "rate": 5.66, "unit": "USD_PER_KG", "collectionSuspended": false }
+        ],
+        "peru": [
+          { "exporter": "Grupo Klaus S.A.C.", "rate": 8.0, "unit": "USD_PER_KG", "collectionSuspended": false },
+          { "exporter": "Demais empresas", "rate": 8.88, "unit": "USD_PER_KG", "collectionSuspended": false }
+        ]
+      }
+    },
+    {
+      "ncm": "83011000",
+      "ncmPatterns": ["83011000"],
+      "ncmExclusions": [],
+      "product": "Cadeados",
+      "origins": ["China"],
+      "measure": "antidumping",
+      "legalFoundation": "Resolução GECEX nº 803, de 23/10/2025",
+      "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+      "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/cadeados",
+      "validityNote": "Prazo de vigência auditado: 24/10/2030",
+      "validUntil": "24/10/2030",
+      "collectionSuspended": false,
+      "exportersByOrigin": {
+        "china": [
+          { "exporter": "Todos os produtores/exportadores", "rate": 10.11, "unit": "USD_PER_KG", "collectionSuspended": false }
+        ]
+      }
+    },
+    {
+      "ncm": "39076100",
+      "ncmPatterns": ["39076100"],
+      "ncmExclusions": [],
+      "product": "Resina PET (Malásia e Vietnã)",
+      "origins": ["Malásia", "Vietnã"],
+      "measure": "antidumping",
+      "legalFoundation": "Resolução GECEX nº 958, de 2 de setembro de 2026, DOU de 04/09/2026",
+      "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+      "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/resina-pet-mv",
+      "validityNote": "Prazo de vigência: 04/09/2031",
+      "validUntil": "04/09/2031",
+      "collectionSuspended": false,
+      "exportersByOrigin": {
+        "malásia": [
+          { "exporter": "Recron (Malaysia) Sdn Bhd.", "rate": 24.28, "unit": "USD_PER_TON", "collectionSuspended": false },
+          { "exporter": "Demais empresas", "rate": 116.5, "unit": "USD_PER_TON", "collectionSuspended": false }
+        ],
+        "vietnã": [
+          { "exporter": "Billion Industrial (Vietnam) Co., Ltd", "rate": 160.87, "unit": "USD_PER_TON", "collectionSuspended": false },
+          { "exporter": "Haosheng Vina Co. Ltd.", "rate": 160.87, "unit": "USD_PER_TON", "collectionSuspended": false },
+          { "exporter": "Stavian Chemical Joint Stock Company", "rate": 160.87, "unit": "USD_PER_TON", "collectionSuspended": false },
+          { "exporter": "Demais empresas", "rate": 160.87, "unit": "USD_PER_TON", "collectionSuspended": false }
+        ]
+      }
+    }
+  ]
+}
