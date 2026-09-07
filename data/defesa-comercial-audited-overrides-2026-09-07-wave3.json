@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "auditedAt": "2026-09-07",
+  "entries": [
+    {
+      "ncm": "73041900",
+      "ncmPatterns": ["73041900"],
+      "ncmExclusions": [],
+      "product": "Tubos de aço carbono, sem costura, de condução (line pipe), diâmetro externo não superior a 5 polegadas",
+      "origins": ["Ucrânia"],
+      "measure": "antidumping",
+      "legalFoundation": "Resolução GECEX nº 959, de 2 de setembro de 2026, DOU de 04/09/2026",
+      "source": "MDIC/SECEX — Medidas de defesa comercial em vigor",
+      "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-de-aco-carbono",
+      "validityNote": "Prazo de vigência: 04/09/2031",
+      "validUntil": "04/09/2031",
+      "collectionSuspended": false,
+      "exportersByOrigin": {
+        "ucrânia": [
+          {"exporter": "Interpipe Niko Tube LLC e PJSC Interpipe NTRP", "rate": 145.26, "unit": "USD_PER_TON", "collectionSuspended": false},
+          {"exporter": "Demais empresas", "rate": 708.60, "unit": "USD_PER_TON", "collectionSuspended": false}
+        ]
+      }
+    }
+  ]
+}
