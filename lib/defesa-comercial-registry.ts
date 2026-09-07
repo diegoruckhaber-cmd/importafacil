@@ -3,6 +3,7 @@ import path from "node:path";
 import { DEFENSE_COMMERCIAL_MEASURES as LEGACY_DEFENSE_COMMERCIAL_MEASURES, type DefenseCommercialExporterOption, type DefenseCommercialMeasure, type DefenseCommercialUnit } from "./defesa-comercial-catalog.ts";
 
 const generatedData = JSON.parse(fs.readFileSync(path.join(process.cwd(), "data", "defesa-comercial-mdic.json"), "utf8"));
+const validityAuditData = JSON.parse(fs.readFileSync(path.join(process.cwd(), "data", "defesa-comercial-validity-audit-2026.json"), "utf8"));
 
 export const normalize = (value: string) => value.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\*,:;]+$/g, "").trim();
 
@@ -15,22 +16,17 @@ const ORIGIN_ALIASES: Record<string, string> = {
 };
 export const normalizeOrigin = (value: string) => ORIGIN_ALIASES[normalize(value)] ?? normalize(value);
 
-type GeneratedMeasure = DefenseCommercialMeasure & { ncmPatterns?: string[]; ncmExclusions?: string[]; sourceUrl?: string; collectionSuspended?: boolean; validUntil?: string; importDate?: string; continuationAfterNominalExpiry?: boolean };
+type GeneratedMeasure = DefenseCommercialMeasure & { ncmPatterns?: string[]; ncmExclusions?: string[]; sourceUrl?: string; collectionSuspended?: boolean; validUntil?: string; importDate?: string; continuationAfterNominalExpiry?: boolean; validityAuditLegalBasis?: string };
+type ValidityAuditEntry = { product: string; sourceUrl: string; nominalValidUntil: string; disposition: "continuation_review" | "renewed"; effectiveValidUntil?: string; legalBasis: string };
 const generated = (Array.isArray(generatedData) ? generatedData : []) as unknown as GeneratedMeasure[];
+const validityAuditEntries = (Array.isArray(validityAuditData?.entries) ? validityAuditData.entries : []) as ValidityAuditEntry[];
+const validityAuditBySource = new Map(validityAuditEntries.map((entry) => [entry.sourceUrl, entry]));
 
 const OFFICIAL_INACTIVE_ORIGINS: Record<string, string[]> = {
   "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-de-coleta-de-sangue": ["alemanha"],
   "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/laminados-planos-de-baixo-carbono-e-baixa-liga-chapas-grossas": ["africa do sul"],
   "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-de-carga": ["china"],
 };
-
-// A data nominal da medida não pode ser usada para encerrar automaticamente direitos que a própria
-// legislação mantém em vigor durante revisão de final de período. Somente fontes auditadas entram aqui.
-const OFFICIAL_CONTINUATION_AFTER_NOMINAL_EXPIRY = new Set([
-  "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/tubos-de-coleta-de-sangue",
-  "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-de-carga",
-  "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/pneus-de-carga-china",
-]);
 
 const OFFICIAL_REGRESSION_OVERRIDES: GeneratedMeasure[] = [
   {
@@ -137,14 +133,22 @@ function mergedOptions(candidates: GeneratedMeasure[], normalizedOrigin: string)
   return merged;
 }
 
+function applyValidityAudit(measure: GeneratedMeasure): GeneratedMeasure {
+  if (!measure.sourceUrl) return measure;
+  const audit = validityAuditBySource.get(measure.sourceUrl);
+  if (!audit) return measure;
+  if (audit.disposition === "renewed" && audit.effectiveValidUntil) {
+    return { ...measure, validUntil: audit.effectiveValidUntil, validityNote: `Prazo de vigência auditado: ${audit.effectiveValidUntil}`, continuationAfterNominalExpiry: false, validityAuditLegalBasis: audit.legalBasis };
+  }
+  return { ...measure, continuationAfterNominalExpiry: audit.disposition === "continuation_review", validityAuditLegalBasis: audit.legalBasis };
+}
+
 export function listMatchingDefenseCommercialScopes(ncm: string, origin: string) {
   const normalizedOrigin = normalizeOrigin(origin);
-  return distinctScopes(matchingMeasures(ncm, normalizedOrigin)).map((candidate) => ({
-    product: candidate.product,
-    legalFoundation: candidate.legalFoundation,
-    sourceUrl: candidate.sourceUrl,
-    validUntil: candidate.validUntil,
-  }));
+  return distinctScopes(matchingMeasures(ncm, normalizedOrigin)).map((candidate) => {
+    const audited = applyValidityAudit(candidate);
+    return { product: audited.product, legalFoundation: audited.legalFoundation, sourceUrl: audited.sourceUrl, validUntil: audited.validUntil };
+  });
 }
 
 export function findDefenseCommercialMeasure(ncm: string, origin: string, importDate?: string) {
@@ -153,15 +157,14 @@ export function findDefenseCommercialMeasure(ncm: string, origin: string, import
   if (!candidates.length) return undefined;
   const scopes = distinctScopes(candidates);
   const selectedPool = scopes.length ? scopes : candidates;
-  const selected = [...selectedPool].sort((a, b) => optionsForOrigin(b, normalizedOrigin).length - optionsForOrigin(a, normalizedOrigin).length)[0];
+  const rawSelected = [...selectedPool].sort((a, b) => optionsForOrigin(b, normalizedOrigin).length - optionsForOrigin(a, normalizedOrigin).length)[0];
+  const selected = applyValidityAudit(rawSelected);
   const scopeAmbiguous = scopes.length > 1;
-  const continuationAfterNominalExpiry = Boolean(selected.sourceUrl && OFFICIAL_CONTINUATION_AFTER_NOMINAL_EXPIRY.has(selected.sourceUrl));
   return {
     ...selected,
     importDate,
-    continuationAfterNominalExpiry,
     scopeAmbiguous,
-    matchingScopes: scopes.map((candidate) => ({ product: candidate.product, sourceUrl: candidate.sourceUrl, legalFoundation: candidate.legalFoundation, validUntil: candidate.validUntil })),
+    matchingScopes: scopes.map((candidate) => { const audited = applyValidityAudit(candidate); return { product: audited.product, sourceUrl: audited.sourceUrl, legalFoundation: audited.legalFoundation, validUntil: audited.validUntil }; }),
     exportersByOrigin: {
       ...selected.exportersByOrigin,
       [normalizedOrigin]: scopeAmbiguous ? optionsForOrigin(selected, normalizedOrigin) : mergedOptions(candidates, normalizedOrigin),
@@ -180,7 +183,7 @@ export function listDefenseCommercialExporters(ncm: string, origin: string, impo
   return {
     measure,
     ambiguous,
-    matchingScopes: scopes.map((candidate) => ({ product: candidate.product, sourceUrl: candidate.sourceUrl, legalFoundation: candidate.legalFoundation, validUntil: candidate.validUntil })),
+    matchingScopes: scopes.map((candidate) => { const audited = applyValidityAudit(candidate); return { product: audited.product, sourceUrl: audited.sourceUrl, legalFoundation: audited.legalFoundation, validUntil: audited.validUntil }; }),
     options: ambiguous ? [] : mergedOptions(candidates, normalizedOrigin),
   };
 }
