@@ -35,7 +35,7 @@ for (const [origin, rate] of [["Alemanha",241.16],["China",321.05],["Estados Uni
 const mirrorChina = resolveDefenseCommercial({ncm:"70099100",origin:"China",importDate:"2026-09-07",weightKg:1000,exchangeRate:5.5});
 assert.equal(mirrorChina.rate,211.98); closeTo(mirrorChina.amountBrl,1165.89);
 const mirrorMexico = resolveDefenseCommercial({ncm:"70099100",origin:"México",importDate:"2026-09-07",weightKg:1000,exchangeRate:5.5});
-assert.equal(mirrorMexico.collectionSuspended,true); closeTo(mirrorMexico.amountBrl,0);
+assert.equal(mirrorMexico.collectionSuspended,true); assert.equal(mirrorMexico.amountBrl,undefined);
 
 const butanolUs = resolveDefenseCommercial({ncm:"29051300",origin:"Estados Unidos",importDate:"2026-09-07",customsValueBrl:100000,exchangeRate:5.5,exporter:"Oxea Corporation"});
 assert.equal(butanolUs.rate,9.8); assert.equal(butanolUs.unit,"AD_VALOREM"); closeTo(butanolUs.amountBrl,9800);
