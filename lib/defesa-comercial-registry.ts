@@ -7,7 +7,6 @@ const validityAuditData = JSON.parse(fs.readFileSync(path.join(process.cwd(), "d
 const auditedOverridesData = JSON.parse(fs.readFileSync(path.join(process.cwd(), "data", "defesa-comercial-audited-overrides-2026.json"), "utf8"));
 
 export const normalize = (value: string) => value.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\*,:;]+$/g, "").trim();
-
 const ORIGIN_ALIASES: Record<string, string> = {
   "coreia": "coreia do sul", "coréia": "coreia do sul", "coreia do sul": "coreia do sul",
   "japao": "japao", "japão": "japao", "taipé chines": "taipe chines", "taipe chines": "taipe chines",
@@ -75,126 +74,26 @@ const OFFICIAL_REGRESSION_OVERRIDES: GeneratedMeasure[] = [
   },
 ];
 
-export const DEFENSE_COMMERCIAL_MEASURES: GeneratedMeasure[] = [
-  ...generated,
-  ...auditedOverrides,
-  ...OFFICIAL_REGRESSION_OVERRIDES,
-  ...LEGACY_DEFENSE_COMMERCIAL_MEASURES,
-];
+export const DEFENSE_COMMERCIAL_MEASURES: GeneratedMeasure[] = [...generated, ...auditedOverrides, ...OFFICIAL_REGRESSION_OVERRIDES, ...LEGACY_DEFENSE_COMMERCIAL_MEASURES];
 export { type DefenseCommercialExporterOption, type DefenseCommercialMeasure, type DefenseCommercialUnit };
-
-function optionsForOrigin(measure: GeneratedMeasure, normalizedOrigin: string): DefenseCommercialExporterOption[] {
-  const entry = Object.entries(measure.exportersByOrigin).find(([origin]) => normalizeOrigin(origin) === normalizedOrigin);
-  return entry?.[1] ?? [];
-}
-
-function isOfficiallyInactiveOrigin(measure: GeneratedMeasure, normalizedOrigin: string) {
-  if (!measure.sourceUrl) return false;
-  return (OFFICIAL_INACTIVE_ORIGINS[measure.sourceUrl] ?? []).some((origin) => normalizeOrigin(origin) === normalizedOrigin);
-}
-
-function matchingMeasures(ncm: string, normalizedOrigin: string) {
-  const normalizedNcm = ncm.replace(/\D/g, "");
-  return DEFENSE_COMMERCIAL_MEASURES.filter((candidate) => {
-    const generatedCandidate = candidate as GeneratedMeasure;
-    const matchesNcm = candidate.ncm === normalizedNcm || generatedCandidate.ncmPatterns?.some((pattern) => normalizedNcm === pattern || normalizedNcm.startsWith(pattern));
-    const excluded = generatedCandidate.ncmExclusions?.some((item) => item === normalizedNcm);
-    return Boolean(matchesNcm && !excluded && !isOfficiallyInactiveOrigin(generatedCandidate, normalizedOrigin) && candidate.origins.some((item) => normalizeOrigin(item) === normalizedOrigin));
-  });
-}
-
-function scopeIdentity(measure: GeneratedMeasure) {
-  return `${normalize(measure.product)}|${measure.sourceUrl ?? normalize(measure.legalFoundation ?? "")}`;
-}
-
-function distinctScopes(candidates: GeneratedMeasure[]) {
-  const hasOfficialSource = candidates.some((candidate) => Boolean(candidate.sourceUrl));
-  const seen = new Set<string>();
-  return candidates.filter((candidate) => {
-    if (hasOfficialSource && !candidate.sourceUrl) return false;
-    const identity = scopeIdentity(candidate);
-    if (seen.has(identity)) return false;
-    seen.add(identity);
-    return true;
-  });
-}
-
-function mergedOptions(candidates: GeneratedMeasure[], normalizedOrigin: string) {
-  const seen = new Set<string>();
-  const merged: DefenseCommercialExporterOption[] = [];
-  for (const candidate of candidates) {
-    for (const rawOption of optionsForOrigin(candidate, normalizedOrigin)) {
-      const rawExporter = String(rawOption.exporter ?? "").trim();
-      if (/^[0-9.,]+$/.test(rawExporter)) continue;
-      const option = { ...rawOption };
-      const signature = `${normalize(option.exporter)}|${option.rate}|${option.unit}|${Boolean(option.collectionSuspended)}`;
-      if (seen.has(signature)) continue;
-      seen.add(signature);
-      merged.push(option);
-    }
-  }
-  return merged;
-}
-
-function applyValidityAudit(measure: GeneratedMeasure): GeneratedMeasure {
-  if (!measure.sourceUrl) return measure;
-  const audit = validityAuditBySource.get(measure.sourceUrl);
-  if (!audit) return measure;
-  if (audit.disposition === "renewed" && audit.effectiveValidUntil) {
-    return { ...measure, validUntil: audit.effectiveValidUntil, validityNote: `Prazo de vigência auditado: ${audit.effectiveValidUntil}`, continuationAfterNominalExpiry: false, validityAuditLegalBasis: audit.legalBasis };
-  }
-  return { ...measure, continuationAfterNominalExpiry: audit.disposition === "continuation_review", validityAuditLegalBasis: audit.legalBasis };
-}
-
-export function listMatchingDefenseCommercialScopes(ncm: string, origin: string) {
-  const normalizedOrigin = normalizeOrigin(origin);
-  return distinctScopes(matchingMeasures(ncm, normalizedOrigin)).map((candidate) => {
-    const audited = applyValidityAudit(candidate);
-    return { product: audited.product, legalFoundation: audited.legalFoundation, sourceUrl: audited.sourceUrl, validUntil: audited.validUntil };
-  });
-}
-
+function optionsForOrigin(measure: GeneratedMeasure, normalizedOrigin: string): DefenseCommercialExporterOption[] { const entry = Object.entries(measure.exportersByOrigin).find(([origin]) => normalizeOrigin(origin) === normalizedOrigin); return entry?.[1] ?? []; }
+function isOfficiallyInactiveOrigin(measure: GeneratedMeasure, normalizedOrigin: string) { if (!measure.sourceUrl) return false; return (OFFICIAL_INACTIVE_ORIGINS[measure.sourceUrl] ?? []).some((origin) => normalizeOrigin(origin) === normalizedOrigin); }
+function matchingMeasures(ncm: string, normalizedOrigin: string) { const normalizedNcm = ncm.replace(/\D/g, ""); return DEFENSE_COMMERCIAL_MEASURES.filter((candidate) => { const generatedCandidate = candidate as GeneratedMeasure; const matchesNcm = candidate.ncm === normalizedNcm || generatedCandidate.ncmPatterns?.some((pattern) => normalizedNcm === pattern || normalizedNcm.startsWith(pattern)); const excluded = generatedCandidate.ncmExclusions?.some((item) => item === normalizedNcm); return Boolean(matchesNcm && !excluded && !isOfficiallyInactiveOrigin(generatedCandidate, normalizedOrigin) && candidate.origins.some((item) => normalizeOrigin(item) === normalizedOrigin)); }); }
+function scopeIdentity(measure: GeneratedMeasure) { return measure.sourceUrl ? `official:${measure.sourceUrl}` : `fallback:${normalize(measure.product)}|${normalize(measure.legalFoundation ?? "")}`; }
+function distinctScopes(candidates: GeneratedMeasure[]) { const hasOfficialSource = candidates.some((candidate) => Boolean(candidate.sourceUrl)); const seen = new Set<string>(); return candidates.filter((candidate) => { if (hasOfficialSource && !candidate.sourceUrl) return false; const identity = scopeIdentity(candidate); if (seen.has(identity)) return false; seen.add(identity); return true; }); }
+function mergedOptions(candidates: GeneratedMeasure[], normalizedOrigin: string) { const seen = new Set<string>(); const merged: DefenseCommercialExporterOption[] = []; for (const candidate of candidates) for (const rawOption of optionsForOrigin(candidate, normalizedOrigin)) { const rawExporter = String(rawOption.exporter ?? "").trim(); if (/^[0-9.,]+$/.test(rawExporter)) continue; const option = { ...rawOption }; const signature = `${normalize(option.exporter)}|${option.rate}|${option.unit}|${Boolean(option.collectionSuspended)}`; if (seen.has(signature)) continue; seen.add(signature); merged.push(option); } return merged; }
+function applyValidityAudit(measure: GeneratedMeasure): GeneratedMeasure { if (!measure.sourceUrl) return measure; const audit = validityAuditBySource.get(measure.sourceUrl); if (!audit) return measure; if (audit.disposition === "renewed" && audit.effectiveValidUntil) return { ...measure, validUntil: audit.effectiveValidUntil, validityNote: `Prazo de vigência auditado: ${audit.effectiveValidUntil}`, continuationAfterNominalExpiry: false, validityAuditLegalBasis: audit.legalBasis }; return { ...measure, continuationAfterNominalExpiry: audit.disposition === "continuation_review", validityAuditLegalBasis: audit.legalBasis }; }
+export function listMatchingDefenseCommercialScopes(ncm: string, origin: string) { const normalizedOrigin = normalizeOrigin(origin); return distinctScopes(matchingMeasures(ncm, normalizedOrigin)).map((candidate) => { const audited = applyValidityAudit(candidate); return { product: audited.product, legalFoundation: audited.legalFoundation, sourceUrl: audited.sourceUrl, validUntil: audited.validUntil }; }); }
 export function findDefenseCommercialMeasure(ncm: string, origin: string, importDate?: string) {
-  const normalizedOrigin = normalizeOrigin(origin);
-  const candidates = matchingMeasures(ncm, normalizedOrigin);
-  if (!candidates.length) return undefined;
-  const scopes = distinctScopes(candidates);
-  const selectedPool = scopes.length ? scopes : candidates;
+  const normalizedOrigin = normalizeOrigin(origin); const candidates = matchingMeasures(ncm, normalizedOrigin); if (!candidates.length) return undefined;
+  const scopes = distinctScopes(candidates); const scopeAmbiguous = scopes.length > 1;
+  const selectedPool = !scopeAmbiguous && scopes.length === 1 ? candidates.filter((candidate) => scopeIdentity(candidate) === scopeIdentity(scopes[0])) : (scopes.length ? scopes : candidates);
   const rawSelected = [...selectedPool].sort((a, b) => optionsForOrigin(b, normalizedOrigin).length - optionsForOrigin(a, normalizedOrigin).length)[0];
-  const selected = applyValidityAudit(rawSelected);
-  const scopeAmbiguous = scopes.length > 1;
-  return {
-    ...selected,
-    importDate,
-    scopeAmbiguous,
+  const selected = applyValidityAudit(rawSelected); const merged = mergedOptions(candidates, normalizedOrigin);
+  return { ...selected, importDate, scopeAmbiguous, collectionSuspended: !scopeAmbiguous && merged.length ? false : selected.collectionSuspended,
     matchingScopes: scopes.map((candidate) => { const audited = applyValidityAudit(candidate); return { product: audited.product, sourceUrl: audited.sourceUrl, legalFoundation: audited.legalFoundation, validUntil: audited.validUntil }; }),
-    exportersByOrigin: {
-      ...selected.exportersByOrigin,
-      [normalizedOrigin]: scopeAmbiguous ? optionsForOrigin(selected, normalizedOrigin) : mergedOptions(candidates, normalizedOrigin),
-    },
+    exportersByOrigin: { ...selected.exportersByOrigin, [normalizedOrigin]: scopeAmbiguous ? optionsForOrigin(selected, normalizedOrigin) : merged },
   };
 }
-
-export function listDefenseCommercialExporters(ncm: string, origin: string, importDate?: string) {
-  const normalizedOrigin = normalizeOrigin(origin);
-  const candidates = matchingMeasures(ncm, normalizedOrigin);
-  if (!candidates.length) return null;
-  const measure = findDefenseCommercialMeasure(ncm, normalizedOrigin, importDate);
-  if (!measure) return null;
-  const scopes = distinctScopes(candidates);
-  const ambiguous = scopes.length > 1;
-  return {
-    measure,
-    ambiguous,
-    matchingScopes: scopes.map((candidate) => { const audited = applyValidityAudit(candidate); return { product: audited.product, sourceUrl: audited.sourceUrl, legalFoundation: audited.legalFoundation, validUntil: audited.validUntil }; }),
-    options: ambiguous ? [] : mergedOptions(candidates, normalizedOrigin),
-  };
-}
-
-export function resolveDefenseCommercialExporter(ncm: string, origin: string, exporter?: string, importDate?: string) {
-  const result = listDefenseCommercialExporters(ncm, origin, importDate);
-  if (!result || result.ambiguous) return undefined;
-  const normalizedExporter = normalize(exporter ?? "");
-  if (!normalizedExporter) return result.options.find((option) => /demais|todas as empresas|todos os produtores/i.test(option.exporter)) ?? result.options.at(-1);
-  return result.options.find((option) => normalize(option.exporter) === normalizedExporter);
-}
+export function listDefenseCommercialExporters(ncm: string, origin: string, importDate?: string) { const normalizedOrigin = normalizeOrigin(origin); const candidates = matchingMeasures(ncm, normalizedOrigin); if (!candidates.length) return null; const measure = findDefenseCommercialMeasure(ncm, normalizedOrigin, importDate); if (!measure) return null; const scopes = distinctScopes(candidates); const ambiguous = scopes.length > 1; return { measure, ambiguous, matchingScopes: scopes.map((candidate) => { const audited = applyValidityAudit(candidate); return { product: audited.product, sourceUrl: audited.sourceUrl, legalFoundation: audited.legalFoundation, validUntil: audited.validUntil }; }), options: ambiguous ? [] : mergedOptions(candidates, normalizedOrigin) }; }
+export function resolveDefenseCommercialExporter(ncm: string, origin: string, exporter?: string, importDate?: string) { const result = listDefenseCommercialExporters(ncm, origin, importDate); if (!result || result.ambiguous) return undefined; const normalizedExporter = normalize(exporter ?? ""); if (!normalizedExporter) return result.options.find((option) => /demais|todas as empresas|todos os produtores/i.test(option.exporter)) ?? result.options.at(-1); return result.options.find((option) => normalize(option.exporter) === normalizedExporter); }
