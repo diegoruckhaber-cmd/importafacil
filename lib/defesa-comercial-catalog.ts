@@ -8,6 +8,7 @@ export type DefenseCommercialMeasure = {
   measure: DefenseCommercialMeasureType;
   legalFoundation: string;
   source: string;
+  sourceUrl?: string;
   validityNote: string;
   exportersByOrigin: Record<string, DefenseCommercialExporterOption[]>;
   requiresScopeValidation?: boolean;
