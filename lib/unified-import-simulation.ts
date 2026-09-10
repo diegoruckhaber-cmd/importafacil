@@ -1,14 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
-import { calculateSCMultiItemFinalCost } from "./sc-multi-item-final-cost-engine";
-import { decideSCItem } from "./sc-decision-engine";
-import { resolveSCBenefit, type SCBenefitResolution } from "./sc-benefit-resolution";
-import { resolveImportContributionRates } from "./import-contribution-rates";
-import { resolveDefenseCommercial } from "./defesa-comercial-resolver";
-import { resolveSCImportAdditionalCharges, type ImportDeclarationType, type ImportTransportMode } from "./sc-import-additional-charges";
-import { buildTemporaryIIWarning, resolveTemporaryII } from "./temporary-ii-resolver";
-import type { ItemImportExpense } from "./item-tributary-expense-engine";
-import type { CostAllocationMethod } from "./import-cost-allocation";
+import { calculateSCMultiItemFinalCost } from "./sc-multi-item-final-cost-engine.ts";
+import { decideSCItem } from "./sc-decision-engine.ts";
+import { resolveSCBenefit, type SCBenefitResolution } from "./sc-benefit-resolution.ts";
+import { resolveImportContributionRates } from "./import-contribution-rates.ts";
+import { resolveDefenseCommercial } from "./defesa-comercial-resolver.ts";
+import { resolveSCImportAdditionalCharges, type ImportDeclarationType, type ImportTransportMode } from "./sc-import-additional-charges.ts";
+import { buildTemporaryIIWarning, resolveTemporaryII } from "./temporary-ii-resolver.ts";
+import type { ItemImportExpense } from "./item-tributary-expense-engine.ts";
+import type { CostAllocationMethod } from "./import-cost-allocation.ts";
 
 type SnapshotRecord = { sourceType: "mdic-ii" | "rfb-ipi"; ncm: string; rate: number; sheet: string };
 type Snapshot = {
@@ -226,9 +226,7 @@ export function calculateUnifiedImportSimulation(input: UnifiedImportSimulationI
           product: { ...(specialRegimeContext.product as Record<string, unknown> | undefined), ncm: item.ncm },
         },
       });
-      if (scDecision.decision === "deny") {
-        throw new Error(`${item.itemId}: regra SC bloqueada: ${scDecision.reasons.join(" ")}`);
-      }
+      if (scDecision.decision === "deny") throw new Error(`${item.itemId}: regra SC bloqueada: ${scDecision.reasons.join(" ")}`);
     }
 
     if (usesTtd) {
