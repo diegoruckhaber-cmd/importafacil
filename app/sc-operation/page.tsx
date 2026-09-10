@@ -2,351 +2,278 @@
 
 import { useMemo, useState } from "react";
 import { supabase } from "../../lib/supabase";
-import { calculateSCMultiItemFinalCost } from "../../lib/sc-multi-item-final-cost-engine";
-import { decideSCItem } from "../../lib/sc-decision-engine";
-import { resolveSCBenefit } from "../../lib/sc-benefit-resolution";
+import DefenseCommercialExporterSelector from "../components/DefenseCommercialExporterSelector";
 
 type TTD = "409" | "410" | "77" | "none";
 type Destination = "commercial_resale" | "industrialization";
-type Allocation = "item_value" | "quantity" | "weight" | "volume";
-type Treatment = "operational_cost" | "icms_import_base" | "conditional";
-
 type ItemState = {
   id: string;
-  ncm: string;
   name: string;
+  ncm: string;
   origin: string;
   quantity: number;
-  unitFobUsd: number;
+  fobUnit: number;
   weightKg: number;
   volumeM3: number;
-  iiRate: number;
-  ipiRate: number;
-  pisImportRate: number;
-  cofinsImportRate: number;
-  icmsRate: number;
+  icms: number;
+  exporter: string;
   ttd: TTD;
   destination: Destination;
   validConcession: boolean;
   importEntryInSC: boolean;
-  expanded: boolean;
+  industrializationInSC: boolean;
+  sameNcmPositionAfterFractionation: boolean;
+  decree2128Prohibited: boolean;
 };
 
-type ExpenseState = {
-  id: string;
-  description: string;
-  amount: number;
-  treatment: Treatment;
-  allocation: Allocation;
-};
+type ApiResult = any;
+const today = new Date().toISOString().slice(0, 10);
+const money = (value: number | null | undefined) => Number(value ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const pct = (value: number | null | undefined) => `${Number(value ?? 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
 
-const money = (n: number | null | undefined) =>
-  n == null ? "—" : n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-
-const pct = (n: number | null | undefined) =>
-  n == null ? "—" : `${Number(n).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
-
-const makeItem = (index: number): ItemState => ({
-  id: `ITEM-${index}`,
-  ncm: index === 1 ? "3907.60.00" : "2915.90.90",
-  name: `Produto ${index}`,
-  origin: "CN",
-  quantity: index === 1 ? 1000 : 500,
-  unitFobUsd: index === 1 ? 10 : 18,
-  weightKg: index === 1 ? 1000 : 750,
-  volumeM3: index === 1 ? 1 : 1.5,
-  iiRate: 10,
-  ipiRate: 5,
-  pisImportRate: 2.1,
-  cofinsImportRate: 9.65,
-  icmsRate: 17,
-  ttd: index === 1 ? "410" : index === 2 ? "77" : "none",
-  destination: index === 2 ? "industrialization" : "commercial_resale",
-  validConcession: true,
-  importEntryInSC: true,
-  expanded: false,
-});
+function makeItem(index: number): ItemState {
+  return {
+    id: `ITEM-${String(index).padStart(3, "0")}`,
+    name: `Produto ${index}`,
+    ncm: "",
+    origin: "",
+    quantity: 1000,
+    fobUnit: 10,
+    weightKg: 0,
+    volumeM3: 0,
+    icms: 17,
+    exporter: "",
+    ttd: "none",
+    destination: "commercial_resale",
+    validConcession: false,
+    importEntryInSC: true,
+    industrializationInSC: false,
+    sameNcmPositionAfterFractionation: true,
+    decree2128Prohibited: false,
+  };
+}
 
 export default function SCOperationPage() {
   const [operationName, setOperationName] = useState("Nova importação");
-  const [importDate, setImportDate] = useState("2026-08-13");
-  const [importer, setImporter] = useState("Trust Importação e Exportação");
-  const [state, setState] = useState("SC");
-  const [exchangeRate, setExchangeRate] = useState(5.5);
-  const [freightUsd, setFreightUsd] = useState(1200);
-  const [insuranceUsd, setInsuranceUsd] = useState(100);
-  const [items, setItems] = useState<ItemState[]>([makeItem(1), makeItem(2)]);
-  const [expenses, setExpenses] = useState<ExpenseState[]>([
-    { id: "ARM-001", description: "Armazenagem", amount: 3500, treatment: "operational_cost", allocation: "weight" },
-  ]);
-  const [submitted, setSubmitted] = useState(false);
+  const [date, setDate] = useState(today);
+  const [exchange, setExchange] = useState(5.5);
+  const [freight, setFreight] = useState(1200);
+  const [insurance, setInsurance] = useState(100);
+  const [storage, setStorage] = useState(3500);
+  const [otherBrl, setOtherBrl] = useState(0);
+  const [transportMode, setTransportMode] = useState("maritime_long_course");
+  const [declarationType, setDeclarationType] = useState("di");
+  const [items, setItems] = useState<ItemState[]>([makeItem(1)]);
+  const [result, setResult] = useState<ApiResult>(null);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState("");
 
-  const calculation = useMemo(() => {
-    if (!submitted) return null;
-    try {
-      const engineItems = items.map((item) => ({
+  const merchandisePreview = useMemo(
+    () => items.reduce((sum, item) => sum + item.quantity * item.fobUnit * exchange, 0),
+    [items, exchange],
+  );
+
+  function updateItem<K extends keyof ItemState>(id: string, key: K, value: ItemState[K]) {
+    setItems((current) => current.map((item) => item.id === id ? { ...item, [key]: value } : item));
+    setResult(null);
+    setMessage("");
+  }
+
+  function addItem() {
+    setItems((current) => [...current, makeItem(current.length + 1)]);
+    setResult(null);
+  }
+
+  function removeItem(id: string) {
+    setItems((current) => current.length > 1 ? current.filter((item) => item.id !== id) : current);
+    setResult(null);
+  }
+
+  function buildPayload() {
+    return {
+      date,
+      exchange,
+      freight,
+      insurance,
+      storage,
+      otherBrl,
+      transportMode,
+      declarationType,
+      additions: items.length,
+      items: items.map((item) => ({
         itemId: item.id,
-        customsValue: item.quantity * item.unitFobUsd * exchangeRate,
+        name: item.name,
+        ncm: item.ncm,
+        origin: item.origin,
         quantity: item.quantity,
         weightKg: item.weightKg,
         volumeM3: item.volumeM3,
-        iiRate: item.iiRate,
-        ipiRate: item.ipiRate,
-        pisImportRate: item.pisImportRate,
-        cofinsImportRate: item.cofinsImportRate,
-        icmsRate: item.icmsRate,
-      }));
+        fobUnit: item.fobUnit,
+        icms: item.icms,
+        exporter: item.exporter,
+        ttd: item.ttd,
+        destination: item.destination,
+        validConcession: item.validConcession,
+        importEntryInSC: item.importEntryInSC,
+        industrializationInSC: item.industrializationInSC,
+        sameNcmPositionAfterFractionation: item.sameNcmPositionAfterFractionation,
+        decree2128Prohibited: item.decree2128Prohibited,
+      })),
+    };
+  }
 
-      const engineExpenses = [
-        { id: "FREIGHT", description: "Frete internacional", amount: freightUsd * exchangeRate, treatment: "customs_base" as const, allocation: "item_value" as const },
-        { id: "INSURANCE", description: "Seguro internacional", amount: insuranceUsd * exchangeRate, treatment: "customs_base" as const, allocation: "item_value" as const },
-        ...expenses.map((expense) => ({ ...expense })),
-      ];
-
-      const benefitsByItem: Record<string, ReturnType<typeof resolveSCBenefit>> = {};
-      items.forEach((item) => {
-        if (item.ttd === "none" || item.ttd === "77") return;
-        const decision = decideSCItem({
-          id: item.id,
-          ttd: Number(item.ttd) as 409 | 410,
-          destination: item.destination,
-          validConcession: item.validConcession,
-          importEntryInSC: item.importEntryInSC,
-          sameNcmPositionAfterFractionation: true,
-        });
-        if (decision.decision !== "apply") {
-          benefitsByItem[item.id] = {
-            decision: decision.decision,
-            importDeferred: false,
-            outputPresumedCredit: false,
-            benefitICMS: null,
-            estimatedSavings: null,
-            reasons: decision.reasons,
-            blockingIssues: decision.blockingIssues,
-            source: "SC decision engine",
-          };
-          return;
-        }
-        benefitsByItem[item.id] = resolveSCBenefit({
-          ttd: Number(item.ttd) as 409 | 410,
-          destination: item.destination,
-          normalOutputICMS: 0,
-          taxableOutput: true,
-          industrializationInSC: item.destination === "industrialization",
-          preservesOriginalCharacteristics: true,
-          sameNcmPosition: true,
-          otherDeferment: false,
-          paragraph23Or24: false,
-          equivalentTaxableEventElection: false,
-        });
+  async function calculate() {
+    setLoading(true);
+    setMessage("");
+    setResult(null);
+    try {
+      const response = await fetch("/api/sc-federal-calculate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildPayload()),
       });
-
-      return calculateSCMultiItemFinalCost({ items: engineItems, expenses: engineExpenses, benefitsByItem });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Não foi possível calcular a operação.");
+      setResult(data);
     } catch (error) {
-      return { error: error instanceof Error ? error.message : "Não foi possível calcular a operação." };
+      setMessage(error instanceof Error ? error.message : "Não foi possível calcular a operação.");
+    } finally {
+      setLoading(false);
     }
-  }, [submitted, items, expenses, exchangeRate, freightUsd, insuranceUsd]);
+  }
 
-  const updateItem = <K extends keyof ItemState>(id: string, key: K, value: ItemState[K]) => {
-    setItems((current) => current.map((item) => item.id === id ? { ...item, [key]: value } : item));
-    setSubmitted(false);
-    setSaveMessage("");
-  };
-  const updateExpense = <K extends keyof ExpenseState>(id: string, key: K, value: ExpenseState[K]) => {
-    setExpenses((current) => current.map((expense) => expense.id === id ? { ...expense, [key]: value } : expense));
-    setSubmitted(false);
-    setSaveMessage("");
-  };
-  const addItem = () => { setItems((current) => [...current, makeItem(current.length + 1)]); setSaveMessage(""); };
-  const removeItem = (id: string) => { setItems((current) => current.length > 1 ? current.filter((item) => item.id !== id) : current); setSaveMessage(""); };
-  const addExpense = () => { setExpenses((current) => [...current, { id: `EXP-${current.length + 1}`, description: "Nova despesa", amount: 0, treatment: "operational_cost", allocation: "item_value" }]); setSaveMessage(""); };
-
-  const saveSimulation = async () => {
-    if (!calculation || "error" in calculation) return;
+  async function saveSimulation() {
+    if (!result) return;
     setSaving(true);
-    setSaveMessage("");
+    setMessage("");
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        window.location.href = "/auth?next=/sc-operation";
+      if (!session?.access_token) {
+        window.location.href = "/auth";
         return;
       }
-
       const response = await fetch("/api/sc-simulations", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({
-          name: operationName,
-          input: { operationName, importDate, importer, state, exchangeRate, freightUsd, insuranceUsd, items, expenses },
-          result: calculation,
-        }),
+        body: JSON.stringify({ name: operationName, input: buildPayload(), result }),
       });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        setSaveMessage(data.error || `Não foi possível salvar (HTTP ${response.status}).`);
-        return;
-      }
-      setSaveMessage(`Simulação salva com sucesso. ID: ${data.id}`);
-    } catch {
-      setSaveMessage("Não foi possível salvar a simulação. Verifique sua conexão e tente novamente.");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Não foi possível salvar a simulação.");
+      setMessage("Simulação salva no seu histórico.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Não foi possível salvar a simulação.");
     } finally {
       setSaving(false);
     }
-  };
+  }
 
   return (
-    <main className="wrap scTest">
+    <main className="wrap scTest" style={{ paddingTop: 36, paddingBottom: 70 }}>
       <header className="scHeader">
         <div>
-          <div className="eyebrow dark">IMPORTAFÁCIL · NOVA IMPORTAÇÃO</div>
-          <h1>Uma operação. Vários itens. Um cálculo auditável.</h1>
-          <p>Preencha os dados da operação, produtos e despesas. O motor calcula o custo por item e preserva a memória da composição do resultado.</p>
+          <div className="eyebrow dark">IMPORTAFÁCIL · MOTOR UNIFICADO</div>
+          <h1>Uma importação. Vários itens. O mesmo motor automático.</h1>
+          <p>II, IPI, PIS-Importação e COFINS-Importação são resolvidos automaticamente por NCM. O mesmo backend também avalia defesa comercial, regras de SC, TTD e custo nacionalizado por item.</p>
         </div>
-        <a className="secondaryBtn" href="/sc-test">Abrir laboratório jurídico</a>
+        <a className="secondaryBtn" href="/dashboard">Meu painel</a>
       </header>
 
       <section className="card" style={{ marginBottom: 18 }}>
-        <SectionTitle step="1" title="Dados da operação" description="Informações globais que serão compartilhadas por todos os itens." />
+        <div className="resultTop">
+          <div>
+            <div className="eyebrow dark">1. OPERAÇÃO</div>
+            <h2>Dados compartilhados</h2>
+          </div>
+          <div style={{ textAlign: "right" }}><small>Mercadorias</small><div style={{ fontWeight: 800, fontSize: 22 }}>{money(merchandisePreview)}</div></div>
+        </div>
         <div className="fields four">
-          <Field label="Nome da simulação" value={operationName} onChange={setOperationName} text />
-          <Field label="Data da importação" value={importDate} onChange={setImportDate} text type="date" />
-          <Field label="Importador" value={importer} onChange={setImporter} text />
-          <Field label="UF desembaraço" value={state} onChange={setState} text />
-          <Field label="Câmbio R$/US$" value={exchangeRate} onChange={setExchangeRate} />
-          <Field label="Frete internacional US$" value={freightUsd} onChange={setFreightUsd} />
-          <Field label="Seguro internacional US$" value={insuranceUsd} onChange={setInsuranceUsd} />
+          <label>Nome da simulação<input value={operationName} onChange={(e) => setOperationName(e.target.value)} /></label>
+          <label>Data da importação<input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
+          <label>Câmbio (R$/US$)<input type="number" min="0" step="any" value={exchange} onChange={(e) => setExchange(Number(e.target.value))} /></label>
+          <label>Frete internacional (US$)<input type="number" min="0" step="any" value={freight} onChange={(e) => setFreight(Number(e.target.value))} /></label>
+          <label>Seguro internacional (US$)<input type="number" min="0" step="any" value={insurance} onChange={(e) => setInsurance(Number(e.target.value))} /></label>
+          <label>Armazenagem (R$)<input type="number" min="0" step="any" value={storage} onChange={(e) => setStorage(Number(e.target.value))} /></label>
+          <label>Outras despesas (R$)<input type="number" min="0" step="any" value={otherBrl} onChange={(e) => setOtherBrl(Number(e.target.value))} /></label>
+          <label>Modal<select value={transportMode} onChange={(e) => setTransportMode(e.target.value)}><option value="maritime_long_course">Marítimo — longo curso</option><option value="cabotage">Marítimo — cabotagem</option><option value="air">Aéreo</option><option value="road">Rodoviário</option><option value="rail">Ferroviário</option><option value="not_informed">Não informado</option></select></label>
+          <label>Declaração<select value={declarationType} onChange={(e) => setDeclarationType(e.target.value)}><option value="di">DI</option><option value="duimp">DUIMP</option></select></label>
         </div>
       </section>
 
       <section className="card" style={{ marginBottom: 18 }}>
         <div className="resultTop">
-          <SectionTitle step="2" title="Produtos da importação" description="NCM, origem, valor, peso, destinação e tratamento tributário por item." />
-          <button className="secondaryBtn" onClick={addItem}>+ Adicionar item</button>
+          <div><div className="eyebrow dark">2. ITENS</div><h2>Produtos da importação</h2><p>Não há campos manuais de II, IPI, PIS ou COFINS nesta tela.</p></div>
+          <button className="secondaryBtn" type="button" onClick={addItem}>+ Adicionar item</button>
         </div>
-        <div style={{ overflowX: "auto" }}>
+
+        <div style={{ display: "grid", gap: 18 }}>
+          {items.map((item, index) => (
+            <article key={item.id} className="miniCard" style={{ padding: 20 }}>
+              <div className="resultTop">
+                <div><b>{item.id}</b><span style={{ marginLeft: 10, color: "#777" }}>Item {index + 1}</span></div>
+                {items.length > 1 && <button className="secondaryBtn" type="button" onClick={() => removeItem(item.id)}>Excluir</button>}
+              </div>
+              <div className="fields four" style={{ marginTop: 14 }}>
+                <label>Descrição<input value={item.name} onChange={(e) => updateItem(item.id, "name", e.target.value)} /></label>
+                <label>NCM<input inputMode="numeric" placeholder="40112090" value={item.ncm} onChange={(e) => updateItem(item.id, "ncm", e.target.value.replace(/\D/g, "").slice(0, 8))} /></label>
+                <label>País de origem<input placeholder="Ex.: China" value={item.origin} onChange={(e) => updateItem(item.id, "origin", e.target.value)} /></label>
+                <label>Quantidade<input type="number" min="0" step="any" value={item.quantity} onChange={(e) => updateItem(item.id, "quantity", Number(e.target.value))} /></label>
+                <label>FOB unitário (US$)<input type="number" min="0" step="any" value={item.fobUnit} onChange={(e) => updateItem(item.id, "fobUnit", Number(e.target.value))} /></label>
+                <label>Peso líquido (kg)<input type="number" min="0" step="any" value={item.weightKg} onChange={(e) => updateItem(item.id, "weightKg", Number(e.target.value))} /></label>
+                <label>Volume (m³)<input type="number" min="0" step="any" value={item.volumeM3} onChange={(e) => updateItem(item.id, "volumeM3", Number(e.target.value))} /></label>
+                <label>ICMS normal (%)<input type="number" min="0" max="99.99" step="any" value={item.icms} onChange={(e) => updateItem(item.id, "icms", Number(e.target.value))} /></label>
+                <DefenseCommercialExporterSelector ncm={item.ncm} origin={item.origin} date={date} value={item.exporter} onChange={(value) => updateItem(item.id, "exporter", value)} />
+                <label>Regime SC<select value={item.ttd} onChange={(e) => updateItem(item.id, "ttd", e.target.value as TTD)}><option value="none">Sem TTD — normal</option><option value="77">TTD 77</option><option value="409">TTD 409</option><option value="410">TTD 410</option></select></label>
+                <label>Destinação<select value={item.destination} onChange={(e) => updateItem(item.id, "destination", e.target.value as Destination)}><option value="commercial_resale">Revenda/comercialização</option><option value="industrialization">Industrialização</option></select></label>
+              </div>
+              {item.ttd !== "none" && <div className="checks" style={{ marginTop: 14 }}>
+                <label><input type="checkbox" checked={item.validConcession} onChange={(e) => updateItem(item.id, "validConcession", e.target.checked)} /> Ato concessivo válido</label>
+                <label><input type="checkbox" checked={item.importEntryInSC} onChange={(e) => updateItem(item.id, "importEntryInSC", e.target.checked)} /> Entrada/importação em SC</label>
+                {item.destination === "industrialization" && <label><input type="checkbox" checked={item.industrializationInSC} onChange={(e) => updateItem(item.id, "industrializationInSC", e.target.checked)} /> Industrialização em SC</label>}
+                <label><input type="checkbox" checked={item.sameNcmPositionAfterFractionation} onChange={(e) => updateItem(item.id, "sameNcmPositionAfterFractionation", e.target.checked)} /> Mantém a mesma posição NCM após fracionamento</label>
+                <label><input type="checkbox" checked={item.decree2128Prohibited} onChange={(e) => updateItem(item.id, "decree2128Prohibited", e.target.checked)} /> Há vedação conhecida pelo Decreto SC 2.128/2009</label>
+              </div>}
+            </article>
+          ))}
+        </div>
+
+        <button className="primary" type="button" onClick={calculate} disabled={loading} style={{ marginTop: 20 }}>{loading ? "Calculando..." : "Calcular operação"}</button>
+        {message && <p style={{ marginTop: 14 }}>{message}</p>}
+      </section>
+
+      {result && <section className="card" style={{ marginBottom: 18 }}>
+        <div className="resultTop">
+          <div><div className="eyebrow dark">3. RESULTADO</div><h2>Custo nacionalizado</h2><p>Motor: {result.engine}</p></div>
+          <div style={{ textAlign: "right" }}><small>Total com defesa comercial</small><div style={{ fontWeight: 900, fontSize: 28 }}>{money(result.calculation?.totalLandedCostIncludingDefense)}</div></div>
+        </div>
+        <div className="resultGrid" style={{ marginTop: 18 }}>
+          <div className="miniCard"><small>Valor aduaneiro</small><b>{money(result.calculation?.totalCustomsValue)}</b></div>
+          <div className="miniCard"><small>Tributos normais</small><b>{money(result.calculation?.totalNormalTaxes)}</b></div>
+          <div className="miniCard"><small>Economia ICMS-importação</small><b>{money(result.calculation?.totalImportICMSSavings)}</b></div>
+          <div className="miniCard"><small>Defesa comercial</small><b>{money(result.calculation?.defenseCommercialBrl)}</b></div>
+        </div>
+        <div style={{ overflowX: "auto", marginTop: 24 }}>
           <table className="importTable">
-            <thead><tr><th>Item</th><th>NCM</th><th>Origem</th><th>Qtd.</th><th>FOB unit. US$</th><th>Peso kg</th><th>m³</th><th>Destinação</th><th>TTD</th><th>Ato</th><th /></tr></thead>
-            <tbody>{items.map((item) => <tr key={item.id}>
-              <td><input value={item.name} onChange={(e) => updateItem(item.id, "name", e.target.value)} /></td>
-              <td><input value={item.ncm} onChange={(e) => updateItem(item.id, "ncm", e.target.value)} placeholder="0000.00.00" /></td>
-              <td><input value={item.origin} onChange={(e) => updateItem(item.id, "origin", e.target.value.toUpperCase())} maxLength={2} /></td>
-              <td><input type="number" min="0" step="any" value={item.quantity} onChange={(e) => updateItem(item.id, "quantity", Number(e.target.value))} /></td>
-              <td><input type="number" min="0" step="any" value={item.unitFobUsd} onChange={(e) => updateItem(item.id, "unitFobUsd", Number(e.target.value))} /></td>
-              <td><input type="number" min="0" step="any" value={item.weightKg} onChange={(e) => updateItem(item.id, "weightKg", Number(e.target.value))} /></td>
-              <td><input type="number" min="0" step="any" value={item.volumeM3} onChange={(e) => updateItem(item.id, "volumeM3", Number(e.target.value))} /></td>
-              <td><select value={item.destination} onChange={(e) => updateItem(item.id, "destination", e.target.value as Destination)}><option value="commercial_resale">Revenda</option><option value="industrialization">Industrialização SC</option></select></td>
-              <td><select value={item.ttd} onChange={(e) => updateItem(item.id, "ttd", e.target.value as TTD)}><option value="none">Normal</option><option value="409">TTD 409</option><option value="410">TTD 410</option><option value="77">TTD 77</option></select></td>
-              <td><input aria-label={`Ato concessivo ${item.id}`} type="checkbox" checked={item.validConcession} onChange={(e) => updateItem(item.id, "validConcession", e.target.checked)} /></td>
-              <td><button className="secondaryBtn" onClick={() => removeItem(item.id)}>Excluir</button></td>
+            <thead><tr><th>Item</th><th>NCM</th><th>II</th><th>IPI</th><th>PIS</th><th>COFINS</th><th>Defesa</th><th>Custo final</th><th>Unidade</th></tr></thead>
+            <tbody>{(result.items ?? []).map((row: any) => <tr key={row.itemId}>
+              <td><b>{row.name}</b><br/><small>{row.origin}</small></td>
+              <td>{row.ncm}</td>
+              <td>{pct(row.federal?.ii?.rate)}</td>
+              <td>{pct(row.federal?.ipi?.rate)}</td>
+              <td>{pct(row.federal?.pisImport?.rate)}</td>
+              <td>{pct(row.federal?.cofinsImport?.rate)}</td>
+              <td>{money(row.calculation?.defenseCommercialBrl)}</td>
+              <td>{money(row.calculation?.landedCostIncludingDefense)}</td>
+              <td>{money(row.calculation?.landedCostPerUnitIncludingDefense)}</td>
             </tr>)}</tbody>
           </table>
         </div>
-        <div className="itemAdvancedGrid">
-          {items.map((item) => <div className="miniCard" key={item.id}>
-            <button className="miniCardButton" onClick={() => updateItem(item.id, "expanded", !item.expanded)}><b>{item.id} · parâmetros fiscais</b><span>{item.expanded ? "−" : "+"}</span></button>
-            {item.expanded && <div className="advancedFields">
-              <Field label="II %" value={item.iiRate} onChange={(v) => updateItem(item.id, "iiRate", v)} />
-              <Field label="IPI %" value={item.ipiRate} onChange={(v) => updateItem(item.id, "ipiRate", v)} />
-              <Field label="PIS-Importação %" value={item.pisImportRate} onChange={(v) => updateItem(item.id, "pisImportRate", v)} />
-              <Field label="COFINS-Importação %" value={item.cofinsImportRate} onChange={(v) => updateItem(item.id, "cofinsImportRate", v)} />
-              <Field label="ICMS %" value={item.icmsRate} onChange={(v) => updateItem(item.id, "icmsRate", v)} />
-              <label className="checkField"><input type="checkbox" checked={item.importEntryInSC} onChange={(e) => updateItem(item.id, "importEntryInSC", e.target.checked)} /> Desembaraço em SC</label>
-            </div>}
-          </div>)}
+        {(result.warnings?.length ?? 0) > 0 && <div className="infoNote" style={{ marginTop: 18 }}><b>Premissas e alertas</b><ul>{result.warnings.slice(0, 12).map((warning: string, index: number) => <li key={`${index}-${warning}`}>{warning}</li>)}</ul></div>}
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 20 }}>
+          <button className="primary" type="button" onClick={saveSimulation} disabled={saving}>{saving ? "Salvando..." : "Salvar simulação"}</button>
+          <button className="secondaryBtn" type="button" onClick={() => window.print()}>Imprimir / Salvar PDF</button>
         </div>
-        <div className="infoNote">Os percentuais acima permanecem editáveis nesta versão de testes. Na versão fiscal automatizada, o motor passará a resolvê-los a partir da NCM, origem, vigência e enquadramento.</div>
-      </section>
-
-      <section className="card" style={{ marginBottom: 18 }}>
-        <div className="resultTop"><SectionTitle step="3" title="Despesas e rateio" description="Cada despesa pode ter tratamento e critério de rateio próprios." /><button className="secondaryBtn" onClick={addExpense}>+ Adicionar despesa</button></div>
-        <div style={{ overflowX: "auto" }}>
-          <table className="importTable expenseTable"><thead><tr><th>Despesa</th><th>Valor R$</th><th>Tratamento</th><th>Critério de rateio</th></tr></thead>
-            <tbody>{expenses.map((expense) => <tr key={expense.id}>
-              <td><input value={expense.description} onChange={(e) => updateExpense(expense.id, "description", e.target.value)} /></td>
-              <td><input type="number" min="0" step="any" value={expense.amount} onChange={(e) => updateExpense(expense.id, "amount", Number(e.target.value))} /></td>
-              <td><select value={expense.treatment} onChange={(e) => updateExpense(expense.id, "treatment", e.target.value as Treatment)}><option value="operational_cost">Custo operacional</option><option value="icms_import_base">Base ICMS-importação</option><option value="conditional">Condicional</option></select></td>
-              <td><select value={expense.allocation} onChange={(e) => updateExpense(expense.id, "allocation", e.target.value as Allocation)}><option value="item_value">Valor aduaneiro</option><option value="quantity">Quantidade</option><option value="weight">Peso</option><option value="volume">Cubagem</option></select></td>
-            </tr>)}</tbody>
-          </table>
-        </div>
-        <div className="allocationSummary"><span>Frete: <b>{money(freightUsd * exchangeRate)}</b></span><span>Seguro: <b>{money(insuranceUsd * exchangeRate)}</b></span><span>Despesas adicionais: <b>{money(expenses.reduce((sum, e) => sum + e.amount, 0))}</b></span></div>
-      </section>
-
-      <button className="primaryBtn calculateBtn" onClick={() => { setSubmitted(true); setSaveMessage(""); }}>Calcular operação completa</button>
-
-      {calculation && "error" in calculation && <section className="card" style={{ marginTop: 18 }}><div className="warning">⚠ {calculation.error}</div></section>}
-      {calculation && !("error" in calculation) && <ResultView calculation={calculation} items={items} onSave={saveSimulation} saving={saving} saveMessage={saveMessage} />}
+      </section>}
     </main>
   );
-}
-
-function SectionTitle({ step, title, description }: { step: string; title: string; description: string }) {
-  return <div className="sectionTitle"><span className="step">{step}</span><div><h2>{title}</h2><p>{description}</p></div></div>;
-}
-
-function ResultView({ calculation, items, onSave, saving, saveMessage }: { calculation: any; items: ItemState[]; onSave: () => void; saving: boolean; saveMessage: string }) {
-  return <section className="card scResult" style={{ marginTop: 18 }}>
-    <div className="resultTop"><SectionTitle step="4" title="Custo final por item" description="O cálculo mantém o caminho da despesa até o custo final." /><Status status={calculation.status} /></div>
-
-    <div className="icmsExplanation">
-      <div><b>ICMS normal</b><span>Alíquota de referência da importação.</span></div>
-      <div><b>ICMS efetivo na importação</b><span>O que efetivamente entra como ICMS devido nesta etapa.</span></div>
-      <div><b>Economia / diferimento</b><span>Diferença monetária entre o ICMS normal e o efetivo.</span></div>
-    </div>
-
-    <div className="metrics">
-      <Metric t="ICMS normal — total" v={money(calculation.totalNormalImportICMS)} />
-      <Metric t="ICMS efetivo na importação — total" v={money(calculation.totalEffectiveImportICMS)} />
-      <Metric t="Economia / diferimento ICMS-importação" v={money(calculation.totalImportICMSSavings)} hi />
-      <Metric t="Valor aduaneiro total" v={money(calculation.totalCustomsValue)} />
-      <Metric t="Despesas rateadas" v={money(calculation.totalAllocatedExpenses)} />
-      <Metric t="Tributos normais" v={money(calculation.totalNormalTaxes)} />
-      <Metric t="Custo antes do benefício" v={money(calculation.totalLandedCostBeforeBenefit)} />
-      <Metric t="Custo final" v={money(calculation.totalLandedCostAfterBenefit)} hi />
-    </div>
-
-    <div className="memoryList">{calculation.items.map((result: any) => {
-      const source = items.find((item) => item.id === result.itemId);
-      return <details className="memoryItem" key={result.itemId}>
-        <summary><span><b>{result.itemId}</b> · {source?.name} · NCM {source?.ncm}</span><span><b>{money(result.landedCostAfterBenefit)}</b> · <Status status={result.benefit.decision} /></span></summary>
-        <div className="memoryGrid">
-          <div><span>ICMS normal</span><b>{pct(result.icmsNormalRate)}</b></div>
-          <div><span>ICMS efetivo na importação</span><b>{pct(result.icmsImportEffectiveRate)}</b></div>
-          <div><span>ICMS normal — valor</span><b>{money(result.normalImportICMS)}</b></div>
-          <div><span>ICMS efetivo — valor</span><b>{money(result.benefitImportICMS)}</b></div>
-          <div><span>Economia / diferimento</span><b>{money(result.importICMSSavings)}</b></div>
-          <div><span>Valor aduaneiro</span><b>{money(result.customsValue)}</b></div>
-          <div><span>Despesas rateadas</span><b>{money(result.allocatedExpensesTotal)}</b></div>
-          <div><span>Tributos normais</span><b>{money(result.normalTaxTotal)}</b></div>
-          <div><span>Custo antes do benefício</span><b>{money(result.landedCostBeforeBenefit)}</b></div>
-          <div><span>Custo final</span><b>{money(result.landedCostAfterBenefit)}</b></div>
-        </div>
-        <div className="memoryNotes"><b>Tratamento:</b> {source?.ttd === "none" ? "Regime normal" : `TTD ${source?.ttd}`} · <b>Origem:</b> {source?.origin} · <b>Destinação:</b> {source?.destination === "industrialization" ? "Industrialização SC" : "Revenda"}</div>
-        <div className="memoryNotes"><b>Regra da etapa:</b> {result.benefit.importDeferred ? "Diferimento na importação aplicado; ICMS efetivo da entrada = 0%." : "Sem diferimento de importação; ICMS efetivo permanece igual ao ICMS normal."}</div>
-        {result.benefit.outputPresumedCredit && <div className="memoryNotes"><b>Saída subsequente:</b> crédito presumido/tratamento de saída permanece separado e não foi abatido deste custo de importação.</div>}
-      </details>;
-    })}</div>
-    {calculation.warnings.length > 0 && <div className="warning" style={{ marginTop: 18 }}>⚠️ {calculation.warnings.join(" ")}</div>}
-    <div className="infoNote" style={{ marginTop: 12 }}>Importante: o benefício da importação e o tratamento tributário da saída subsequente são etapas distintas. O crédito presumido da saída não é descontado neste custo de importação; a etapa de venda/saída será calculada separadamente.</div>
-    <div style={{ marginTop: 18, display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-      <button className="primaryBtn" onClick={onSave} disabled={saving}>{saving ? "Salvando…" : "Salvar simulação"}</button>
-      {saveMessage && <span style={{ color: saveMessage.includes("sucesso") ? "#176b3a" : "#a33", fontWeight: 700 }}>{saveMessage}</span>}
-    </div>
-  </section>;
-}
-
-function Field({ label, value, onChange, text = false, type = "text" }: { label: string; value: string | number; onChange: (value: any) => void; text?: boolean; type?: string }) {
-  return <label className="field"><span>{label}</span><input type={text ? type : "number"} min={text ? undefined : 0} step={text ? undefined : "any"} value={value} onChange={(e) => onChange(text ? e.target.value : Number(e.target.value))} /></label>;
-}
-
-function Metric({ t, v, hi = false }: { t: string; v: string; hi?: boolean }) {
-  return <div className={`metric ${hi ? "highlight" : ""}`}><span>{t}</span><strong>{v}</strong></div>;
-}
-
-function Status({ status }: { status: string }) {
-  const normalized = String(status).toLowerCase();
-  const label = normalized === "apply" || normalized === "approved" ? "APLICÁVEL" : normalized === "conditional" ? "CONDICIONAL" : normalized === "not_apply" ? "NÃO APLICÁVEL" : normalized.toUpperCase();
-  return <span className={`status ${normalized === "apply" ? "ok" : normalized === "conditional" ? "warn" : "neutral"}`}>{label}</span>;
 }
