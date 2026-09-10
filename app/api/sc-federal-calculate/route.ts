@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { calculateUnifiedImportSimulation, type UnifiedImportItemInput, type UnifiedImportSimulationInput } from "../../../lib/unified-import-simulation";
+import { calculateUnifiedImportSimulation, type UnifiedImportExpenseInput, type UnifiedImportItemInput, type UnifiedImportSimulationInput } from "../../../lib/unified-import-simulation";
 
 function itemFromUnknown(value: Record<string, unknown>, index: number): UnifiedImportItemInput {
   const rawTtd = String(value.ttd ?? "none");
@@ -16,7 +16,7 @@ function itemFromUnknown(value: Record<string, unknown>, index: number): Unified
     icms: Number(value.icms ?? value.icmsRate),
     exporter: typeof value.exporter === "string" ? value.exporter : undefined,
     ttd: (["77", "409", "410"].includes(rawTtd) ? rawTtd : "none") as UnifiedImportItemInput["ttd"],
-    destination: (rawDestination === "industrialization" ? "industrialization" : "commercial_resale"),
+    destination: rawDestination === "industrialization" ? "industrialization" : "commercial_resale",
     validConcession: value.validConcession === true,
     importEntryInSC: value.importEntryInSC !== false,
     industrializationInSC: value.industrializationInSC === true,
@@ -52,6 +52,20 @@ function normalizeRequest(body: Record<string, unknown>): UnifiedImportSimulatio
         specialRegimeContext: body.specialRegimeContext,
       }];
 
+  const expenses: UnifiedImportExpenseInput[] = Array.isArray(body.expenses)
+    ? body.expenses
+        .filter((value): value is Record<string, unknown> => Boolean(value) && typeof value === "object")
+        .map((value) => ({
+          id: String(value.id ?? "EXP"),
+          description: String(value.description ?? "Despesa adicional"),
+          amount: Number(value.amount ?? 0),
+          treatment: String(value.treatment ?? "operational_cost") as UnifiedImportExpenseInput["treatment"],
+          allocation: typeof value.allocation === "string" ? value.allocation as UnifiedImportExpenseInput["allocation"] : undefined,
+          itemId: typeof value.itemId === "string" ? value.itemId : undefined,
+          note: typeof value.note === "string" ? value.note : undefined,
+        }))
+    : [];
+
   return {
     date: String(body.date ?? body.importDate ?? ""),
     exchange: Number(body.exchange ?? body.exchangeRate),
@@ -65,9 +79,7 @@ function normalizeRequest(body: Record<string, unknown>): UnifiedImportSimulatio
     declarationType: body.declarationType === "duimp" ? "duimp" : "di",
     additions: body.additions == null ? undefined : Number(body.additions),
     items: rawItems.map(itemFromUnknown),
-    expenses: Array.isArray(body.expenses)
-      ? body.expenses.filter((value): value is UnifiedImportSimulationInput["expenses"][number] => Boolean(value) && typeof value === "object")
-      : [],
+    expenses,
   };
 }
 
