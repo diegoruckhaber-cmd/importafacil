@@ -1,8 +1,8 @@
-import { LEGAL_FOUNDATION_2026 } from "./legal-foundation-registry-2026";
+import { LEGAL_FOUNDATION_2026 } from "./legal-foundation-registry-2026.ts";
 import {
   FEDERAL_TARIFF_CATALOG_STATUS,
   FEDERAL_TARIFF_SOURCE_MANIFEST_VERSION,
-} from "./federal-tariff-source-manifest-2026";
+} from "./federal-tariff-source-manifest-2026.ts";
 
 export const RULE_HISTORY_CONTRACT = "importafacil-rule-history-v1" as const;
 
