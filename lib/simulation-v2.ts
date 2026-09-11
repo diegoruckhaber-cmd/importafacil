@@ -105,6 +105,7 @@ function baseOperation(input: SimulationV2Input) {
   return {
     scenarioName: String(input.scenarioName ?? "Simulação V2"),
     date: input.date,
+    destinationUf: String(input.destinationUf ?? "SC").trim().toUpperCase(),
     exchange: Number(input.exchange),
     itemCount: input.items.length,
     freightUsd: Number(input.freight ?? 0),
@@ -161,6 +162,7 @@ export function runImportSimulationV2(input: SimulationV2Input) {
 
   const coreInput: UnifiedImportSimulationInput = {
     date: input.date,
+    destinationUf: input.destinationUf,
     exchange: input.exchange,
     freight: input.freight,
     insurance: input.insurance,
@@ -181,11 +183,12 @@ export function runImportSimulationV2(input: SimulationV2Input) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "A operação não pôde ser calculada.";
     const itemId = message.match(/^([^:]+):/)?.[1];
-    const blocked = /bloquead|não passou na validação jurídica/i.test(message);
+    const jurisdictionBlocked = /UF .*não homologada|motor estadual automático está homologado somente para SC/i.test(message);
+    const blocked = jurisdictionBlocked || /bloquead|não passou na validação jurídica/i.test(message);
     const validation = /requer validação|condicional/i.test(message);
     if (blocked || validation) {
       const issue: SimulationV2Issue = {
-        code: blocked ? "state_rule_blocked" : "state_rule_requires_input",
+        code: jurisdictionBlocked ? "state_jurisdiction_unsupported" : blocked ? "state_rule_blocked" : "state_rule_requires_input",
         level: blocked ? "blocking" : "validation",
         scope: itemId ? "item" : "operation",
         itemId,
@@ -286,6 +289,7 @@ export function runImportSimulationV2(input: SimulationV2Input) {
     contract: "importafacil-simulation-v2" as const,
     engine: core.engine,
     federalEngine: core.federalEngine,
+    jurisdiction: core.jurisdiction,
     status: statusFromIssues(normalizedIssues, core.calculation?.status === "blocked" ? "blocked" : "calculated"),
     operation: {
       ...core.operation,
