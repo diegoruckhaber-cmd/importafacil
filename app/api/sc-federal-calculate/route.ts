@@ -34,48 +34,15 @@ function itemFromUnknown(value: Record<string, unknown>, index: number): Unified
 function normalizeRequest(body: Record<string, unknown>): UnifiedImportSimulationInput {
   const rawItems = Array.isArray(body.items) && body.items.length > 0
     ? body.items.filter((value): value is Record<string, unknown> => Boolean(value) && typeof value === "object")
-    : [{
-        itemId: "ITEM-001",
-        name: body.name,
-        ncm: body.ncm,
-        origin: body.origin,
-        quantity: body.quantity,
-        weightKg: body.weightKg,
-        volumeM3: body.volumeM3,
-        fobUnit: body.fobUnit,
-        icms: body.icms,
-        exporter: body.exporter,
-        iiExCode: body.iiExCode,
-        iiQuotaConfirmed: body.iiQuotaConfirmed,
-        ipiExCode: body.ipiExCode,
-        aeronauticalEligible: body.aeronauticalEligible,
-        ttd: body.ttd,
-        destination: body.destination,
-        validConcession: body.validConcession,
-        importEntryInSC: body.importEntryInSC,
-        industrializationInSC: body.industrializationInSC,
-        sameNcmPositionAfterFractionation: body.sameNcmPositionAfterFractionation,
-        decree2128Prohibited: body.decree2128Prohibited,
-        specialRegimeIds: body.specialRegimeIds,
-        specialRegimeContext: body.specialRegimeContext,
-      }];
+    : [{ itemId: "ITEM-001", name: body.name, ncm: body.ncm, origin: body.origin, quantity: body.quantity, weightKg: body.weightKg, volumeM3: body.volumeM3, fobUnit: body.fobUnit, icms: body.icms, exporter: body.exporter, iiExCode: body.iiExCode, iiQuotaConfirmed: body.iiQuotaConfirmed, ipiExCode: body.ipiExCode, aeronauticalEligible: body.aeronauticalEligible, ttd: body.ttd, destination: body.destination, validConcession: body.validConcession, importEntryInSC: body.importEntryInSC, industrializationInSC: body.industrializationInSC, sameNcmPositionAfterFractionation: body.sameNcmPositionAfterFractionation, decree2128Prohibited: body.decree2128Prohibited, specialRegimeIds: body.specialRegimeIds, specialRegimeContext: body.specialRegimeContext }];
 
   const expenses: UnifiedImportExpenseInput[] = Array.isArray(body.expenses)
-    ? body.expenses
-        .filter((value): value is Record<string, unknown> => Boolean(value) && typeof value === "object")
-        .map((value) => ({
-          id: String(value.id ?? "EXP"),
-          description: String(value.description ?? "Despesa adicional"),
-          amount: Number(value.amount ?? 0),
-          treatment: String(value.treatment ?? "operational_cost") as UnifiedImportExpenseInput["treatment"],
-          allocation: typeof value.allocation === "string" ? value.allocation as UnifiedImportExpenseInput["allocation"] : undefined,
-          itemId: typeof value.itemId === "string" ? value.itemId : undefined,
-          note: typeof value.note === "string" ? value.note : undefined,
-        }))
+    ? body.expenses.filter((value): value is Record<string, unknown> => Boolean(value) && typeof value === "object").map((value) => ({ id: String(value.id ?? "EXP"), description: String(value.description ?? "Despesa adicional"), amount: Number(value.amount ?? 0), treatment: String(value.treatment ?? "operational_cost") as UnifiedImportExpenseInput["treatment"], allocation: typeof value.allocation === "string" ? value.allocation as UnifiedImportExpenseInput["allocation"] : undefined, itemId: typeof value.itemId === "string" ? value.itemId : undefined, note: typeof value.note === "string" ? value.note : undefined }))
     : [];
 
   return {
     date: String(body.date ?? body.importDate ?? ""),
+    destinationUf: String(body.destinationUf ?? body.uf ?? "SC"),
     exchange: Number(body.exchange ?? body.exchangeRate),
     freight: Number(body.freight ?? body.freightUsd ?? 0),
     insurance: Number(body.insurance ?? body.insuranceUsd ?? 0),
