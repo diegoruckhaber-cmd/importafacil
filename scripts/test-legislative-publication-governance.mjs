@@ -21,6 +21,6 @@ assert.match(runbook, /npm run test:all/);
 assert.match(runbook, /npm run build/);
 assert.match(runbook, /Vercel/);
 assert.match(runbook, /publicação de regra fiscal é supervisionada/i);
-assert.doesNotMatch(runbook, /toda mudança legislativa é automaticamente detectada, interpretada e publicada sem revisão/i);
+assert.match(runbook, /Não afirmar que toda mudança legislativa é automaticamente detectada, interpretada e publicada sem revisão/i);
 
 console.log("Legislative publication governance: OK — automated collection cannot publish fiscal rules directly");
