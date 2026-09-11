@@ -1,11 +1,20 @@
 import { NextResponse } from "next/server";
 import { runImportSimulationV2, type SimulationV2Input } from "../../../lib/simulation-v2";
+import { buildSimulationV2LegalTrace, formatSimulationV2LegalTrace } from "../../../lib/simulation-v2-legal-provenance";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json() as SimulationV2Input;
     const result = runImportSimulationV2(body);
-    return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
+    const legalTrace = buildSimulationV2LegalTrace(result);
+    const attentionPoints = [
+      ...(Array.isArray(result.attentionPoints) ? result.attentionPoints : []),
+      ...legalTrace.map(formatSimulationV2LegalTrace),
+    ];
+    return NextResponse.json(
+      { ...result, legalTrace, attentionPoints: [...new Set(attentionPoints)] },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   } catch (error) {
     return NextResponse.json(
       {
