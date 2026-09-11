@@ -63,13 +63,17 @@ assert.equal(result.calculation.totalLandedCostIncludingDefense >= result.calcul
 const rootPage = fs.readFileSync(path.join(process.cwd(), "app", "page.tsx"), "utf8");
 const operationPage = fs.readFileSync(path.join(process.cwd(), "app", "sc-operation", "page.tsx"), "utf8");
 const dashboardPage = fs.readFileSync(path.join(process.cwd(), "app", "dashboard", "page.tsx"), "utf8");
+const v2Page = fs.readFileSync(path.join(process.cwd(), "app", "simulacao-v2", "page.tsx"), "utf8");
 
 assert.ok(rootPage.includes('fetch("/api/sc-federal-calculate"'), "a home deve usar o backend unificado");
-assert.ok(operationPage.includes('fetch("/api/sc-federal-calculate"'), "a tela multi-item deve usar o mesmo backend da home");
-assert.ok(dashboardPage.includes('href="/sc-operation"'), "Nova simulação do dashboard deve abrir o fluxo multi-item unificado");
+assert.ok(operationPage.includes('fetch("/api/sc-federal-calculate"'), "a tela multi-item técnica deve usar o mesmo backend da home");
+assert.ok(dashboardPage.includes('href="/simulacao-v2"'), "Nova simulação do dashboard deve abrir a Simulation V2 canônica");
+assert.ok(v2Page.includes('fetch("/api/simulation-v2"'), "a Simulation V2 deve usar seu contrato de orquestração canônico");
 assert.equal(operationPage.includes("calculateSCMultiItemFinalCost"), false, "a tela não deve mais calcular tributos localmente");
 assert.equal(operationPage.includes("resolveSCBenefit"), false, "a tela não deve mais resolver benefício fiscal localmente");
 assert.equal(operationPage.includes("iiRate"), false, "a tela multi-item não deve expor alíquota federal manual");
 assert.equal(operationPage.includes("ipiRate"), false, "a tela multi-item não deve expor alíquota federal manual");
+assert.equal(v2Page.includes("iiRate"), false, "a Simulation V2 não deve expor alíquota federal manual");
+assert.equal(v2Page.includes("ipiRate"), false, "a Simulation V2 não deve expor alíquota federal manual");
 
 console.log("unified automatic multi-item simulation: OK");
