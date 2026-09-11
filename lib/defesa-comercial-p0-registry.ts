@@ -20,6 +20,8 @@ type AuditedMeasure = DefenseCommercialMeasure & {
 };
 
 const SOURCE = "MDIC/SECEX — Medidas de defesa comercial em vigor";
+const CITRIC_ACID_SOURCE = "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/acido-citrico";
+const CITRIC_PRICE_UNDERTAKING_CONDITION = "Há compromisso de preço vigente para parte dos produtores/exportadores da China, com preço mínimo corrigido periodicamente. Valide a empresa participante e o preço CIF aplicável no período antes de concluir o tratamento; nenhum direito é presumido automaticamente.";
 
 // Audited against the official MDIC index/detail pages on 2026-09-11.
 // This supplement closes the production coverage gap left by the historical crawler,
@@ -93,14 +95,33 @@ function findAuditedCountervailingMeasure(ncm: string, origin: string, importDat
   return measure ? { ...measure, importDate } : undefined;
 }
 
+function applyConditionalTreatments<T extends Record<string, any> | undefined>(measure: T, origin: string): T {
+  if (!measure) return measure;
+  const sourceUrl = String(measure.sourceUrl ?? "");
+  if (sourceUrl === CITRIC_ACID_SOURCE && normalizeOrigin(origin) === "china") {
+    return {
+      ...measure,
+      requiresScopeValidation: true,
+      scopeCondition: CITRIC_PRICE_UNDERTAKING_CONDITION,
+    } as T;
+  }
+  return measure;
+}
+
 export function findDefenseCommercialMeasure(ncm: string, origin: string, importDate?: string) {
-  return findAuditedCountervailingMeasure(ncm, origin, importDate) ?? findLegacyMeasure(ncm, origin, importDate);
+  const audited = findAuditedCountervailingMeasure(ncm, origin, importDate);
+  if (audited) return audited;
+  return applyConditionalTreatments(findLegacyMeasure(ncm, origin, importDate), origin);
 }
 
 export function listDefenseCommercialExporters(ncm: string, origin: string, importDate?: string) {
   const measure = findAuditedCountervailingMeasure(ncm, origin, importDate);
-  if (!measure) return listLegacyExporters(ncm, origin, importDate);
-  return { measure, ambiguous: false, matchingScopes: [{ product: measure.product, sourceUrl: measure.sourceUrl, legalFoundation: measure.legalFoundation, validUntil: measure.validUntil }], options: optionsForOrigin(measure, origin) };
+  if (measure) {
+    return { measure, ambiguous: false, matchingScopes: [{ product: measure.product, sourceUrl: measure.sourceUrl, legalFoundation: measure.legalFoundation, validUntil: measure.validUntil }], options: optionsForOrigin(measure, origin) };
+  }
+  const legacy = listLegacyExporters(ncm, origin, importDate);
+  if (!legacy) return legacy;
+  return { ...legacy, measure: applyConditionalTreatments(legacy.measure, origin) };
 }
 
 export function resolveDefenseCommercialExporter(ncm: string, origin: string, exporter?: string, importDate?: string) {
