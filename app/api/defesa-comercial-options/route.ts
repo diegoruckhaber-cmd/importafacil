@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { listDefenseCommercialExporters } from "../../../lib/defesa-comercial-registry";
+import { listDefenseCommercialExporters } from "../../../lib/defesa-comercial-p0-registry";
 export async function GET(request: Request) {
   const url = new URL(request.url); const ncm=url.searchParams.get("ncm")??""; const origin=url.searchParams.get("origin")??""; const date=url.searchParams.get("date")??""; const result=listDefenseCommercialExporters(ncm,origin,date);
   if(!result)return NextResponse.json({applicable:false,options:[],requiresValidation:false},{headers:{"Cache-Control":"no-store"}});
