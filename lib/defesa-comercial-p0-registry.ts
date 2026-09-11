@@ -1,4 +1,5 @@
 import {
+  DEFENSE_COMMERCIAL_MEASURES as LEGACY_REGISTRY_MEASURES,
   findDefenseCommercialMeasure as findLegacyMeasure,
   listDefenseCommercialExporters as listLegacyExporters,
   resolveDefenseCommercialExporter as resolveLegacyExporter,
@@ -11,17 +12,20 @@ import {
 } from "./defesa-comercial-registry.ts";
 
 type AuditedMeasure = DefenseCommercialMeasure & {
-  ncmPatterns: string[];
-  validUntil: string;
-  sourceUrl: string;
+  ncmPatterns?: string[];
+  validUntil?: string;
+  sourceUrl?: string;
   collectionSuspended?: boolean;
   requiresScopeValidation?: boolean;
   scopeCondition?: string;
+  importDate?: string;
 };
 
 const SOURCE = "MDIC/SECEX — Medidas de defesa comercial em vigor";
 const CITRIC_ACID_SOURCE = "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/acido-citrico";
 const CITRIC_PRICE_UNDERTAKING_CONDITION = "Há compromisso de preço vigente para parte dos produtores/exportadores da China, com preço mínimo corrigido periodicamente. Valide a empresa participante e o preço CIF aplicável no período antes de concluir o tratamento; nenhum direito é presumido automaticamente.";
+const N_BUTANOL_US_SOURCE = "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/n-butanol";
+const N_BUTANOL_AFS_RUS_SOURCE = "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/n-butanol-2";
 
 // Audited against the official MDIC index/detail pages on 2026-09-11.
 // This supplement closes the production coverage gap left by the historical crawler,
@@ -90,9 +94,24 @@ function findAuditedCountervailingMeasure(ncm: string, origin: string, importDat
   const nn = ncm.replace(/\D/g, "");
   const no = normalizeOrigin(origin);
   const measure = AUDITED_COUNTERVAILING_MEASURES_2026.find((candidate) =>
-    candidate.ncmPatterns.some((pattern) => pattern === nn) && candidate.origins.some((item) => normalizeOrigin(item) === no),
+    (candidate.ncm === nn || candidate.ncmPatterns?.some((pattern) => pattern === nn)) && candidate.origins.some((item) => normalizeOrigin(item) === no),
   );
   return measure ? { ...measure, importDate } : undefined;
+}
+
+function findScopedNButanolMeasure(ncm: string, origin: string, importDate?: string): AuditedMeasure | undefined {
+  if (ncm.replace(/\D/g, "") !== "29051300") return undefined;
+  const normalizedOrigin = normalizeOrigin(origin);
+  const sourceUrl = normalizedOrigin === "estados unidos da america"
+    ? N_BUTANOL_US_SOURCE
+    : (["africa do sul", "russia"].includes(normalizedOrigin) ? N_BUTANOL_AFS_RUS_SOURCE : undefined);
+  if (!sourceUrl) return undefined;
+  const candidates = (LEGACY_REGISTRY_MEASURES as AuditedMeasure[]).filter((measure) =>
+    measure.sourceUrl === sourceUrl && measure.origins.some((item) => normalizeOrigin(item) === normalizedOrigin),
+  );
+  if (!candidates.length) return undefined;
+  const selected = [...candidates].sort((a, b) => optionsForOrigin(b, origin).length - optionsForOrigin(a, origin).length)[0];
+  return { ...selected, importDate };
 }
 
 function applyConditionalTreatments<T extends Record<string, any> | undefined>(measure: T, origin: string): T {
@@ -108,26 +127,37 @@ function applyConditionalTreatments<T extends Record<string, any> | undefined>(m
   return measure;
 }
 
+function resultForDirectMeasure(measure: AuditedMeasure, origin: string) {
+  return {
+    measure,
+    ambiguous: false,
+    matchingScopes: [{ product: measure.product, sourceUrl: measure.sourceUrl, legalFoundation: measure.legalFoundation, validUntil: measure.validUntil }],
+    options: optionsForOrigin(measure, origin),
+  };
+}
+
 export function findDefenseCommercialMeasure(ncm: string, origin: string, importDate?: string) {
-  const audited = findAuditedCountervailingMeasure(ncm, origin, importDate);
-  if (audited) return audited;
+  const countervailing = findAuditedCountervailingMeasure(ncm, origin, importDate);
+  if (countervailing) return countervailing;
+  const butanol = findScopedNButanolMeasure(ncm, origin, importDate);
+  if (butanol) return butanol;
   return applyConditionalTreatments(findLegacyMeasure(ncm, origin, importDate), origin);
 }
 
 export function listDefenseCommercialExporters(ncm: string, origin: string, importDate?: string) {
-  const measure = findAuditedCountervailingMeasure(ncm, origin, importDate);
-  if (measure) {
-    return { measure, ambiguous: false, matchingScopes: [{ product: measure.product, sourceUrl: measure.sourceUrl, legalFoundation: measure.legalFoundation, validUntil: measure.validUntil }], options: optionsForOrigin(measure, origin) };
-  }
+  const countervailing = findAuditedCountervailingMeasure(ncm, origin, importDate);
+  if (countervailing) return resultForDirectMeasure(countervailing, origin);
+  const butanol = findScopedNButanolMeasure(ncm, origin, importDate);
+  if (butanol) return resultForDirectMeasure(butanol, origin);
   const legacy = listLegacyExporters(ncm, origin, importDate);
   if (!legacy) return legacy;
   return { ...legacy, measure: applyConditionalTreatments(legacy.measure, origin) };
 }
 
 export function resolveDefenseCommercialExporter(ncm: string, origin: string, exporter?: string, importDate?: string) {
-  const measure = findAuditedCountervailingMeasure(ncm, origin, importDate);
-  if (!measure) return resolveLegacyExporter(ncm, origin, exporter, importDate);
-  const options = optionsForOrigin(measure, origin);
+  const direct = findAuditedCountervailingMeasure(ncm, origin, importDate) ?? findScopedNButanolMeasure(ncm, origin, importDate);
+  if (!direct) return resolveLegacyExporter(ncm, origin, exporter, importDate);
+  const options = optionsForOrigin(direct, origin);
   const target = normalize(exporter ?? "");
   if (!target) return options.find((option) => /demais|todas as empresas|todos os produtores/i.test(option.exporter)) ?? options.at(-1);
   return options.find((option) => normalize(option.exporter) === target) ?? options.find((option) => /demais|todas as empresas|todos os produtores/i.test(option.exporter));
