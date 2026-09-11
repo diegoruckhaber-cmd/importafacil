@@ -22,15 +22,19 @@ async function authenticatedClient(req: Request) {
   return { supabase, user: userData.user };
 }
 
-async function persistCalculatedRecord(auth: Awaited<ReturnType<typeof authenticatedClient>>, name: string, input: unknown, result: unknown) {
-  if ("error" in auth) return auth.error;
+type Authenticated = {
+  supabase: ReturnType<typeof clientForToken>;
+  user: { id: string };
+};
+
+async function persistCalculatedRecord(auth: Authenticated, name: string, input: unknown, result: unknown): Promise<NextResponse> {
   const { data, error } = await auth.supabase.from("simulations").insert({
     user_id: auth.user.id,
     name,
     input,
     result,
   }).select("id, name, created_at").single();
-  if (error) {
+  if (error || !data) {
     console.error("simulation persistence error", error);
     return NextResponse.json({ error: "Não foi possível salvar a simulação." }, { status: 500 });
   }
@@ -43,19 +47,20 @@ export async function POST(req: Request) {
     const name = typeof body.name === "string" && body.name.trim() ? body.name.trim() : "Nova simulação";
     const auth = await authenticatedClient(req);
     if ("error" in auth) return auth.error;
+    const authenticated: Authenticated = { supabase: auth.supabase, user: { id: auth.user.id } };
 
     if (body.mode === "v2") {
       if (!body.input || !body.result || body.result.contract !== "importafacil-simulation-v2") {
         return NextResponse.json({ error: "Contrato da Simulation V2 inválido." }, { status: 400 });
       }
-      return persistCalculatedRecord(auth, name, body.input, body.result);
+      return persistCalculatedRecord(authenticated, name, body.input, body.result);
     }
 
     if (body.mode === "sc") {
       if (!body.input || !body.result) {
         return NextResponse.json({ error: "Dados da operação SC inválidos." }, { status: 400 });
       }
-      return persistCalculatedRecord(auth, name, body.input, body.result);
+      return persistCalculatedRecord(authenticated, name, body.input, body.result);
     }
 
     const input: SimulationInput = body.input;
@@ -64,7 +69,7 @@ export async function POST(req: Request) {
     }
 
     const result = calculate(input);
-    const response = await persistCalculatedRecord(auth, name, input, result);
+    const response = await persistCalculatedRecord(authenticated, name, input, result);
     if (response.status >= 400) return response;
     const payload = await response.json();
     return NextResponse.json({ ...payload, status: "calculated", result });
