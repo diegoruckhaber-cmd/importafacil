@@ -32,6 +32,9 @@ assert(snapshot.records.some((row) => row.tax === "IPI" && row.taxTreatment === 
 assert(snapshot.records.some((row) => row.tax === "IPI" && row.exCode), "snapshot must preserve TIPI Ex selectors");
 assert(snapshot.records.some((row) => row.kind === "AERONAUTICAL_SCOPE" && row.ncmPrefix), "snapshot must preserve Anexo III scope prefixes");
 
+const baseRowsWithQuota = snapshot.records.filter((row) => row.tax === "II" && ["TEC", "BRAZIL_APPLIED"].includes(row.kind) && row.quota != null);
+assert.equal(baseRowsWithQuota.length, 0, "TEC/BRAZIL_APPLIED rows must never carry quota metadata; quota belongs only to conditioned special treatments");
+
 for (const [index, row] of snapshot.records.entries()) {
   assert(row && typeof row === "object", `snapshot row ${index} must be an object`);
   assert(["II", "IPI"].includes(row.tax), `snapshot row ${index}: unsupported tax`);
