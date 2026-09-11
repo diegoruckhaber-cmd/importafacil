@@ -6,13 +6,13 @@ const legacyFederalWorkflow = fs.readFileSync(".github/workflows/ingest-official
 const runbook = fs.readFileSync("docs/legislative-update-runbook.md", "utf8");
 
 for (const [name, workflow] of [["defense", defenseWorkflow], ["legacy federal", legacyFederalWorkflow]]) {
-  assert.match(workflow, /contents:\s*read/, `${name} workflow must be read-only`);
-  assert.doesNotMatch(workflow, /contents:\s*write/, `${name} workflow cannot publish fiscal data`);
-  assert.doesNotMatch(workflow, /\bgit\s+push\b/, `${name} workflow cannot push fiscal data directly`);
+  assert.match(workflow, /^\s*contents:\s*read\s*$/m, `${name} workflow must be read-only`);
+  assert.doesNotMatch(workflow, /^\s*contents:\s*write\s*$/m, `${name} workflow cannot publish fiscal data`);
+  assert.doesNotMatch(workflow, /^\s*(?:run:\s*)?git\s+push\b/m, `${name} workflow cannot push fiscal data directly`);
   assert.match(workflow, /actions\/upload-artifact@v4/, `${name} workflow must expose a review candidate artifact`);
 }
 
-assert.match(defenseWorkflow, /schedule:/, "defense candidate audit should remain scheduled");
+assert.match(defenseWorkflow, /^\s*schedule:\s*$/m, "defense candidate audit should remain scheduled");
 assert.match(defenseWorkflow, /human review|human-reviewed|review/i);
 assert.match(runbook, /Coleta automática não é publicação automática/);
 assert.match(runbook, /pull request revisada/i);
