@@ -186,8 +186,17 @@ def parse_mdic(path: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         ncm_idx = col(header, "NCM")
         desc_idx = col(header, "Descrição", contains=("descricao",))
         ex_idx = col(header, "Nº Ex", "Nº EX", "EX", contains=("nex",))
-        quota_idx = col(header, "Quota", contains=("quota",))
-        quota_unit_idx = col(header, "Unidade da quota", "Unidade quota", "Unidade da Quota", contains=("unidadedaquota", "unidadequota"))
+
+        # Quota exists only in the special-treatment annexes. Never discover it
+        # by a loose substring in TEC/Anexo II because "alíquota" contains
+        # the sequence "quota" after normalization and would corrupt metadata.
+        if kind in {"TEC", "BRAZIL_APPLIED"}:
+            quota_idx = None
+            quota_unit_idx = None
+        else:
+            quota_idx = col(header, "Quota")
+            quota_unit_idx = col(header, "Unidade da quota", "Unidade quota", "Unidade da Quota", contains=("unidadedaquota", "unidadequota"))
+
         start_idx = col(header, "Início de vigência", "Início da Vigência", contains=("iniciodevigencia", "iniciodavigencia"))
         end_idx = col(header, "Término de vigência", contains=("terminodevigencia",))
         legal_idx = col(header, "Ato de inclusão", "Ato de Inclusão", "Atos de inclusão", contains=("atodeinclusao", "atosdeinclusao"))
@@ -338,9 +347,9 @@ def main() -> None:
         "records": records,
         "notes": [
             "No tariff is selected by workbook row order.",
-            "Rows conditioned by Ex or quota remain explicit and require runtime evidence before application.",
-            "TIPI NT is represented with rate 0 and taxTreatment NT, preserving legal semantics.",
-            "Aeronáutico Annex III is indexed as scope metadata and never receives an invented rate.",
+            "The resolver must block automatic calculation when competing applicable treatments remain unresolved.",
+            "Anexo III is stored as a scope warning and never converted into an automatic tariff benefit.",
+            "TIPI NT is stored as zero computational rate plus explicit NT semantic treatment.",
         ],
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
