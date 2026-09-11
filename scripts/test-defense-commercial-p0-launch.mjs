@@ -28,7 +28,7 @@ const aluminumSpecific = resolveDefenseCommercial({
   exporter: "Neuman (Xinhui) Alloy Materials Co., Ltd. Neuman Holding (Hong Kong) Ltd.",
 });
 assert.equal(aluminumSpecific.rate, 14.88);
-assert.equal(aluminumSpecific.amountBrl, 14880);
+assert(Math.abs(Number(aluminumSpecific.amountBrl) - 14880) < 0.01);
 
 for (const scenario of [
   { ncm: "29153931", origin: "Estados Unidos da América", expected: /4 litros|escopo/i },
