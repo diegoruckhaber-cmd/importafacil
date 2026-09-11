@@ -107,14 +107,7 @@ export function loadFederalOfficialSnapshot(snapshotPath = process.env.FEDERAL_S
 }
 
 function component(status: FederalResolutionStatus, rate: number | null, warnings: string[], records: FederalSnapshotRecord[], options: Partial<FederalResolvedComponent> = {}): FederalResolvedComponent {
-  return {
-    status,
-    rate,
-    automatic: status === "resolved" && options.automatic !== false,
-    warnings,
-    candidates: records.map(compactCandidate),
-    ...options,
-  };
+  return { status, rate, automatic: status === "resolved" && options.automatic !== false, warnings, candidates: records.map(compactCandidate), ...options };
 }
 
 function resolveBaseII(records: FederalSnapshotRecord[]): FederalResolvedComponent {
@@ -134,9 +127,7 @@ function resolveII(snapshot: FederalOfficialSnapshot, ncm: string, date: string,
 
   const aeronautical = snapshot.records.filter((record) => record.tax === "II" && record.kind === "AERONAUTICAL_SCOPE" && record.ncmPrefix && ncm.startsWith(record.ncmPrefix));
   const warnings = [...base.warnings];
-  if (aeronautical.length && input.aeronauticalEligible !== false) {
-    warnings.push("A NCM aparece no escopo potencial do Anexo III (setor aeronáutico). O benefício setorial não foi presumido nem transformado em alíquota; valide o enquadramento se aplicável.");
-  }
+  if (aeronautical.length && input.aeronauticalEligible !== false) warnings.push("A NCM aparece no escopo potencial do Anexo III (setor aeronáutico). O benefício setorial não foi presumido nem transformado em alíquota; valide o enquadramento se aplicável.");
 
   const activeSpecial = exact.filter((record) => TEMPORARY_KINDS.has(record.kind) && activeOn(record, date) && typeof record.rate === "number");
   if (!activeSpecial.length) return { ...base, warnings, source: "MDIC Tarifas Vigentes", sourceUrl: snapshot.sources.mdic?.sourceUrl };
@@ -152,19 +143,16 @@ function resolveII(snapshot: FederalOfficialSnapshot, ncm: string, date: string,
     }
     if (record.quota != null) {
       if (input.iiQuotaConfirmed === true) {
-        // caller explicitly confirmed quota eligibility/availability
-      } else if (input.iiQuotaConfirmed === false) {
-        continue;
-      } else unresolvedCondition = true;
+        // explicit quota eligibility/availability confirmation
+      } else if (input.iiQuotaConfirmed === false) continue;
+      else unresolvedCondition = true;
     }
     if (unresolvedCondition) unresolved.push(record);
     else eligible.push(record);
   }
 
   const eligibleRates = uniqueRates(eligible);
-  if (eligibleRates.length > 1) {
-    return component("requires_input", null, ["Mais de um tratamento temporário de II está simultaneamente elegível com alíquotas diferentes. Valide o enquadramento legal antes de calcular."], eligible, { source: "MDIC Tarifas Vigentes", sourceUrl: snapshot.sources.mdic?.sourceUrl });
-  }
+  if (eligibleRates.length > 1) return component("requires_input", null, ["Mais de um tratamento temporário de II está simultaneamente elegível com alíquotas diferentes. Valide o enquadramento legal antes de calcular."], eligible, { source: "MDIC Tarifas Vigentes", sourceUrl: snapshot.sources.mdic?.sourceUrl });
 
   const chosenRate = eligibleRates.length === 1 ? eligibleRates[0] : base.rate;
   const unresolvedDifferent = unresolved.filter((record) => record.rate !== chosenRate);
@@ -175,14 +163,8 @@ function resolveII(snapshot: FederalOfficialSnapshot, ncm: string, date: string,
 
   if (eligibleRates.length === 1) {
     const chosen = eligible.filter((record) => record.rate === chosenRate);
-    return component("resolved", chosenRate, warnings, chosen, {
-      treatment: [...new Set(chosen.map((record) => record.kind))].join("+"),
-      legalBasis: [...new Set(chosen.map((record) => record.legalBasis).filter(Boolean))].join("; ") || undefined,
-      source: "MDIC Tarifas Vigentes",
-      sourceUrl: snapshot.sources.mdic?.sourceUrl,
-    });
+    return component("resolved", chosenRate, warnings, chosen, { treatment: [...new Set(chosen.map((record) => record.kind))].join("+"), legalBasis: [...new Set(chosen.map((record) => record.legalBasis).filter(Boolean))].join("; ") || undefined, source: "MDIC Tarifas Vigentes", sourceUrl: snapshot.sources.mdic?.sourceUrl });
   }
-
   return { ...base, warnings, source: "MDIC Tarifas Vigentes", sourceUrl: snapshot.sources.mdic?.sourceUrl };
 }
 
@@ -205,10 +187,7 @@ function resolveIPI(snapshot: FederalOfficialSnapshot, ncm: string, input: Feder
   }
 
   const materiallyDifferentEx = exRecords.filter((record) => record.rate !== baseRates[0] || record.taxTreatment !== base[0]?.taxTreatment);
-  if (!requestedEx && materiallyDifferentEx.length) {
-    return component("requires_input", null, ["A TIPI possui EX com tratamento diferente da alíquota geral desta NCM. Informe o EX aplicável ou confirme o enquadramento antes do cálculo."], records, { source: "RFB TIPI", sourceUrl: snapshot.sources.rfbTipi?.sourceUrl });
-  }
-
+  if (!requestedEx && materiallyDifferentEx.length) return component("requires_input", null, ["A TIPI possui EX com tratamento diferente da alíquota geral desta NCM. Informe o EX aplicável ou confirme o enquadramento antes do cálculo."], records, { source: "RFB TIPI", sourceUrl: snapshot.sources.rfbTipi?.sourceUrl });
   return component("resolved", baseRates[0], [], base, { treatment: "TIPI_BASE", taxTreatment: base[0]?.taxTreatment, legalBasis: base[0]?.legalBasis ?? undefined, source: "RFB TIPI", sourceUrl: snapshot.sources.rfbTipi?.sourceUrl });
 }
 
@@ -222,11 +201,8 @@ export function resolveFederalTaxesFromSnapshot(input: FederalTaxResolutionInput
   if (input.statutoryIIRate != null) {
     const legacy = resolveFederalII2026({ date: date as `${number}-${number}-${number}`, statutoryRate: input.statutoryIIRate, reducedRate: input.reducedIIRate, benefitKind: input.iiBenefitKind ?? "none", coveredByLC224: input.iiCoveredByLC224, exceptionToLC224: input.iiExceptionToLC224 });
     ii = component("resolved", legacy.payableRate, legacy.warning ? [legacy.warning] : [], [], { automatic: false, treatment: "EXPLICIT_OVERRIDE", legalBasis: legacy.source, source: legacy.source });
-  } else if (ncm.length === 8) {
-    ii = resolveII(snapshot, ncm, date, input);
-  } else {
-    ii = component("not_found", null, ["II não resolvido automaticamente: informe uma NCM válida."], []);
-  }
+  } else if (ncm.length === 8) ii = resolveII(snapshot, ncm, date, input);
+  else ii = component("not_found", null, ["II não resolvido automaticamente: informe uma NCM válida."], []);
 
   let ipi: FederalResolvedComponent;
   if (input.ipiRate != null) ipi = component("resolved", input.ipiRate, [], [], { automatic: false, treatment: "EXPLICIT_OVERRIDE", source: "Override explícito" });
@@ -270,9 +246,6 @@ export function resolveFederalTaxesFromSnapshot(input: FederalTaxResolutionInput
 }
 
 export function resolveFederalTaxes(input: FederalTaxResolutionInput): FederalTaxResolution {
-  const needsSnapshot = input.statatoryIIRate == null || input.ipiRate == null;
-  // Preserve explicit legacy/manual acceptance tests without forcing a snapshot read
-  // when both II and IPI are supplied. Production automatic calculations always use the snapshot.
   if (input.statutoryIIRate != null && input.ipiRate != null) {
     const empty: FederalOfficialSnapshot = { schemaVersion: 4, publicationStatus: "manual", sources: {}, records: [] };
     return resolveFederalTaxesFromSnapshot(input, empty);
