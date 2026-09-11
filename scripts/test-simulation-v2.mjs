@@ -103,12 +103,17 @@ assert.throws(() => runImportSimulationV2({
 
 const service = fs.readFileSync("lib/simulation-v2.ts", "utf8");
 const route = fs.readFileSync("app/api/simulation-v2/route.ts", "utf8");
+const persistenceRoute = fs.readFileSync("app/api/simulations/route.ts", "utf8");
 const page = fs.readFileSync("app/simulacao-v2/page.tsx", "utf8");
 assert.match(service, /calculateUnifiedImportSimulation/);
 assert.match(service, /resolveFederalTaxes/);
 assert.doesNotMatch(service, /from ["']\.\/calculator/);
 assert.match(route, /runImportSimulationV2/);
 assert.match(page, /\/api\/simulation-v2/);
-assert.doesNotMatch(page, /lib\/calculator|\/api\/simulations/);
+assert.match(page, /\/api\/simulations/);
+assert.match(page, /mode:"v2"/);
+assert.doesNotMatch(page, /lib\/calculator/);
+assert.match(persistenceRoute, /body\.mode === "v2"/);
+assert.match(persistenceRoute, /body\.result\.contract !== "importafacil-simulation-v2"/);
 
-console.log("Simulation V2 acceptance: OK — multi-item, explicit status, commercial layer and canonical engine locked");
+console.log("Simulation V2 acceptance: OK — multi-item, explicit status, commercial layer, canonical engine and snapshot persistence locked");
