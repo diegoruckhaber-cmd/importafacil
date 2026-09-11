@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Ingest official MDIC tariff and RFB TIPI workbooks into a candidate snapshot.
+"""Build a fail-closed federal fiscal snapshot from official MDIC and RFB XLSX files.
 
-The official workbooks have changed layout over time.  This parser therefore uses
-header detection when available and a data-driven column inference fallback.  It
-also normalizes Unicode/accents and preserves every unambiguous NCM/rate row.
+Unlike the legacy importer, this loader preserves the legal selectors that decide
+whether a tariff row is applicable: annex, Ex, description, quota and validity.
+It also keeps TIPI Ex rows and the NT treatment. No precedence decision is made
+by row order; precedence belongs to the runtime resolver.
 """
 from __future__ import annotations
 
@@ -11,41 +12,48 @@ import argparse
 import json
 import re
 import unicodedata
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
 from openpyxl import load_workbook
 
 NCM_RE = re.compile(r"^\d{8}$")
+PREFIX_RE = re.compile(r"^\d{4,8}$")
 
 
-def text(v: Any) -> str:
-    return "" if v is None else str(v).strip()
+def text(value: Any) -> str:
+    return "" if value is None else str(value).strip()
 
 
-def norm_key(v: Any) -> str:
-    raw = unicodedata.normalize("NFKD", text(v))
+def norm(value: Any) -> str:
+    raw = unicodedata.normalize("NFKD", text(value))
     raw = "".join(ch for ch in raw if not unicodedata.combining(ch))
     return re.sub(r"[^a-z0-9]+", "", raw.lower())
 
 
-def normalize_ncm(v: Any) -> str | None:
-    raw = text(v).replace(".", "").replace("-", "").replace(" ", "")
-    if raw.endswith(".0"):
-        raw = raw[:-2]
-    if raw.isdigit() and len(raw) == 7:
-        raw = "0" + raw
+def digits(value: Any) -> str:
+    return re.sub(r"\D", "", text(value))
+
+
+def normalize_ncm(value: Any) -> str | None:
+    raw = digits(value)
     return raw if NCM_RE.fullmatch(raw) else None
 
 
-def parse_rate(v: Any) -> float | None:
-    if v is None or v == "":
+def normalize_prefix(value: Any) -> str | None:
+    raw = digits(value)
+    return raw if PREFIX_RE.fullmatch(raw) and len(raw) < 8 else None
+
+
+def parse_rate(value: Any) -> float | None:
+    if value is None or value == "":
         return None
-    if isinstance(v, (int, float)):
-        rate = float(v)
+    if isinstance(value, (int, float)):
+        rate = float(value)
         return rate if 0 <= rate <= 100 else None
-    raw = text(v).replace("%", "").replace(" ", "")
-    if not raw:
+    raw = text(value).replace("%", "").replace(" ", "")
+    if not raw or norm(raw) in {"nt", "naotributado"}:
         return None
     if raw.count(",") == 1:
         raw = raw.replace(".", "").replace(",", ".")
@@ -56,173 +64,290 @@ def parse_rate(v: Any) -> float | None:
     return rate if 0 <= rate <= 100 else None
 
 
-def find_col(headers: list[Any], exact: set[str], contains: tuple[str, ...]) -> int | None:
-    keys = [norm_key(x) for x in headers]
-    for candidate in exact:
-        if candidate in keys:
-            return keys.index(candidate)
-    for i, key in enumerate(keys):
-        if any(part in key for part in contains):
-            return i
+def parse_date(value: Any) -> str | None:
+    if value in (None, "", "-"):
+        return None
+    if isinstance(value, datetime):
+        return value.date().isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    raw = text(value).split(" ")[0]
+    for pattern in (r"^(\d{4})-(\d{2})-(\d{2})$", r"^(\d{2})/(\d{2})/(\d{4})$"):
+        match = re.match(pattern, raw)
+        if match:
+            if pattern.startswith("^(\\d{4})"):
+                return raw
+            return f"{match.group(3)}-{match.group(2)}-{match.group(1)}"
     return None
 
 
-def find_header(rows: list[tuple[Any, ...]], rate_exact: set[str], rate_contains: tuple[str, ...]):
-    for idx, row in enumerate(rows[:100]):
-        headers = list(row)
-        ncm_col = find_col(
-            headers,
-            {"ncm", "codigo", "codigoncm", "codigoncmsh", "codigoncm2022"},
-            ("ncm", "codigo"),
-        )
-        rate_col = find_col(headers, rate_exact, rate_contains)
-        if ncm_col is not None and rate_col is not None and ncm_col != rate_col:
-            return idx, ncm_col, rate_col
+def clean_optional(value: Any) -> str | None:
+    raw = text(value)
+    return None if raw in {"", "-", "–", "—"} else raw
+
+
+def clean_ex(value: Any) -> str | None:
+    raw = clean_optional(value)
+    if raw is None:
+        return None
+    if isinstance(value, (int, float)) and float(value).is_integer():
+        return str(int(value)).zfill(3)
+    return raw.zfill(3) if raw.isdigit() and len(raw) < 3 else raw
+
+
+def quota_value(value: Any) -> float | str | None:
+    if value in (None, "", "-"):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    return text(value)
+
+
+def find_header(rows: list[tuple[Any, ...]]) -> tuple[int, list[Any]] | None:
+    for index, row in enumerate(rows[:120]):
+        keys = [norm(value) for value in row]
+        if any(key == "ncm" or key.startswith("ncm") for key in keys):
+            return index, list(row)
     return None
 
 
-def infer_columns(rows: list[tuple[Any, ...]], source_type: str) -> tuple[int | None, int | None]:
-    """Infer NCM/rate columns from actual data when the workbook has no usable header."""
-    if not rows:
-        return None, None
-    width = max(len(r) for r in rows)
-    sample = rows[: min(len(rows), 1500)]
-    ncm_scores = [0] * width
-    rate_scores = [0] * width
-
-    for row in sample:
-        for col in range(len(row)):
-            value = row[col]
-            if normalize_ncm(value) is not None:
-                ncm_scores[col] += 1
-            if parse_rate(value) is not None:
-                rate_scores[col] += 1
-
-    ncm_col = max(range(width), key=ncm_scores.__getitem__) if width else None
-    if ncm_col is None or ncm_scores[ncm_col] < 2:
-        return None, None
-
-    # The rate column should contain many numeric/rate values but must not be the NCM column.
-    candidates = [c for c in range(width) if c != ncm_col]
-    if not candidates:
-        return None, None
-    rate_col = max(candidates, key=rate_scores.__getitem__)
-    if rate_scores[rate_col] < 2:
-        return ncm_col, None
-
-    # Avoid selecting a description/quantity column with lots of arbitrary numbers.
-    # Prefer a rate column that appears adjacent to NCM when scores are comparable.
-    best_score = rate_scores[rate_col]
-    nearby = [c for c in candidates if abs(c - ncm_col) <= 4]
-    for c in nearby:
-        if rate_scores[c] >= max(2, int(best_score * 0.70)):
-            rate_col = c
-            break
-    return ncm_col, rate_col
+def col(header: list[Any], *names: str, contains: tuple[str, ...] = ()) -> int | None:
+    keys = [norm(value) for value in header]
+    wanted = {norm(name) for name in names}
+    for index, key in enumerate(keys):
+        if key in wanted:
+            return index
+    for index, key in enumerate(keys):
+        if any(fragment in key for fragment in contains):
+            return index
+    return None
 
 
-def extract(path: Path, source_type: str):
-    wb = load_workbook(path, read_only=True, data_only=True)
-    if source_type == "mdic-ii":
-        exact, contains = {
-            "aliquota", "aliquotaii", "ii", "tarifa", "tec", "aliquotatec", "impostoimportacao"
-        }, ("aliquota", "tarifa", "tec", "importacao")
-    else:
-        exact, contains = {"ipi", "aliquotaipi", "aliquotai", "aliquota"}, ("ipi", "aliquota")
+def value(row: tuple[Any, ...], index: int | None) -> Any:
+    return row[index] if index is not None and index < len(row) else None
 
+
+def mdic_kind(sheet: str) -> str:
+    if sheet.startswith("Anexo I "):
+        return "TEC"
+    if sheet.startswith("Anexo II "):
+        return "BRAZIL_APPLIED"
+    if sheet.startswith("Anexo III "):
+        return "AERONAUTICAL_SCOPE"
+    if sheet.startswith("Anexo IV "):
+        return "SUPPLY_SHORTAGE"
+    if sheet.startswith("Anexo V "):
+        return "LETEC"
+    if sheet.startswith("Anexo VI "):
+        return "LEBIT_BK"
+    if sheet.startswith("Anexo VIII "):
+        return "WTO_CONCESSION"
+    if sheet.startswith("Anexo IX "):
+        return "DCC"
+    if sheet.startswith("Anexo X "):
+        return "ACE14_AUTOMOTIVE"
+    return "UNKNOWN"
+
+
+def parse_mdic(path: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    workbook = load_workbook(path, read_only=True, data_only=True)
     records: list[dict[str, Any]] = []
-    rejected = 0
-    sheets = []
+    sheets_meta: list[dict[str, Any]] = []
 
-    for sheet in wb.worksheets:
+    for sheet in workbook.worksheets:
         rows = list(sheet.iter_rows(values_only=True))
-        sheets.append({
-            "name": sheet.title,
-            "rows": len(rows),
-            "cols": max((len(r) for r in rows), default=0),
-        })
-        if not rows:
+        kind = mdic_kind(sheet.title)
+        header_info = find_header(rows)
+        sheets_meta.append({"name": sheet.title, "kind": kind, "rows": len(rows), "columns": sheet.max_column})
+        if header_info is None:
+            raise SystemExit(f"MDIC sheet {sheet.title!r}: business header not found")
+        header_index, header = header_info
+
+        if kind == "AERONAUTICAL_SCOPE":
+            prefixes: set[str] = set()
+            for row in rows[header_index + 1 :]:
+                for cell in row:
+                    prefix = normalize_prefix(cell)
+                    ncm = normalize_ncm(cell)
+                    if prefix:
+                        prefixes.add(prefix)
+                    elif ncm:
+                        prefixes.add(ncm)
+            for prefix in sorted(prefixes):
+                records.append({
+                    "tax": "II", "kind": kind, "ncmPrefix": prefix,
+                    "rate": None, "requiresInput": True,
+                    "sheet": sheet.title,
+                    "legalBasis": "Resolução Gecex nº 272/2021 — Anexo III",
+                    "scopeCondition": "Regra setorial aeronáutica: confirmar que o produto e a operação atendem às condições próprias do Anexo III.",
+                })
             continue
 
-        header = find_header(rows, exact, contains)
-        if header is not None:
-            hidx, ncm_col, rate_col = header
+        ncm_idx = col(header, "NCM")
+        desc_idx = col(header, "Descrição", contains=("descricao",))
+        ex_idx = col(header, "Nº Ex", "Nº EX", "EX", contains=("nex",))
+        quota_idx = col(header, "Quota", contains=("quota",))
+        quota_unit_idx = col(header, "Unidade da quota", "Unidade quota", "Unidade da Quota", contains=("unidadedaquota", "unidadequota"))
+        start_idx = col(header, "Início de vigência", "Início da Vigência", contains=("iniciodevigencia", "iniciodavigencia"))
+        end_idx = col(header, "Término de vigência", contains=("terminodevigencia",))
+        legal_idx = col(header, "Ato de inclusão", "Ato de Inclusão", "Atos de inclusão", contains=("atodeinclusao", "atosdeinclusao"))
+        obs_idx = col(header, "Observações", "Observação", contains=("observacao",))
+
+        if kind == "TEC":
+            rate_idx = col(header, "TEC (%)", contains=("tec",))
+        elif kind == "BRAZIL_APPLIED":
+            rate_idx = col(header, "Alíquota aplicada (%)", contains=("aliquotaaplicada",))
         else:
-            hidx = 0
-            ncm_col, rate_col = infer_columns(rows, source_type)
+            rate_idx = col(header, "Alíquota (%)", contains=("aliquota",))
 
-        if ncm_col is None or rate_col is None:
-            print(f"SKIP sheet={sheet.title!r}: unable to infer NCM/rate columns")
-            continue
-
-        print(f"PARSE sheet={sheet.title!r}: header={header is not None} ncm_col={ncm_col + 1} rate_col={rate_col + 1}")
-        start = hidx + 1 if header is not None else 0
-        for row_number, row in enumerate(rows[start:], start=start + 1):
-            if not any(v not in (None, "") for v in row):
+        tec_idx = col(header, "TEC (%)", contains=("tec",)) if kind == "BRAZIL_APPLIED" else None
+        applied_found = 0
+        for row_number, row in enumerate(rows[header_index + 1 :], start=header_index + 2):
+            ncm = normalize_ncm(value(row, ncm_idx))
+            if not ncm:
                 continue
-            ncm = normalize_ncm(row[ncm_col] if ncm_col < len(row) else None)
-            rate = parse_rate(row[rate_col] if rate_col < len(row) else None)
-            if ncm is None or rate is None:
-                rejected += 1
+            rate = parse_rate(value(row, rate_idx))
+            if rate is None:
                 continue
-            records.append({
-                "sourceType": source_type,
+            ex_code = clean_ex(value(row, ex_idx))
+            quota = quota_value(value(row, quota_idx))
+            record = {
+                "tax": "II",
+                "kind": kind,
                 "ncm": ncm,
                 "rate": rate,
+                "description": clean_optional(value(row, desc_idx)),
+                "exCode": ex_code,
+                "quota": quota,
+                "quotaUnit": clean_optional(value(row, quota_unit_idx)),
+                "validFrom": parse_date(value(row, start_idx)),
+                "validTo": parse_date(value(row, end_idx)),
+                "legalBasis": clean_optional(value(row, legal_idx)),
+                "observation": clean_optional(value(row, obs_idx)),
+                "requiresInput": bool(ex_code or quota is not None),
                 "sheet": sheet.title,
                 "row": row_number,
-                "workbook": path.name,
+            }
+            if kind == "BRAZIL_APPLIED":
+                record["tecRate"] = parse_rate(value(row, tec_idx))
+                record["legalBasis"] = clean_optional(value(row, col(header, "Fundamentação da alíquota aplicada", contains=("fundamentacaodaaliquotaaplicada",)))) or record["legalBasis"]
+            records.append(record)
+            applied_found += 1
+        if applied_found == 0 and kind != "UNKNOWN":
+            raise SystemExit(f"MDIC sheet {sheet.title!r}: no usable tariff rows")
+
+    return records, sheets_meta
+
+
+def parse_tipi(path: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    workbook = load_workbook(path, read_only=True, data_only=True)
+    records: list[dict[str, Any]] = []
+    sheets_meta: list[dict[str, Any]] = []
+    for sheet in workbook.worksheets:
+        rows = list(sheet.iter_rows(values_only=True))
+        header_info = find_header(rows)
+        sheets_meta.append({"name": sheet.title, "rows": len(rows), "columns": sheet.max_column})
+        if header_info is None:
+            raise SystemExit(f"TIPI sheet {sheet.title!r}: business header not found")
+        header_index, header = header_info
+        ncm_idx = col(header, "NCM")
+        ex_idx = col(header, "EX")
+        desc_idx = col(header, "Descrição", contains=("descricao",))
+        rate_idx = col(header, "Alíquota (%)", contains=("aliquota",))
+        current_ncm: str | None = None
+        for row_number, row in enumerate(rows[header_index + 1 :], start=header_index + 2):
+            explicit_ncm = normalize_ncm(value(row, ncm_idx))
+            if explicit_ncm:
+                current_ncm = explicit_ncm
+            ex_code = clean_ex(value(row, ex_idx))
+            if not current_ncm:
+                continue
+            raw_rate = value(row, rate_idx)
+            rate = parse_rate(raw_rate)
+            treatment = "NT" if norm(raw_rate) in {"nt", "naotributado"} else "RATE"
+            if treatment == "NT":
+                rate = 0.0
+            if rate is None:
+                continue
+            # A row without a full NCM is only a usable tax row when it is an Ex
+            # belonging to the latest full NCM. Hierarchical headings are ignored.
+            if not explicit_ncm and not ex_code:
+                continue
+            records.append({
+                "tax": "IPI",
+                "kind": "TIPI",
+                "ncm": current_ncm,
+                "rate": rate,
+                "taxTreatment": treatment,
+                "exCode": ex_code,
+                "description": clean_optional(value(row, desc_idx)),
+                "requiresInput": bool(ex_code),
+                "sheet": sheet.title,
+                "row": row_number,
+                "legalBasis": "Decreto nº 11.158/2022 — TIPI, atualizada pelo ADE RFB nº 1/2026",
             })
+    if not records:
+        raise SystemExit("TIPI ingestion produced zero records")
+    return records, sheets_meta
 
-    return records, rejected, sheets
 
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mdic", required=True, type=Path)
+    parser.add_argument("--tipi", required=True, type=Path)
+    parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--mdic-published", default="2026-09-08")
+    parser.add_argument("--tipi-updated", default="2026-02-13")
+    args = parser.parse_args()
 
-def main():
-    p = argparse.ArgumentParser()
-    p.add_argument("--mdic", required=True, type=Path)
-    p.add_argument("--tipi", required=True, type=Path)
-    p.add_argument("--output", required=True, type=Path)
-    a = p.parse_args()
+    mdic_records, mdic_sheets = parse_mdic(args.mdic)
+    tipi_records, tipi_sheets = parse_tipi(args.tipi)
+    records = sorted(mdic_records + tipi_records, key=lambda item: (item["tax"], item.get("ncm", item.get("ncmPrefix", "")), item["kind"], item.get("exCode") or "", item.get("validFrom") or ""))
 
-    mdic, mdic_rej, mdic_sheets = extract(a.mdic, "mdic-ii")
-    tipi, tipi_rej, tipi_sheets = extract(a.tipi, "rfb-ipi")
-    print(f"MDIC sheets={len(mdic_sheets)} records={len(mdic)} rejected={mdic_rej}")
-    print(f"TIPI sheets={len(tipi_sheets)} records={len(tipi)} rejected={tipi_rej}")
-
-    if not mdic:
-        raise SystemExit("MDIC ingestion produced zero records; refusing publication.")
-    if not tipi:
-        raise SystemExit("TIPI ingestion produced zero records; refusing publication.")
-
-    out = {
-        "schemaVersion": 3,
+    base_ii = [record for record in mdic_records if record["kind"] == "BRAZIL_APPLIED"]
+    tec = [record for record in mdic_records if record["kind"] == "TEC"]
+    special_ii = [record for record in mdic_records if record["kind"] not in {"TEC", "BRAZIL_APPLIED"}]
+    output = {
+        "schemaVersion": 4,
         "publicationStatus": "candidate",
+        "snapshotDate": args.mdic_published,
         "sources": {
             "mdic": {
-                "file": a.mdic.name,
-                "published": "2026-07-24",
-                "recordCount": len(mdic),
-                "rejectedRows": mdic_rej,
+                "file": args.mdic.name,
+                "published": args.mdic_published,
+                "sourceUrl": "https://www.gov.br/mdic/pt-br/assuntos/camex/se-camex/strat/tarifas/vigentes",
+                "recordCount": len(mdic_records),
+                "baseAppliedCount": len(base_ii),
+                "tecCount": len(tec),
+                "specialTreatmentCount": len(special_ii),
                 "sheets": mdic_sheets,
             },
             "rfbTipi": {
-                "file": a.tipi.name,
-                "updated": "2026-02-13",
-                "recordCount": len(tipi),
-                "rejectedRows": tipi_rej,
+                "file": args.tipi.name,
+                "updated": args.tipi_updated,
+                "sourceUrl": "https://www.gov.br/receitafederal/pt-br/acesso-a-informacao/legislacao/tipi-tabela-de-incidencia-do-imposto-sobre-produtos-industrializados",
+                "recordCount": len(tipi_records),
                 "sheets": tipi_sheets,
             },
         },
-        "records": mdic + tipi,
+        "precedence": {
+            "iiBase": ["BRAZIL_APPLIED", "TEC"],
+            "iiTemporaryOverrides": ["SUPPLY_SHORTAGE", "LETEC", "LEBIT_BK", "WTO_CONCESSION", "DCC", "ACE14_AUTOMOTIVE"],
+            "rule": "Active Annexes IV, V, VI, VIII, IX and X prevail over Annexes I and II while their temporary tariff treatment is in force. Conditions such as Ex and quota must be satisfied before automatic application.",
+        },
+        "records": records,
         "notes": [
-            "All unambiguous source rows are preserved; duplicate NCMs are intentional across tariff treatments.",
-            "MDIC annex precedence is resolved by the fiscal engine.",
-            "Snapshot remains candidate until acceptance tests pass.",
+            "No tariff is selected by workbook row order.",
+            "Rows conditioned by Ex or quota remain explicit and require runtime evidence before application.",
+            "TIPI NT is represented with rate 0 and taxTreatment NT, preserving legal semantics.",
+            "Aeronáutico Annex III is indexed as scope metadata and never receives an invented rate.",
         ],
     }
-    a.output.parent.mkdir(parents=True, exist_ok=True)
-    a.output.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"Generated {len(out['records'])} total records")
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(output, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    print(f"MDIC records={len(mdic_records)} base_applied={len(base_ii)} tec={len(tec)} special={len(special_ii)}")
+    print(f"TIPI records={len(tipi_records)}")
+    print(f"Generated schemaVersion=4 records={len(records)} bytes={args.output.stat().st_size}")
 
 
 if __name__ == "__main__":
