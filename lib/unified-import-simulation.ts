@@ -127,7 +127,9 @@ export function calculateUnifiedImportSimulation(input: UnifiedImportSimulationI
   const insuranceBrl = Number(input.insurance ?? 0) * exchange;
   const merchandiseValues = normalizedItems.map((item) => item.quantity * item.fobUnit * exchange);
   const totalMerchandiseValue = merchandiseValues.reduce((sum, value) => sum + value, 0);
-  if ((freightBrl > 0 || insuranceBrl > 0) && totalMerchandiseValue <= 0) throw new Error("O valor total das mercadorias deve ser positivo para ratear frete e seguro.");
+  const totalWeightKg = normalizedItems.reduce((sum, item) => sum + item.weightKg, 0);
+  if (insuranceBrl > 0 && totalMerchandiseValue <= 0) throw new Error("O valor FOB total das mercadorias deve ser positivo para ratear o seguro internacional.");
+  if (freightBrl > 0 && totalWeightKg <= 0) throw new Error("O peso líquido total deve ser positivo para ratear o frete internacional.");
 
   const additionalCharges = resolveSCImportAdditionalCharges({
     freightBrl,
@@ -149,9 +151,10 @@ export function calculateUnifiedImportSimulation(input: UnifiedImportSimulationI
     assertFederalResolved(item.itemId, federal);
 
     const merchandiseValueBrl = merchandiseValues[index];
-    const share = totalMerchandiseValue > 0 ? merchandiseValueBrl / totalMerchandiseValue : 1 / normalizedItems.length;
-    const allocatedFreightBrl = freightBrl * share;
-    const allocatedInsuranceBrl = insuranceBrl * share;
+    const freightShare = freightBrl > 0 ? item.weightKg / totalWeightKg : 0;
+    const insuranceShare = insuranceBrl > 0 ? merchandiseValueBrl / totalMerchandiseValue : 0;
+    const allocatedFreightBrl = freightBrl * freightShare;
+    const allocatedInsuranceBrl = insuranceBrl * insuranceShare;
     const defense = resolveDefenseCommercial({
       ncm: item.ncm,
       origin: item.origin,
@@ -240,7 +243,7 @@ export function calculateUnifiedImportSimulation(input: UnifiedImportSimulationI
     if (normalized) expenses.push(normalized);
   };
 
-  addExpense({ id: "FREIGHT", description: "Frete internacional", amount: freightBrl, treatment: "customs_base", allocation: "item_value" });
+  addExpense({ id: "FREIGHT", description: "Frete internacional", amount: freightBrl, treatment: "customs_base", allocation: "weight" });
   addExpense({ id: "INSURANCE", description: "Seguro internacional", amount: insuranceBrl, treatment: "customs_base", allocation: "item_value" });
   addExpense({ id: "AFRMM", description: "AFRMM/TUM — base ICMS SC", amount: additionalCharges.afrmmBrl, treatment: "icms_import_base", allocation: "item_value", note: "8% sobre a remuneração do transporte aquaviário quando aplicável." });
   addExpense({ id: "SISCOMEX", description: "Taxa de Utilização do Siscomex — base ICMS SC", amount: additionalCharges.siscomexBrl, treatment: "icms_import_base", allocation: "item_value", note: "R$ 185 por DI + R$ 29,50 por adição." });
