@@ -22,31 +22,45 @@ async function authenticatedClient(req: Request) {
   return { supabase, user: userData.user };
 }
 
+type Authenticated = {
+  supabase: ReturnType<typeof clientForToken>;
+  user: { id: string };
+};
+
+async function persistCalculatedRecord(auth: Authenticated, name: string, input: unknown, result: unknown): Promise<NextResponse> {
+  const { data, error } = await auth.supabase.from("simulations").insert({
+    user_id: auth.user.id,
+    name,
+    input,
+    result,
+  }).select("id, name, created_at").single();
+  if (error || !data) {
+    console.error("simulation persistence error", error);
+    return NextResponse.json({ error: "Não foi possível salvar a simulação." }, { status: 500 });
+  }
+  return NextResponse.json({ id: data.id, createdAt: data.created_at, persistence: "saved" });
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const name = typeof body.name === "string" && body.name.trim() ? body.name.trim() : "Nova simulação";
     const auth = await authenticatedClient(req);
     if ("error" in auth) return auth.error;
+    const authenticated: Authenticated = { supabase: auth.supabase, user: { id: auth.user.id } };
 
-    // SC operations already contain the complete result produced by the dedicated
-    // multi-item engine. Persist that result without running the legacy calculator.
+    if (body.mode === "v2") {
+      if (!body.input || !body.result || body.result.contract !== "importafacil-simulation-v2") {
+        return NextResponse.json({ error: "Contrato da Simulation V2 inválido." }, { status: 400 });
+      }
+      return persistCalculatedRecord(authenticated, name, body.input, body.result);
+    }
+
     if (body.mode === "sc") {
       if (!body.input || !body.result) {
         return NextResponse.json({ error: "Dados da operação SC inválidos." }, { status: 400 });
       }
-      const { data, error } = await auth.supabase.from("simulations").insert({
-        user_id: auth.user.id,
-        name,
-        input: body.input,
-        result: body.result,
-      }).select("id, name, created_at").single();
-
-      if (error) {
-        console.error("SC simulation persistence error", error);
-        return NextResponse.json({ error: "Não foi possível salvar a simulação SC." }, { status: 500 });
-      }
-      return NextResponse.json({ id: data.id, createdAt: data.created_at, status: "calculated", persistence: "saved" });
+      return persistCalculatedRecord(authenticated, name, body.input, body.result);
     }
 
     const input: SimulationInput = body.input;
@@ -55,19 +69,10 @@ export async function POST(req: Request) {
     }
 
     const result = calculate(input);
-    const { data, error } = await auth.supabase.from("simulations").insert({
-      user_id: auth.user.id,
-      name,
-      input,
-      result,
-    }).select("id, name, created_at").single();
-
-    if (error) {
-      console.error("simulation persistence error", error);
-      return NextResponse.json({ error: "Não foi possível salvar a simulação." }, { status: 500 });
-    }
-
-    return NextResponse.json({ id: data.id, createdAt: data.created_at, status: "calculated", result, persistence: "saved" });
+    const response = await persistCalculatedRecord(authenticated, name, input, result);
+    if (response.status >= 400) return response;
+    const payload = await response.json();
+    return NextResponse.json({ ...payload, status: "calculated", result });
   } catch {
     return NextResponse.json({ error: "Não foi possível processar a simulação." }, { status: 400 });
   }
