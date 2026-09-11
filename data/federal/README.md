@@ -42,3 +42,5 @@ A aplicação continua **fail-closed** quando o enquadramento jurídico não é 
 ## Publicação e auditoria
 
 `scripts/ingest-official-fiscal-data.py` gera o snapshot a partir dos XLSX oficiais. Antes da publicação, a CI valida cobertura semântica e metadados. `data/federal/snapshot-integrity-manifest.json` fixa os blobs dos arquivos fiscais críticos, e a bateria completa inclui testes de independência da ordem das linhas, concorrência, EX, quota, vigência e `NT`.
+
+O snapshot ativo publicado pela auditoria de fechamento da Etapa 2 está fixado pelo blob Git `8e9a34319b78638c8298a7d496948a1fcb7c6b69`. Qualquer alteração futura no arquivo exige regeneração e atualização atômica do manifesto antes de passar pelo gate completo do motor.
