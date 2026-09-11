@@ -5,18 +5,18 @@ export type FederalSourceSnapshot = {
 };
 
 /**
- * Publication metadata verified against the official source pages on 2026-08-15.
+ * Publication metadata verified against the official source pages on 2026-09-10.
  * The gate intentionally does not infer tariff values; it only prevents a
  * future catalog refresh from silently using a stale official snapshot.
  */
 export const FEDERAL_SOURCE_BASELINE_2026 = {
   MDIC_TARIFF: {
-    officialPageUpdatedAt: "2026-08-12",
-    latestPublishedGecexKnown: "GECEX 941/2026-07-23",
+    officialPageUpdatedAt: "2026-09-08",
+    latestPublishedGecexKnown: "Consolidado Anexos I a X publicado em 08/09/2026",
   },
   RFB_TIPI: {
     officialPageUpdatedAt: "2026-02-13",
-    workbook: "1 TIPI 2022 - Atualizada ADE 001-2026.xlsx",
+    workbook: "TIPI 2022 - Atualizada ADE RFB 001/2026",
   },
 } as const;
 
@@ -26,20 +26,14 @@ function day(value: string): number {
   return parsed;
 }
 
-export function isSnapshotAtLeastAsFresh(
-  snapshot: FederalSourceSnapshot,
-): boolean {
+export function isSnapshotAtLeastAsFresh(snapshot: FederalSourceSnapshot): boolean {
   const baseline = FEDERAL_SOURCE_BASELINE_2026[snapshot.source].officialPageUpdatedAt;
   return day(snapshot.sourceUpdatedAt) >= day(baseline);
 }
 
-export function assertFreshFederalSnapshot(
-  snapshot: FederalSourceSnapshot,
-): void {
+export function assertFreshFederalSnapshot(snapshot: FederalSourceSnapshot): void {
   if (!isSnapshotAtLeastAsFresh(snapshot)) {
     const baseline = FEDERAL_SOURCE_BASELINE_2026[snapshot.source].officialPageUpdatedAt;
-    throw new Error(
-      `${snapshot.source} snapshot ${snapshot.sourceUpdatedAt} is stale; official baseline is ${baseline}.`,
-    );
+    throw new Error(`${snapshot.source} snapshot ${snapshot.sourceUpdatedAt} is stale; official baseline is ${baseline}.`);
   }
 }

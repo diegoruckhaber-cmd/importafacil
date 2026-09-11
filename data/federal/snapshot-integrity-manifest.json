@@ -1,9 +1,10 @@
 {
-  "version": 1,
+  "version": 2,
+  "activeFederalSnapshot": "data/federal/official-snapshot-2026-09-08.json",
   "snapshots": [
     {
-      "path": "data/federal/official-snapshot-2026-07.json",
-      "blobSha": "6bba13b82ea7368b3a4209bb0ac3b270de29edcd"
+      "path": "data/federal/official-snapshot-2026-09-08.json",
+      "blobSha": "8e9a34319b78638c8298a7d496948a1fcb7c6b69"
     },
     {
       "path": "data/federal/temporary-ii-alerts-2026.json",

@@ -1,20 +1,11 @@
-import fs from "node:fs";
-import path from "node:path";
 import { calculateSCMultiItemFinalCost } from "./sc-multi-item-final-cost-engine.ts";
 import { decideSCItem } from "./sc-decision-engine.ts";
 import { resolveSCBenefit, type SCBenefitResolution } from "./sc-benefit-resolution.ts";
-import { resolveImportContributionRates } from "./import-contribution-rates.ts";
+import { resolveFederalTaxes } from "./federal-tax-resolution.ts";
 import { resolveDefenseCommercial } from "./defesa-comercial-resolver.ts";
 import { resolveSCImportAdditionalCharges, type ImportDeclarationType, type ImportTransportMode } from "./sc-import-additional-charges.ts";
-import { buildTemporaryIIWarning, resolveTemporaryII } from "./temporary-ii-resolver.ts";
 import type { ItemImportExpense } from "./item-tributary-expense-engine.ts";
 import type { CostAllocationMethod } from "./import-cost-allocation.ts";
-
-type SnapshotRecord = { sourceType: "mdic-ii" | "rfb-ipi"; ncm: string; rate: number; sheet: string };
-type Snapshot = {
-  sources: { published?: string; mdic?: { published?: string }; rfbTipi?: { updated?: string } };
-  records: SnapshotRecord[];
-};
 
 export type UnifiedImportItemInput = {
   itemId: string;
@@ -27,6 +18,10 @@ export type UnifiedImportItemInput = {
   fobUnit: number;
   icms: number;
   exporter?: string;
+  iiExCode?: string;
+  iiQuotaConfirmed?: boolean;
+  ipiExCode?: string;
+  aeronauticalEligible?: boolean;
   ttd?: "none" | "77" | "409" | "410";
   destination?: "commercial_resale" | "industrialization";
   validConcession?: boolean;
@@ -64,57 +59,7 @@ export type UnifiedImportSimulationInput = {
   expenses?: UnifiedImportExpenseInput[];
 };
 
-const SNAPSHOT_PATH = path.join(process.cwd(), "data", "federal", "official-snapshot-2026-07.json");
 const normalizeNcm = (value: string) => String(value ?? "").replace(/\D/g, "");
-
-function loadSnapshot(): Snapshot {
-  return JSON.parse(fs.readFileSync(SNAPSHOT_PATH, "utf8")) as Snapshot;
-}
-
-function resolveRate(records: SnapshotRecord[], label: string) {
-  if (!records.length) throw new Error(`${label} não localizado para a NCM no snapshot oficial.`);
-  const uniqueRates = [...new Set(records.map((record) => record.rate))];
-  return {
-    rate: uniqueRates[0],
-    warning: uniqueRates.length > 1
-      ? `${label} possui mais de um tratamento no snapshot oficial; a primeira alíquota do snapshot foi utilizada como referência e a operação continua calculável.`
-      : undefined,
-  };
-}
-
-function resolveFederal(snapshot: Snapshot, ncm: string, date: string) {
-  const records = snapshot.records.filter((record) => normalizeNcm(record.ncm) === ncm);
-  const contributions = resolveImportContributionRates(ncm);
-  const ii = resolveRate(records.filter((record) => record.sourceType === "mdic-ii"), "II");
-  const ipi = resolveRate(records.filter((record) => record.sourceType === "rfb-ipi"), "IPI");
-  const temporaryII = resolveTemporaryII(ncm, date, ii.rate);
-  const warnings = [
-    ii.warning,
-    ipi.warning,
-    temporaryII ? buildTemporaryIIWarning(temporaryII, ii.rate) : undefined,
-  ].filter((value): value is string => Boolean(value));
-
-  return {
-    ncm,
-    ii: {
-      rate: ii.rate,
-      automatic: true,
-      warnings,
-      temporaryAlert: temporaryII?.primary ?? null,
-      temporaryTreatments: temporaryII?.treatments ?? [],
-      hasSpecificTemporaryTreatment: temporaryII?.hasSpecificTreatment ?? false,
-      hasQuotaTemporaryTreatment: temporaryII?.hasQuotaTreatment ?? false,
-    },
-    ipi: { rate: ipi.rate, automatic: true, warnings },
-    pisImport: { rate: contributions.pisImportRate, automatic: true, source: contributions.source },
-    cofinsImport: { rate: contributions.cofinsImportRate, automatic: true, source: contributions.source },
-    snapshot: {
-      mdicPublished: snapshot.sources.mdic?.published ?? null,
-      tipiUpdated: snapshot.sources.rfbTipi?.updated ?? null,
-    },
-    warnings,
-  };
-}
 
 function requireFinite(label: string, value: number, options?: { positive?: boolean; maxExclusive?: number }) {
   if (!Number.isFinite(value) || value < 0 || (options?.positive && value <= 0)) throw new Error(`${label} inválido.`);
@@ -133,6 +78,12 @@ function normalizeExpense(expense: UnifiedImportExpenseInput): ItemImportExpense
     itemId: expense.itemId,
     note: expense.note,
   };
+}
+
+function assertFederalResolved(itemId: string, federal: ReturnType<typeof resolveFederalTaxes>) {
+  if (federal.ii.status === "resolved" && federal.ipi.status === "resolved" && federal.iiRate != null && federal.ipiRate != null) return;
+  const details = [...federal.ii.warnings, ...federal.ipi.warnings].filter(Boolean).join(" ");
+  throw new Error(`${itemId}: tratamento federal requer validação antes do cálculo.${details ? ` ${details}` : ""}`);
 }
 
 export function calculateUnifiedImportSimulation(input: UnifiedImportSimulationInput) {
@@ -171,15 +122,12 @@ export function calculateUnifiedImportSimulation(input: UnifiedImportSimulationI
     };
   });
 
-  const snapshot = loadSnapshot();
   const exchange = Number(input.exchange);
   const freightBrl = Number(input.freight ?? 0) * exchange;
   const insuranceBrl = Number(input.insurance ?? 0) * exchange;
   const merchandiseValues = normalizedItems.map((item) => item.quantity * item.fobUnit * exchange);
   const totalMerchandiseValue = merchandiseValues.reduce((sum, value) => sum + value, 0);
-  if ((freightBrl > 0 || insuranceBrl > 0) && totalMerchandiseValue <= 0) {
-    throw new Error("O valor total das mercadorias deve ser positivo para ratear frete e seguro.");
-  }
+  if ((freightBrl > 0 || insuranceBrl > 0) && totalMerchandiseValue <= 0) throw new Error("O valor total das mercadorias deve ser positivo para ratear frete e seguro.");
 
   const additionalCharges = resolveSCImportAdditionalCharges({
     freightBrl,
@@ -190,7 +138,16 @@ export function calculateUnifiedImportSimulation(input: UnifiedImportSimulationI
 
   const benefitsByItem: Record<string, SCBenefitResolution> = {};
   const itemResolutions = normalizedItems.map((item, index) => {
-    const federal = resolveFederal(snapshot, item.ncm, input.date);
+    const federal = resolveFederalTaxes({
+      ncm: item.ncm,
+      date: input.date,
+      iiExCode: item.iiExCode,
+      iiQuotaConfirmed: item.iiQuotaConfirmed,
+      ipiExCode: item.ipiExCode,
+      aeronauticalEligible: item.aeronauticalEligible,
+    });
+    assertFederalResolved(item.itemId, federal);
+
     const merchandiseValueBrl = merchandiseValues[index];
     const share = totalMerchandiseValue > 0 ? merchandiseValueBrl / totalMerchandiseValue : 1 / normalizedItems.length;
     const allocatedFreightBrl = freightBrl * share;
@@ -299,13 +256,13 @@ export function calculateUnifiedImportSimulation(input: UnifiedImportSimulationI
       quantity: item.quantity,
       weightKg: item.weightKg,
       volumeM3: item.volumeM3,
-      iiRate: federal.ii.rate,
-      ipiRate: federal.ipi.rate,
-      pisImportRate: federal.pisImport.rate,
-      cofinsImportRate: federal.cofinsImport.rate,
+      iiRate: federal.iiRate!,
+      ipiRate: federal.ipiRate!,
+      pisImportRate: federal.pisImportRate,
+      cofinsImportRate: federal.cofinsImportRate,
       icmsRate: item.icms,
       importDate: input.date as `${number}-${number}-${number}`,
-      iiLegalFoundation: "MDIC official snapshot 2026-07",
+      iiLegalFoundation: federal.ii.legalBasis ?? federal.ii.source ?? "MDIC Tarifas Vigentes",
     };
   });
 
@@ -326,13 +283,11 @@ export function calculateUnifiedImportSimulation(input: UnifiedImportSimulationI
 
   const defenseCommercialBrl = itemResolutions.reduce((sum, item) => sum + item.defenseCommercialBrl, 0);
   const totalLandedCostIncludingDefense = calculation.totalLandedCostAfterBenefit + defenseCommercialBrl;
-  const items = itemResolutions.map((resolution) => ({
-    ...resolution,
-    calculation: calculationItems.find((item) => item.itemId === resolution.itemId)!,
-  }));
+  const items = itemResolutions.map((resolution) => ({ ...resolution, calculation: calculationItems.find((item) => item.itemId === resolution.itemId)! }));
 
   const response = {
     engine: "unified-multi-item-v1",
+    federalEngine: "authoritative-federal-v2",
     operation: {
       date: input.date,
       exchange,
@@ -348,12 +303,7 @@ export function calculateUnifiedImportSimulation(input: UnifiedImportSimulationI
       },
     },
     items,
-    calculation: {
-      ...calculation,
-      items: calculationItems,
-      defenseCommercialBrl,
-      totalLandedCostIncludingDefense,
-    },
+    calculation: { ...calculation, items: calculationItems, defenseCommercialBrl, totalLandedCostIncludingDefense },
     warnings: [...new Set([...calculation.warnings, ...additionalCharges.warnings, ...itemResolutions.flatMap((item) => item.sc.decisionReasons)])],
   } as const;
 

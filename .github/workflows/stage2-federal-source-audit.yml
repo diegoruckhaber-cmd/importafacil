@@ -1,0 +1,106 @@
+name: Stage 2 Federal Source Audit
+
+on:
+  push:
+    branches:
+      - stage2/federal-authoritative-snapshot
+    paths:
+      - '.github/workflows/stage2-federal-source-audit.yml'
+      - 'scripts/inspect-federal-tariff-workbook.py'
+      - 'scripts/ingest-official-fiscal-data.py'
+
+permissions:
+  contents: write
+
+jobs:
+  inspect-official-sources:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install openpyxl
+      - name: Download MDIC tariffs 08/09/2026
+        run: |
+          curl --fail --location --retry 3 \
+            'https://www.gov.br/mdic/pt-br/assuntos/camex/estrategia-comercial/arquivos-listas/08-09-2026-anexos-i-a-x-resolucao-gecex-272-21.xlsx' \
+            --output /tmp/mdic.xlsx
+          test -s /tmp/mdic.xlsx
+      - name: Download RFB TIPI 13/02/2026
+        run: |
+          curl --fail --location --retry 3 \
+            'https://www.gov.br/receitafederal/pt-br/acesso-a-informacao/legislacao/documentos-e-arquivos/tipi.xlsx/@@download/file' \
+            --output /tmp/tipi.xlsx
+          test -s /tmp/tipi.xlsx
+      - name: Inspect MDIC workbook
+        run: python scripts/inspect-federal-tariff-workbook.py /tmp/mdic.xlsx
+      - name: Inspect TIPI workbook
+        run: python scripts/inspect-federal-tariff-workbook.py /tmp/tipi.xlsx
+      - name: Generate authoritative snapshot
+        run: |
+          python scripts/ingest-official-fiscal-data.py \
+            --mdic /tmp/mdic.xlsx \
+            --tipi /tmp/tipi.xlsx \
+            --output data/federal/official-snapshot-2026-09-08.json \
+            --mdic-published 2026-09-08 \
+            --tipi-updated 2026-02-13
+      - name: Validate semantic coverage
+        run: |
+          python - <<'PY'
+          import json, os, re
+          p='data/federal/official-snapshot-2026-09-08.json'
+          d=json.load(open(p, encoding='utf-8'))
+          assert d['schemaVersion'] == 4
+          assert d['sources']['mdic']['published'] == '2026-09-08'
+          assert d['sources']['rfbTipi']['updated'] == '2026-02-13'
+          assert d['sources']['mdic']['baseAppliedCount'] > 8000
+          assert d['sources']['mdic']['tecCount'] > 8000
+          assert d['sources']['rfbTipi']['recordCount'] > 8000
+          records=d['records']
+          exact=[r for r in records if r.get('ncm')]
+          assert exact and all(re.fullmatch(r'\d{8}', r['ncm']) for r in exact)
+          assert any(r.get('kind') == 'SUPPLY_SHORTAGE' and r.get('quota') is not None for r in records)
+          assert any(r.get('kind') in {'LETEC','LEBIT_BK','WTO_CONCESSION','ACE14_AUTOMOTIVE'} and r.get('exCode') for r in records)
+          assert any(r.get('tax') == 'IPI' and r.get('taxTreatment') == 'NT' for r in records)
+          assert any(r.get('kind') == 'AERONAUTICAL_SCOPE' and r.get('ncmPrefix') for r in records)
+          bad_base_quota=[r for r in records if r.get('tax') == 'II' and r.get('kind') in {'TEC','BRAZIL_APPLIED'} and r.get('quota') is not None]
+          assert not bad_base_quota, f'base II rows incorrectly carry quota metadata: {len(bad_base_quota)}'
+          print('schemaVersion=', d['schemaVersion'])
+          print('records=', len(records))
+          print('mdic=', d['sources']['mdic']['recordCount'])
+          print('tipi=', d['sources']['rfbTipi']['recordCount'])
+          print('bytes=', os.path.getsize(p))
+          PY
+      - name: Refresh snapshot integrity manifest
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          snapshot='data/federal/official-snapshot-2026-09-08.json'
+          manifest_path='data/federal/snapshot-integrity-manifest.json'
+          blob=subprocess.check_output(['git','hash-object',snapshot], text=True).strip()
+          manifest=json.load(open(manifest_path, encoding='utf-8'))
+          assert manifest['version'] == 2
+          assert manifest['activeFederalSnapshot'] == snapshot
+          found=False
+          for entry in manifest['snapshots']:
+              if entry['path'] == snapshot:
+                  entry['blobSha']=blob
+                  found=True
+          assert found, 'active snapshot missing from integrity manifest'
+          with open(manifest_path, 'w', encoding='utf-8') as handle:
+              json.dump(manifest, handle, ensure_ascii=False, indent=2)
+              handle.write('\n')
+          print('snapshotBlobSha=', blob)
+          PY
+      - name: Publish snapshot and integrity pin to branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/federal/official-snapshot-2026-09-08.json data/federal/snapshot-integrity-manifest.json
+          if git diff --cached --quiet; then
+            echo 'Snapshot and integrity manifest are already current.'
+          else
+            git commit -m 'data: publish authoritative federal snapshot 2026-09-08'
+            git push
+          fi

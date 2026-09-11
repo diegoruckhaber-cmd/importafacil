@@ -6,12 +6,11 @@ export type FederalTariffSourceLayer = {
 
 /**
  * Source contract for the federal tariff resolver.
- * The MDIC page publishes a consolidated workbook containing Annexes I–X
- * and separately points to the tariff panel for quotas, Ex-tarifários and
- * other mechanisms. This manifest keeps that hierarchy explicit so a future
- * full-data loader cannot silently collapse exceptions into the TEC rate.
+ * The authoritative 08/09/2026 MDIC workbook is versioned in the repository
+ * as a semantic snapshot. The priority list remains documentation/audit
+ * metadata; the production resolver does not choose a rate by array order.
  */
-export const FEDERAL_TARIFF_SOURCE_MANIFEST_VERSION = "2026-08-12";
+export const FEDERAL_TARIFF_SOURCE_MANIFEST_VERSION = "2026-09-08";
 export const FEDERAL_TARIFF_OFFICIAL_PAGE = "https://www.gov.br/mdic/pt-br/assuntos/camex/se-camex/strat/tarifas/vigentes";
 export const FEDERAL_TARIFF_PANEL = "https://www.gov.br/mdic/pt-br/assuntos/camex/360/painel-tarifario";
 
@@ -28,8 +27,10 @@ export const FEDERAL_TARIFF_SOURCE_LAYERS: FederalTariffSourceLayer[] = [
 ];
 
 export const FEDERAL_TARIFF_CATALOG_STATUS = {
-  productionReady: false,
-  reason: "O repositório ainda contém apenas sementes validadas; a carga integral do workbook oficial precisa ser versionada antes de tratar ausência de NCM como tarifa TEC.",
+  productionReady: true,
+  snapshot: "data/federal/official-snapshot-2026-09-08.json",
+  schemaVersion: 4,
+  reason: "Snapshot integral MDIC/TIPI versionado e consumido pelo resolver federal canônico. Casos condicionados por EX, quota, vigência ou concorrência permanecem fail-closed até validação do enquadramento.",
 } as const;
 
 export function getFederalTariffSourcePriority(source: FederalTariffSourceLayer["key"]): number {
