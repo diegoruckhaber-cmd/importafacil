@@ -4,7 +4,7 @@
   "snapshots": [
     {
       "path": "data/federal/official-snapshot-2026-09-08.json",
-      "blobSha": "37ca76712da8b43746289072a1636aaaac281193"
+      "blobSha": "8e9a34319b78638c8298a7d496948a1fcb7c6b69"
     },
     {
       "path": "data/federal/temporary-ii-alerts-2026.json",
