@@ -1,13 +1,11 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { resolveFederalTaxes } from '../lib/federal-tax-resolution.ts';
 
 const root = process.cwd();
 const alertsPath = path.join(root, 'data', 'federal', 'temporary-ii-alerts-2026.json');
-const snapshotPath = path.join(root, 'data', 'federal', 'official-snapshot-2026-07.json');
-
 const alerts = JSON.parse(fs.readFileSync(alertsPath, 'utf8'));
-const snapshot = JSON.parse(fs.readFileSync(snapshotPath, 'utf8'));
 
 assert(Array.isArray(alerts), 'temporary II catalog must be an array');
 assert(alerts.length > 0, 'temporary II catalog must not be empty');
@@ -29,21 +27,19 @@ assert.equal(ncm28353920.validFrom, '2026-01-19');
 assert.equal(ncm28353920.validTo, '2027-01-18');
 assert.match(ncm28353920.legalBasis, /845\/2026/);
 
-const standardII = snapshot.records.find((row) => String(row.ncm).replace(/\D/g, '') === '28353920' && row.sourceType === 'mdic-ii');
-assert(standardII, 'NCM 28353920 must exist in the official II snapshot');
-assert.equal(standardII.rate, 9, 'standard II snapshot for 28353920 must remain 9%');
-assert(ncm28353920.temporaryRate > standardII.rate, 'temporary rate must be above the standard rate for the tested alert');
+// Production behavior is validated through the canonical federal resolver.
+// No parallel "resolveLikeProduction" algorithm is allowed in this test.
+const before = resolveFederalTaxes({ ncm: '28353920', date: '2026-01-18' });
+const firstDay = resolveFederalTaxes({ ncm: '28353920', date: '2026-01-19' });
+const lastDay = resolveFederalTaxes({ ncm: '28353920', date: '2027-01-18' });
+const after = resolveFederalTaxes({ ncm: '28353920', date: '2027-01-19' });
 
-function resolveLikeProduction(ncm, date, standardRate) {
-  const matches = alerts.filter((item) => item.ncm === ncm && item.validFrom <= date && date <= item.validTo && item.temporaryRate > standardRate);
-  if (!matches.length) return undefined;
-  return matches.sort((a, b) => b.temporaryRate - a.temporaryRate)[0];
-}
-
-assert.equal(resolveLikeProduction('28353920', '2026-01-18', 9), undefined, 'alert must not fire before validity');
-assert.equal(resolveLikeProduction('28353920', '2026-01-19', 9)?.temporaryRate, 17.5, 'alert must fire on first day');
-assert.equal(resolveLikeProduction('28353920', '2027-01-18', 9)?.temporaryRate, 17.5, 'alert must fire on last day');
-assert.equal(resolveLikeProduction('28353920', '2027-01-19', 9), undefined, 'alert must not fire after validity');
+assert.equal(before.ii.status, 'resolved', 'base II must resolve before the temporary treatment starts');
+assert.equal(before.iiRate, 9, 'base II for NCM 28353920 must be 9% before the temporary treatment');
+assert.equal(firstDay.ii.status, 'resolved');
+assert.equal(firstDay.iiRate, 17.5, 'temporary DCC rate must apply on the first day');
+assert.equal(lastDay.iiRate, 17.5, 'temporary DCC rate must apply on the last day');
+assert.equal(after.iiRate, 9, 'base II must resume after temporary treatment expiry');
 
 const grouped = new Map();
 for (const item of alerts) {
@@ -58,4 +54,4 @@ for (const [ncm, items] of grouped.entries()) {
   }
 }
 
-console.log(`temporary II audit OK: ${alerts.length} catalog rows validated`);
+console.log(`temporary II audit OK: ${alerts.length} catalog rows validated through canonical resolver`);
