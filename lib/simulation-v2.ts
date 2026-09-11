@@ -92,8 +92,9 @@ function preflightFederal(input: SimulationV2Input) {
       });
     }
 
+    const warningLevel: SimulationV2IssueLevel = status === "requires_input" || status === "unsupported" ? "validation" : "warning";
     for (const warning of [...federal.ii.warnings, ...federal.ipi.warnings]) {
-      issues.push({ code: "federal_attention", level: status === "calculated" ? "warning" : "validation", scope: "item", itemId, message: warning });
+      issues.push({ code: "federal_attention", level: warningLevel, scope: "item", itemId, message: warning });
     }
 
     return { itemId, federal, status, issues };
@@ -238,7 +239,7 @@ export function runImportSimulationV2(input: SimulationV2Input) {
     const quantity = Number(row.quantity ?? source?.quantity ?? 0);
     const landedCostPerUnitBrl = quantity > 0 ? landedCostBrl / quantity : landedCostBrl;
     const margin = normalizeMargin(source?.targetMarginPercent, defaultMargin);
-    const targetSalePricePerUnitBrl = margin >= 100 ? 0 : landedCostPerUnitBrl / (1 - margin / 100);
+    const targetSalePricePerUnitBrl = landedCostPerUnitBrl / (1 - margin / 100);
     const targetRevenueBrl = targetSalePricePerUnitBrl * quantity;
     const estimatedProfitBrl = targetRevenueBrl - landedCostBrl;
 
@@ -258,8 +259,18 @@ export function runImportSimulationV2(input: SimulationV2Input) {
   });
 
   if (core.calculation?.status === "conditional") {
-    for (const warning of core.calculation.warnings ?? []) {
-      issues.push({ code: "operation_requires_input", level: "validation", scope: "operation", message: warning });
+    const warnings = core.calculation.warnings ?? [];
+    if (!warnings.length) {
+      issues.push({
+        code: "operation_requires_input",
+        level: "validation",
+        scope: "operation",
+        message: "A operação possui condição tributária pendente e requer validação antes de ser tratada como cálculo final.",
+      });
+    } else {
+      for (const warning of warnings) {
+        issues.push({ code: "operation_requires_input", level: "validation", scope: "operation", message: warning });
+      }
     }
   } else if (core.calculation?.status === "blocked") {
     issues.push({ code: "operation_blocked", level: "blocking", scope: "operation", message: "O motor de custo marcou a operação como bloqueada." });
