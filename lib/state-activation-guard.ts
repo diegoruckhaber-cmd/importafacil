@@ -22,6 +22,13 @@ export const STATE_ACTIVATION_APPROVALS: readonly StateActivationApproval[] = [
     legalReviewVerified: true,
     regressionsVerified: true,
   },
+  {
+    uf: "SP",
+    approvalId: "stage19-sp-general-rate",
+    stateEngineId: "GENERAL",
+    legalReviewVerified: true,
+    regressionsVerified: true,
+  },
 ];
 
 export function evaluateStateActivation(
