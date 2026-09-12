@@ -25,11 +25,7 @@ const entries = BRAZILIAN_UFS.map<StateJurisdictionEntry>((uf) => {
       stateEngine: "SC",
       scope: "full",
       reasonCode: "homologated_sc",
-      legalFoundationIds: [
-        "LC-87-1996-ICMS",
-        "SC-LEI-10297-1996",
-        "SC-RICMS-2870-2001",
-      ],
+      legalFoundationIds: ["LC-87-1996-ICMS", "SC-LEI-10297-1996", "SC-RICMS-2870-2001"],
     };
   }
   if (uf === "SP") {
@@ -39,11 +35,17 @@ const entries = BRAZILIAN_UFS.map<StateJurisdictionEntry>((uf) => {
       stateEngine: "GENERAL",
       scope: "general_rate_only",
       reasonCode: "homologated_general_rate",
-      legalFoundationIds: [
-        "SP-RICMS-45490-2000-ART37",
-        "SP-RICMS-45490-2000-ART49",
-        "SP-RICMS-45490-2000-ART52-I",
-      ],
+      legalFoundationIds: ["SP-RICMS-45490-2000-ART37", "SP-RICMS-45490-2000-ART49", "SP-RICMS-45490-2000-ART52-I"],
+    };
+  }
+  if (uf === "ES") {
+    return {
+      uf,
+      status: "homologated",
+      stateEngine: "GENERAL",
+      scope: "general_rate_only",
+      reasonCode: "homologated_general_rate",
+      legalFoundationIds: ["LC-87-1996-ICMS", "ES-RICMS-1090-R-2002-ART71-I"],
     };
   }
   return {

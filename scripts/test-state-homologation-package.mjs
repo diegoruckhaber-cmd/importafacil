@@ -9,7 +9,7 @@ assert.equal(contract.policy, "fail_closed");
 assert.equal(contract.activatesJurisdiction, false);
 
 const blocked = validateStateHomologationPackage({
-  uf: "ES",
+  uf: "PE",
   stateEngineId: "",
   auditedAt: "",
   legalSources: [],
@@ -22,8 +22,8 @@ assert(blocked.blockingIssues.includes("legal_sources_required"));
 assert(blocked.blockingIssues.includes("regression_evidence_required"));
 
 const reviewable = validateStateHomologationPackage({
-  uf: "ES",
-  stateEngineId: "ES-CANDIDATE",
+  uf: "PE",
+  stateEngineId: "PE-CANDIDATE",
   auditedAt: "2026-09-12",
   legalSources: [{
     id: "SYNTHETIC-OFFICIAL-EVIDENCE",
@@ -32,18 +32,18 @@ const reviewable = validateStateHomologationPackage({
     effectiveFrom: "2026-01-01",
     effectiveUntil: null,
   }],
-  regressionScripts: ["scripts/test-es-candidate.mjs"],
+  regressionScripts: ["scripts/test-pe-candidate.mjs"],
 });
 assert.equal(reviewable.status, "eligible_for_review");
 assert.equal(reviewable.activatesJurisdiction, false);
-assert.equal(resolveStateJurisdiction("ES")?.status, "unsupported", "preflight evidence must never activate a jurisdiction");
+assert.equal(resolveStateJurisdiction("PE")?.status, "unsupported", "preflight evidence must never activate a jurisdiction");
 
 const base = {
   date: "2026-09-10",
   exchange: 5.5,
   items: [{ itemId: "A", ncm: "32081020", origin: "México", quantity: 1, weightKg: 1, fobUnit: 100, icms: 17 }],
 };
-assert.throws(() => calculateUnifiedImportSimulation({ ...base, destinationUf: "ES" }), /não homologada/i, "candidate package must not bypass production fail-closed behavior");
+assert.throws(() => calculateUnifiedImportSimulation({ ...base, destinationUf: "PE" }), /não homologada/i, "candidate package must not bypass production fail-closed behavior");
 
 const implementation = fs.readFileSync("lib/state-homologation-package.ts", "utf8");
 const route = fs.readFileSync("app/api/state-homologation/preflight/route.ts", "utf8");
