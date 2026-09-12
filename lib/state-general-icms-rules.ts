@@ -12,6 +12,20 @@ export type GeneralStateIcmsRule = {
 
 export const STATE_GENERAL_ICMS_RULES: readonly GeneralStateIcmsRule[] = [
   {
+    uf: "ES",
+    ratePercent: 17,
+    scope: "general_rate_only",
+    effectiveFrom: "2022-07-01",
+    legalBasis: [
+      "RICMS/ES (Decreto 1.090-R/2002), art. 71, I, a e b",
+      "Lei Complementar 87/1996 — base geral do ICMS-importação",
+    ],
+    sourceUrls: [
+      "https://www2.sefaz.es.gov.br/LegislacaoOnline/lpext.dll/InfobaseLegislacaoOnline/ricms%20-%20dec%201090-r/02%20-%20t%EF%BF%BDtulo%20i/17%20-%20cap%20viii.htm?2.0=&f=templates&fn=document-frame.htm",
+    ],
+    warning: "Escopo inicial de ES: aplica somente a alíquota geral de 17% do ICMS-importação. Benefícios, reduções, isenções, ST, regimes especiais e alíquotas específicas por produto não são avaliados nesta etapa.",
+  },
+  {
     uf: "SP",
     ratePercent: 18,
     scope: "general_rate_only",
