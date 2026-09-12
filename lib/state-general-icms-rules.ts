@@ -16,29 +16,26 @@ export const STATE_GENERAL_ICMS_RULES: readonly GeneralStateIcmsRule[] = [
     ratePercent: 17,
     scope: "general_rate_only",
     effectiveFrom: "2022-07-01",
-    legalBasis: [
-      "RICMS/ES (Decreto 1.090-R/2002), art. 71, I, a e b",
-      "Lei Complementar 87/1996 — base geral do ICMS-importação",
-    ],
-    sourceUrls: [
-      "https://www2.sefaz.es.gov.br/LegislacaoOnline/lpext.dll/InfobaseLegislacaoOnline/ricms%20-%20dec%201090-r/02%20-%20t%EF%BF%BDtulo%20i/17%20-%20cap%20viii.htm?2.0=&f=templates&fn=document-frame.htm",
-    ],
+    legalBasis: ["RICMS/ES (Decreto 1.090-R/2002), art. 71, I, a e b", "Lei Complementar 87/1996 — base geral do ICMS-importação"],
+    sourceUrls: ["https://www2.sefaz.es.gov.br/LegislacaoOnline/lpext.dll/InfobaseLegislacaoOnline/ricms%20-%20dec%201090-r/02%20-%20t%EF%BF%BDtulo%20i/17%20-%20cap%20viii.htm?2.0=&f=templates&fn=document-frame.htm"],
     warning: "Escopo inicial de ES: aplica somente a alíquota geral de 17% do ICMS-importação. Benefícios, reduções, isenções, ST, regimes especiais e alíquotas específicas por produto não são avaliados nesta etapa.",
+  },
+  {
+    uf: "PE",
+    ratePercent: 20.5,
+    scope: "general_rate_only",
+    effectiveFrom: "2024-01-01",
+    legalBasis: ["Lei/PE 15.730/2016, art. 15, VII — 20,5% nas demais operações internas ou de importação não sujeitas às hipóteses específicas", "Lei Complementar 87/1996 — base geral do ICMS-importação"],
+    sourceUrls: ["https://www.sefaz.pe.gov.br/Legislacao/Tributaria/Documents/legislacao/Leis_Tributarias/2016/Lei15730_2016.htm"],
+    warning: "Escopo inicial de PE: aplica somente a alíquota geral de 20,5% do ICMS-importação. FECEP, PRODEPE, PRODEAUTO, benefícios, reduções, isenções, ST, regimes especiais e alíquotas específicas por produto não são avaliados nesta etapa.",
   },
   {
     uf: "SP",
     ratePercent: 18,
     scope: "general_rate_only",
     effectiveFrom: "2016-02-23",
-    legalBasis: [
-      "RICMS/SP (Decreto 45.490/2000), art. 52, I",
-      "RICMS/SP (Decreto 45.490/2000), art. 37, IV",
-      "RICMS/SP (Decreto 45.490/2000), art. 49",
-    ],
-    sourceUrls: [
-      "https://legislacao.fazenda.sp.gov.br/Paginas/art052.aspx",
-      "https://legislacao.fazenda.sp.gov.br/Paginas/art037.aspx",
-    ],
+    legalBasis: ["RICMS/SP (Decreto 45.490/2000), art. 52, I", "RICMS/SP (Decreto 45.490/2000), art. 37, IV", "RICMS/SP (Decreto 45.490/2000), art. 49"],
+    sourceUrls: ["https://legislacao.fazenda.sp.gov.br/Paginas/art052.aspx", "https://legislacao.fazenda.sp.gov.br/Paginas/art037.aspx"],
     warning: "Escopo inicial de SP: aplica somente a alíquota geral de 18% do ICMS-importação. Benefícios, reduções, isenções, ST, regimes especiais e alíquotas específicas por produto não são avaliados nesta etapa.",
   },
 ];
