@@ -1,0 +1,11 @@
+import assert from "node:assert/strict";
+import { calculateUnifiedImportSimulation } from "../lib/unified-import-simulation.ts";
+import { resolveGeneralStateIcmsRule } from "../lib/state-general-icms-rules.ts";
+import { evaluateStateActivation } from "../lib/state-activation-guard.ts";
+const close = (actual, expected, tolerance = 0.01) => assert(Math.abs(actual - expected) <= tolerance, `expected ${actual} within ${tolerance} of ${expected}`);
+const rule = resolveGeneralStateIcmsRule("pe"); assert(rule); assert.equal(rule.ratePercent, 20.5); assert.equal(rule.scope, "general_rate_only"); assert(rule.legalBasis.some((basis) => /art\. 15, VII/i.test(basis)));
+const input = { date: "2026-09-12", destinationUf: "PE", exchange: 5.5, freight: 100, insurance: 10, transportMode: "air", declarationType: "di", items: [{ itemId: "ITEM-001", name: "Verniz", ncm: "32081020", origin: "México", quantity: 10, weightKg: 100, fobUnit: 20, icms: 4, ttd: "none", destination: "commercial_resale" }] };
+const result = calculateUnifiedImportSimulation(input); assert.equal(result.jurisdiction.stateEngine, "GENERAL"); assert.equal(result.jurisdiction.scope, "general_rate_only"); assert.equal(result.state?.icmsGeneralRate, 20.5); const row = result.calculation.items[0]; assert.equal(row.icmsNormalRate, 20.5); assert.equal(row.icmsImportEffectiveRate, 20.5); assert.equal(row.importICMSSavings, 0);
+const expectedPreBase = row.effectiveCustomsValue + row.taxLines.ii.payable + row.taxLines.ipi.payable + row.taxLines.pisImport.payable + row.taxLines.cofinsImport.payable + row.allocatedIcmsImportBaseExpenses; const expectedBase = expectedPreBase / (1 - 0.205); close(row.taxLines.icms.base, expectedBase); close(row.taxLines.icms.payable, expectedBase * 0.205);
+assert(result.warnings.some((warning) => /somente a alíquota geral de 20,5%/i.test(warning))); assert.throws(() => calculateUnifiedImportSimulation({ ...input, items: [{ ...input.items[0], ttd: "409" }] }), /apenas para a regra geral de ICMS/i);
+const activation = evaluateStateActivation(); assert.equal(activation.status, "safe"); assert(activation.activeUfs.includes("PE")); console.log("Stage 21 PE general ICMS: OK — 20.5% canonical rate, shared por-dentro formula, FECEP/PRODEPE/special regimes out of scope");
