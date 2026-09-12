@@ -1,23 +1,13 @@
 export const STATE_JURISDICTION_CONTRACT = "importafacil-state-jurisdiction-v1" as const;
-
-export const BRAZILIAN_UFS = [
-  "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
-] as const;
-
-export type BrazilianUf = (typeof BRAZILIAN_UFS)[number];
-export type StateJurisdictionStatus = "homologated" | "unsupported";
-export type StateJurisdictionScope = "full" | "general_rate_only" | null;
-
+export const BRAZILIAN_UFS = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"] as const;
+export type BrazilianUf = (typeof BRAZILIAN_UFS)[number]; export type StateJurisdictionStatus = "homologated" | "unsupported"; export type StateJurisdictionScope = "full" | "general_rate_only" | null;
 export type StateJurisdictionEntry = { uf: BrazilianUf; status: StateJurisdictionStatus; stateEngine: "SC" | "GENERAL" | null; scope: StateJurisdictionScope; reasonCode: "homologated_sc" | "homologated_general_rate" | "state_rules_not_homologated"; legalFoundationIds: readonly string[] };
-
 const entries = BRAZILIAN_UFS.map<StateJurisdictionEntry>((uf) => {
   if (uf === "SC") return { uf, status: "homologated", stateEngine: "SC", scope: "full", reasonCode: "homologated_sc", legalFoundationIds: ["LC-87-1996-ICMS", "SC-LEI-10297-1996", "SC-RICMS-2870-2001"] };
   if (uf === "SP") return { uf, status: "homologated", stateEngine: "GENERAL", scope: "general_rate_only", reasonCode: "homologated_general_rate", legalFoundationIds: ["SP-RICMS-45490-2000-ART37", "SP-RICMS-45490-2000-ART49", "SP-RICMS-45490-2000-ART52-I"] };
   if (uf === "ES") return { uf, status: "homologated", stateEngine: "GENERAL", scope: "general_rate_only", reasonCode: "homologated_general_rate", legalFoundationIds: ["LC-87-1996-ICMS", "ES-RICMS-1090-R-2002-ART71-I"] };
   if (uf === "PE") return { uf, status: "homologated", stateEngine: "GENERAL", scope: "general_rate_only", reasonCode: "homologated_general_rate", legalFoundationIds: ["LC-87-1996-ICMS", "PE-LEI-15730-2016-ART15-VII"] };
+  if (uf === "PR") return { uf, status: "homologated", stateEngine: "GENERAL", scope: "general_rate_only", reasonCode: "homologated_general_rate", legalFoundationIds: ["LC-87-1996-ICMS", "PR-LEI-11580-1996-ART14-VIII"] };
   return { uf, status: "unsupported", stateEngine: null, scope: null, reasonCode: "state_rules_not_homologated", legalFoundationIds: [] };
 });
-
-export const STATE_JURISDICTION_REGISTRY: readonly StateJurisdictionEntry[] = entries;
-export function getStateJurisdictionRegistry() { return { contract: STATE_JURISDICTION_CONTRACT, policy: "fail_closed" as const, entries: STATE_JURISDICTION_REGISTRY, homologatedUfs: STATE_JURISDICTION_REGISTRY.filter((entry) => entry.status === "homologated").map((entry) => entry.uf) }; }
-export function resolveStateJurisdiction(uf: string): StateJurisdictionEntry | null { const normalized = String(uf ?? "").trim().toUpperCase(); return STATE_JURISDICTION_REGISTRY.find((entry) => entry.uf === normalized) ?? null; }
+export const STATE_JURISDICTION_REGISTRY: readonly StateJurisdictionEntry[] = entries; export function getStateJurisdictionRegistry() { return { contract: STATE_JURISDICTION_CONTRACT, policy: "fail_closed" as const, entries: STATE_JURISDICTION_REGISTRY, homologatedUfs: STATE_JURISDICTION_REGISTRY.filter((entry) => entry.status === "homologated").map((entry) => entry.uf) }; } export function resolveStateJurisdiction(uf: string): StateJurisdictionEntry | null { const normalized = String(uf ?? "").trim().toUpperCase(); return STATE_JURISDICTION_REGISTRY.find((entry) => entry.uf === normalized) ?? null; }
