@@ -10,10 +10,7 @@ export type StateActivationApproval = {
   regressionsVerified: boolean;
 };
 
-/**
- * Second key for state activation. This is governance metadata only; it contains
- * no rates, formulas, benefits or substantive fiscal eligibility rules.
- */
+/** Second key for state activation. Governance metadata only; no fiscal formulas live here. */
 export const STATE_ACTIVATION_APPROVALS: readonly StateActivationApproval[] = [
   {
     uf: "SC",
@@ -25,6 +22,13 @@ export const STATE_ACTIVATION_APPROVALS: readonly StateActivationApproval[] = [
   {
     uf: "SP",
     approvalId: "stage19-sp-general-rate",
+    stateEngineId: "GENERAL",
+    legalReviewVerified: true,
+    regressionsVerified: true,
+  },
+  {
+    uf: "ES",
+    approvalId: "stage20-es-general-rate",
     stateEngineId: "GENERAL",
     legalReviewVerified: true,
     regressionsVerified: true,
@@ -48,12 +52,7 @@ export function evaluateStateActivation(
     if (!approval.legalReviewVerified) violations.push(`${entry.uf}: legal_review_not_verified`);
     if (!approval.regressionsVerified) violations.push(`${entry.uf}: regressions_not_verified`);
     if (!entry.stateEngine || approval.stateEngineId !== entry.stateEngine) violations.push(`${entry.uf}: state_engine_approval_mismatch`);
-    if (
-      approval.legalReviewVerified &&
-      approval.regressionsVerified &&
-      entry.stateEngine != null &&
-      approval.stateEngineId === entry.stateEngine
-    ) activeUfs.push(entry.uf);
+    if (approval.legalReviewVerified && approval.regressionsVerified && entry.stateEngine != null && approval.stateEngineId === entry.stateEngine) activeUfs.push(entry.uf);
   }
 
   return {
