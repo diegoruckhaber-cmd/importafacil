@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import TemporaryIIAlertEnhancer from "./TemporaryIIAlertEnhancer";
+import { getReleaseScope } from "../lib/release-scope";
 
 export const metadata: Metadata = {
   title: "ImportaFácil | Simulador de Importação",
@@ -15,5 +16,11 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({children}:{children:React.ReactNode}) {
-  return <html lang="pt-BR"><body><TemporaryIIAlertEnhancer />{children}</body></html>;
+  const release = getReleaseScope();
+  return <html lang="pt-BR"><body><TemporaryIIAlertEnhancer />
+    <aside data-release-scope="controlled-beta" style={{padding:"10px 18px",borderBottom:"1px solid #d8d8d8",fontSize:13,lineHeight:1.45}}>
+      <strong>{release.controlledBeta.label}</strong> · {release.controlledBeta.notice}
+    </aside>
+    {children}
+  </body></html>;
 }
