@@ -6,36 +6,55 @@ export const BRAZILIAN_UFS = [
 
 export type BrazilianUf = (typeof BRAZILIAN_UFS)[number];
 export type StateJurisdictionStatus = "homologated" | "unsupported";
+export type StateJurisdictionScope = "full" | "general_rate_only" | null;
 
 export type StateJurisdictionEntry = {
   uf: BrazilianUf;
   status: StateJurisdictionStatus;
-  stateEngine: "SC" | null;
-  reasonCode: "homologated_sc" | "state_rules_not_homologated";
+  stateEngine: "SC" | "GENERAL" | null;
+  scope: StateJurisdictionScope;
+  reasonCode: "homologated_sc" | "homologated_general_rate" | "state_rules_not_homologated";
   legalFoundationIds: readonly string[];
 };
 
-const entries = BRAZILIAN_UFS.map<StateJurisdictionEntry>((uf) =>
-  uf === "SC"
-    ? {
-        uf,
-        status: "homologated",
-        stateEngine: "SC",
-        reasonCode: "homologated_sc",
-        legalFoundationIds: [
-          "LC-87-1996-ICMS",
-          "SC-LEI-10297-1996",
-          "SC-RICMS-2870-2001",
-        ],
-      }
-    : {
-        uf,
-        status: "unsupported",
-        stateEngine: null,
-        reasonCode: "state_rules_not_homologated",
-        legalFoundationIds: [],
-      },
-);
+const entries = BRAZILIAN_UFS.map<StateJurisdictionEntry>((uf) => {
+  if (uf === "SC") {
+    return {
+      uf,
+      status: "homologated",
+      stateEngine: "SC",
+      scope: "full",
+      reasonCode: "homologated_sc",
+      legalFoundationIds: [
+        "LC-87-1996-ICMS",
+        "SC-LEI-10297-1996",
+        "SC-RICMS-2870-2001",
+      ],
+    };
+  }
+  if (uf === "SP") {
+    return {
+      uf,
+      status: "homologated",
+      stateEngine: "GENERAL",
+      scope: "general_rate_only",
+      reasonCode: "homologated_general_rate",
+      legalFoundationIds: [
+        "SP-RICMS-45490-2000-ART37",
+        "SP-RICMS-45490-2000-ART49",
+        "SP-RICMS-45490-2000-ART52-I",
+      ],
+    };
+  }
+  return {
+    uf,
+    status: "unsupported",
+    stateEngine: null,
+    scope: null,
+    reasonCode: "state_rules_not_homologated",
+    legalFoundationIds: [],
+  };
+});
 
 export const STATE_JURISDICTION_REGISTRY: readonly StateJurisdictionEntry[] = entries;
 

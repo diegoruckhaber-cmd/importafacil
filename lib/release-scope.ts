@@ -16,8 +16,8 @@ export function getReleaseScope() {
     controlledBeta: {
       status: p0Clear && activation.status === "safe" ? "released_with_restrictions" as const : "blocked" as const,
       activeUfs,
-      label: "Beta controlado — escopo estadual homologado: SC",
-      notice: "O cálculo estadual automático está homologado apenas para Santa Catarina. Outras UFs permanecem bloqueadas até homologação jurídica, regressões e ativação próprias.",
+      label: `Beta controlado — escopo estadual homologado: ${activeUfs.join(", ")}`,
+      notice: "O cálculo estadual automático está ativo apenas nas UFs listadas. Para UFs com escopo general_rate_only, aplica-se somente a regra geral de ICMS de importação; benefícios, reduções, isenções, ST, regimes especiais e alíquotas específicas permanecem fora do escopo inicial.",
     },
     unrestrictedCommercial: {
       status: p0Clear && activation.status === "safe" && nationalCoverage ? "eligible_for_release_review" as const : "blocked_by_state_scope" as const,

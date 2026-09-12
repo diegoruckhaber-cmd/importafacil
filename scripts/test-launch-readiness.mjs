@@ -5,9 +5,9 @@ import { getLaunchReadiness, LAUNCH_READINESS_ITEMS, LAUNCH_READINESS_CONTRACT }
 const readiness = getLaunchReadiness();
 assert.equal(readiness.contract, LAUNCH_READINESS_CONTRACT);
 assert.equal(readiness.policy, "evidence_based_fail_closed");
-assert.equal(readiness.release.unrestrictedCommercial, "eligible_for_release_review");
+assert.equal(readiness.release.unrestrictedCommercial, "blocked_by_state_scope");
 assert.equal(readiness.release.controlledBeta, "eligible_for_release_review");
-assert.deepEqual(readiness.release.activeStateScope, ["SC"]);
+assert.deepEqual(readiness.release.activeStateScope, ["SC", "SP"]);
 assert.deepEqual(readiness.summary.p0BlockingIds, []);
 assert.equal(readiness.summary.verified, 14);
 assert.equal(readiness.summary.pending, 0);
@@ -34,4 +34,4 @@ assert.match(checklist, /lib\/launch-readiness\.ts/);
 assert.match(checklist, /api\/launch-readiness/);
 assert.doesNotMatch(checklist, /- \[ \]/, "launch checklist must not duplicate stale manual checkboxes");
 
-console.log("Stage 17 launch readiness: OK — all P0 evidence verified; release review eligible while SC remains the only active state scope");
+console.log("Launch readiness: OK — all P0 evidence verified; controlled beta covers SC and SP while national release remains scope-blocked");

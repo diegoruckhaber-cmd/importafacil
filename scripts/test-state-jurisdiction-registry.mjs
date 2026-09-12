@@ -7,9 +7,11 @@ const registry = getStateJurisdictionRegistry();
 assert.equal(registry.contract, STATE_JURISDICTION_CONTRACT);
 assert.equal(BRAZILIAN_UFS.length, 27);
 assert.equal(registry.entries.length, 27);
-assert.deepEqual(registry.homologatedUfs, ["SC"]);
+assert.deepEqual(registry.homologatedUfs, ["SC", "SP"]);
 assert.equal(resolveStateJurisdiction("sc")?.status, "homologated");
-assert.equal(resolveStateJurisdiction("SP")?.status, "unsupported");
+assert.equal(resolveStateJurisdiction("SP")?.status, "homologated");
+assert.equal(resolveStateJurisdiction("SP")?.stateEngine, "GENERAL");
+assert.equal(resolveStateJurisdiction("SP")?.scope, "general_rate_only");
 assert.equal(resolveStateJurisdiction("XX"), null);
 assert.ok(registry.entries.filter((entry) => entry.status === "unsupported").every((entry) => entry.stateEngine === null && entry.legalFoundationIds.length === 0));
 
@@ -21,7 +23,8 @@ const base = {
   items: [{ itemId: "A", ncm: "32081020", origin: "México", quantity: 1, weightKg: 1, fobUnit: 100, icms: 17 }],
 };
 assert.doesNotThrow(() => calculateUnifiedImportSimulation({ ...base, destinationUf: "SC" }));
-assert.throws(() => calculateUnifiedImportSimulation({ ...base, destinationUf: "SP" }), /não homologada/i);
+assert.doesNotThrow(() => calculateUnifiedImportSimulation({ ...base, destinationUf: "SP" }));
+assert.throws(() => calculateUnifiedImportSimulation({ ...base, destinationUf: "ES" }), /não homologada/i);
 
 const implementation = fs.readFileSync("lib/state-jurisdiction-registry.ts", "utf8");
 const route = fs.readFileSync("app/api/state-jurisdictions/route.ts", "utf8");
@@ -30,4 +33,4 @@ assert.match(implementation, /policy: "fail_closed"/);
 assert.match(route, /export async function GET/);
 assert.doesNotMatch(route, /export async function (POST|PUT|PATCH|DELETE)/);
 
-console.log("Stage 13 state jurisdiction registry: OK — 27 UFs explicit, SC homologated, remaining UFs fail closed");
+console.log("State jurisdiction registry: OK — 27 UFs explicit, SC full and SP general-rate scope homologated, remaining UFs fail closed");
