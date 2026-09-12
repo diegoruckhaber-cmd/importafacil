@@ -30,21 +30,34 @@ const explicitSc = calculateUnifiedImportSimulation({ ...base, destinationUf: "s
 assert.equal(explicitSc.jurisdiction.destinationUf, "SC");
 assert.equal(explicitSc.jurisdiction.stateEngine, "SC");
 assert.equal(explicitSc.jurisdiction.status, "homologated");
-assert.deepEqual(explicitSc.jurisdiction.homologatedUfs, ["SC"]);
+assert.deepEqual(explicitSc.jurisdiction.homologatedUfs, ["SC", "SP"]);
 assert.equal(explicitSc.operation.destinationUf, "SC");
 assert(explicitSc.calculation.totalLandedCostAfterBenefit > 0);
 
 const legacyScDefault = calculateUnifiedImportSimulation(base);
 assert.equal(legacyScDefault.jurisdiction.destinationUf, "SC", "legacy callers remain explicitly scoped to the existing SC engine");
 
-for (const uf of ["SP", "ES", "PE", "PR", "RO", "MG", "MS", "RJ"]) {
+const sp = calculateUnifiedImportSimulation({ ...base, destinationUf: "SP" });
+assert.equal(sp.jurisdiction.destinationUf, "SP");
+assert.equal(sp.jurisdiction.stateEngine, "GENERAL");
+assert.equal(sp.jurisdiction.scope, "general_rate_only");
+assert.equal(sp.calculation.items[0].icmsNormalRate, 18, "SP general rate must override manual item ICMS input");
+assert.equal(sp.calculation.items[0].icmsImportEffectiveRate, 18);
+assert.equal(sp.calculation.items[0].importICMSSavings, 0);
+assert(sp.calculation.items[0].normalImportICMS > 0);
+
+for (const uf of ["ES", "PE", "PR", "RO", "MG", "MS", "RJ"]) {
   assert.throws(
     () => calculateUnifiedImportSimulation({ ...base, destinationUf: uf }),
     new RegExp(`UF ${uf} não homologada`, "i"),
-    `${uf} must fail closed instead of receiving SC rules`,
+    `${uf} must fail closed instead of receiving another state's rules`,
   );
 }
 
+assert.throws(
+  () => calculateUnifiedImportSimulation({ ...base, destinationUf: "SP", items: [{ ...item, ttd: "409" }] }),
+  /apenas para a regra geral de ICMS/i,
+);
 assert.throws(
   () => calculateUnifiedImportSimulation({ ...base, destinationUf: "Santa Catarina" }),
   /UF válida com 2 letras/i,
@@ -54,14 +67,18 @@ const v2Sc = runImportSimulationV2({ ...base, destinationUf: "SC", scenarioName:
 assert.equal(v2Sc.jurisdiction?.destinationUf, "SC");
 assert(v2Sc.summary?.landedCostBrl > 0);
 
-const v2Sp = runImportSimulationV2({ ...base, destinationUf: "SP", scenarioName: "SP fora do escopo", targetMarginPercent: 20 });
-assert.equal(v2Sp.status, "blocked");
-assert.equal(v2Sp.summary, null);
-assert(v2Sp.issues.some((issue) => issue.code === "state_jurisdiction_unsupported"));
-assert(v2Sp.attentionPoints.some((message) => /UF SP não homologada/i.test(message)));
+const v2Sp = runImportSimulationV2({ ...base, destinationUf: "SP", scenarioName: "SP regra geral", targetMarginPercent: 20 });
+assert.equal(v2Sp.jurisdiction?.destinationUf, "SP");
+assert(v2Sp.summary?.landedCostBrl > 0);
+assert.notEqual(v2Sp.status, "blocked");
+
+const v2Es = runImportSimulationV2({ ...base, destinationUf: "ES", scenarioName: "ES fora do escopo", targetMarginPercent: 20 });
+assert.equal(v2Es.status, "blocked");
+assert.equal(v2Es.summary, null);
+assert(v2Es.issues.some((issue) => issue.code === "state_jurisdiction_unsupported"));
 
 const route = fs.readFileSync("app/api/sc-federal-calculate/route.ts", "utf8");
 assert.match(route, /destinationUf/);
 assert.match(route, /body\.uf/);
 
-console.log("State jurisdiction scope: OK — SC homologated, non-SC UFs fail closed across core and Simulation V2");
+console.log("State jurisdiction scope: OK — SC full, SP general-rate-only, remaining UFs fail closed across core and Simulation V2");
