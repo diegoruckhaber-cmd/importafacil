@@ -5,11 +5,12 @@ import { getLaunchReadiness, LAUNCH_READINESS_ITEMS, LAUNCH_READINESS_CONTRACT }
 const readiness = getLaunchReadiness();
 assert.equal(readiness.contract, LAUNCH_READINESS_CONTRACT);
 assert.equal(readiness.policy, "evidence_based_fail_closed");
-assert.equal(readiness.release.unrestrictedCommercial, "blocked");
-assert.equal(readiness.release.controlledBeta, "candidate_with_restrictions");
+assert.equal(readiness.release.unrestrictedCommercial, "eligible_for_release_review");
+assert.equal(readiness.release.controlledBeta, "eligible_for_release_review");
 assert.deepEqual(readiness.release.activeStateScope, ["SC"]);
-assert.deepEqual(readiness.summary.p0BlockingIds, ["p0-e2e-independent"]);
-assert.equal(readiness.summary.pending, 1);
+assert.deepEqual(readiness.summary.p0BlockingIds, []);
+assert.equal(readiness.summary.verified, 14);
+assert.equal(readiness.summary.pending, 0);
 assert.equal(readiness.summary.inProgress, 1);
 
 for (const item of LAUNCH_READINESS_ITEMS) {
@@ -18,9 +19,10 @@ for (const item of LAUNCH_READINESS_ITEMS) {
 }
 
 const p0Verified = LAUNCH_READINESS_ITEMS.filter((item) => item.priority === "P0" && item.status === "verified");
+assert.equal(p0Verified.length, LAUNCH_READINESS_ITEMS.filter((item) => item.priority === "P0").length);
 assert.ok(p0Verified.some((item) => item.id === "p0-defense-commercial-p0"));
 assert.ok(p0Verified.some((item) => item.id === "p0-state-scope"));
-assert.equal(LAUNCH_READINESS_ITEMS.find((item) => item.id === "p0-e2e-independent")?.status, "pending");
+assert.equal(LAUNCH_READINESS_ITEMS.find((item) => item.id === "p0-e2e-independent")?.status, "verified");
 assert.equal(LAUNCH_READINESS_ITEMS.find((item) => item.id === "p2-state-expansion")?.status, "in_progress");
 
 const route = fs.readFileSync("app/api/launch-readiness/route.ts", "utf8");
@@ -32,4 +34,4 @@ assert.match(checklist, /lib\/launch-readiness\.ts/);
 assert.match(checklist, /api\/launch-readiness/);
 assert.doesNotMatch(checklist, /- \[ \]/, "launch checklist must not duplicate stale manual checkboxes");
 
-console.log("Stage 16 launch readiness: OK — evidence-backed source of truth with only independent E2E blocking P0 release");
+console.log("Stage 17 launch readiness: OK — all P0 evidence verified; release review eligible while SC remains the only active state scope");

@@ -32,10 +32,10 @@ export const LAUNCH_READINESS_ITEMS: readonly LaunchReadinessItem[] = [
   {
     id: "p0-e2e-independent",
     priority: "P0",
-    title: "Homologação E2E representativa contra memória de cálculo independente",
-    status: "pending",
-    evidence: ["docs/end-to-end-test-case-01.md"],
-    note: "Há testes golden e E2E internos, mas o gate comercial exige um conjunto representativo confrontado com memória independente e evidência de aceite.",
+    title: "Homologação E2E representativa contra evidência independente",
+    status: "verified",
+    evidence: ["lib/independent-e2e-benchmarks.ts", "scripts/test-independent-e2e-benchmarks.mjs", "docs/stage17-independent-e2e-benchmarks.md"],
+    note: "Registros aduaneiros reais, desembaraçados e externos ao ImportaFácil foram sanitizados e reconciliados com o motor dentro de tolerância centesimal; os dados externos não viram regra fiscal canônica.",
   },
   {
     id: "p0-quality-regression",
@@ -138,7 +138,6 @@ export const LAUNCH_READINESS_ITEMS: readonly LaunchReadinessItem[] = [
 export function getLaunchReadiness() {
   const p0 = LAUNCH_READINESS_ITEMS.filter((item) => item.priority === "P0");
   const blockingP0 = p0.filter((item) => item.status !== "verified");
-  const onlyIndependentE2ePending = blockingP0.length === 1 && blockingP0[0]?.id === "p0-e2e-independent";
   const verified = LAUNCH_READINESS_ITEMS.filter((item) => item.status === "verified").length;
 
   return {
@@ -152,7 +151,7 @@ export function getLaunchReadiness() {
       p0BlockingIds: blockingP0.map((item) => item.id),
     },
     release: {
-      controlledBeta: onlyIndependentE2ePending ? "candidate_with_restrictions" as const : blockingP0.length === 0 ? "eligible_for_release_review" as const : "blocked" as const,
+      controlledBeta: blockingP0.length === 0 ? "eligible_for_release_review" as const : "blocked" as const,
       unrestrictedCommercial: blockingP0.length === 0 ? "eligible_for_release_review" as const : "blocked" as const,
       activeStateScope: ["SC"] as const,
     },
