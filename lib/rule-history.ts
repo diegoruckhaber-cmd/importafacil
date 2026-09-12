@@ -16,7 +16,10 @@ export type RuleHistoryEntry = {
   notes: string;
 };
 
-/** Read-only audit projection over canonical legal/federal registries. */
+/**
+ * Read-only audit projection over canonical legal/federal registries.
+ * Explicit TypeScript import extensions keep the same contract executable in CI without a bundler.
+ */
 export function getRuleHistory() {
   return {
     contract: RULE_HISTORY_CONTRACT,
