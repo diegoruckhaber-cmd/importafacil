@@ -1,12 +1,12 @@
 # Etapa 40 — Alagoas: regra geral de ICMS
 
-Alagoas entra inicialmente somente com a alíquota geral de **19%** para os demais casos. A Lei nº 8.779/2022 alterou o art. 17, I, `b`, da Lei nº 5.900/1996 e estabeleceu expressamente a aplicação de 19% às operações e prestações internas e à importação de mercadorias, bens e serviços do exterior.
+Alagoas entra no escopo atual com a alíquota geral de **20,5%** para os demais casos. A Lei nº 9.776/2025 alterou o art. 17, I, `b`, da Lei nº 5.900/1996 e estabeleceu expressamente a aplicação de 20,5% às operações e prestações internas e à importação de mercadorias, bens e serviços do exterior.
 
-A majoração produz efeitos a partir de **01/04/2023**, conforme a regra de vigência da Lei nº 8.779/2022. Esta etapa reutiliza o motor `GENERAL` e a fórmula canônica de ICMS por dentro.
+A nova alíquota produz efeitos a partir de **01/04/2026**. O art. 3º da Lei nº 9.776/2025 determina vigência no exercício financeiro seguinte e a partir do primeiro dia do quarto mês posterior à publicação de dezembro de 2025. Esta regra substitui, para operações atuais, a alíquota modal anterior de 19% vigente desde 01/04/2023. A etapa reutiliza o motor `GENERAL` e a fórmula canônica de ICMS por dentro.
 
 Fontes oficiais:
-- https://sapl.al.al.leg.br/media/sapl/public/normajuridica/2022/2419/lei_no_8.779_de_20_de_dezembro_de_2022.pdf
-- https://www.imprensaoficial.al.gov.br/storage/files/diary/2022/12/doeal-2022-12-22-suplemento-vez-mjxhlck4rzrwrvjobe7cja4e06zp0l9wrkysfdhzsygfamhoi.pdf
-- https://www.sefaz.al.gov.br/nise/faq/icms/479-6-base-de-calculo-e-aliquotas-2-aliquotas
+- https://sapl.al.al.leg.br/media/sapl/public/normajuridica/2025/3699/lei_no_9.776_de_22_de_dezembro_de_2025.pdf
+- https://diario.imprensaoficial.al.gov.br/apinova/api/editions/viewPdf/51514
+- https://www.sefaz.al.gov.br/noticias/item/3891-governo-de-alagoas-estimula-competitividade-com-reducao-de-impostos-e-incentivos-ate-2032
 
-FECOEP/adicionais quando aplicáveis, remessas postais ou expressas com carga própria, antecipações, substituição tributária, benefícios, reduções, isenções, diferimentos, regimes especiais e alíquotas específicas permanecem fora do escopo inicial e fail-closed.
+FECOEP/adicionais quando aplicáveis, remessas postais ou expressas com carga própria, antecipações, substituição tributária, cesta básica/reduções, benefícios, isenções, diferimentos, regimes especiais e alíquotas específicas permanecem fora do escopo inicial e fail-closed.
