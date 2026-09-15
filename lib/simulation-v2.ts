@@ -183,12 +183,19 @@ export function runImportSimulationV2(input: SimulationV2Input) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "A operação não pôde ser calculada.";
     const itemId = message.match(/^([^:]+):/)?.[1];
-    const jurisdictionBlocked = /UF .*não homologada|motor estadual automático está homologado somente para SC/i.test(message);
-    const blocked = jurisdictionBlocked || /bloquead|não passou na validação jurídica/i.test(message);
+    const jurisdictionUnsupported = /UF .*não homologada|motor estadual automático está homologado somente para SC/i.test(message);
+    const stateScopeUnsupported = /homologada apenas para a regra geral de ICMS|benefícios e regimes especiais permanecem fora do escopo/i.test(message);
+    const blocked = jurisdictionUnsupported || stateScopeUnsupported || /bloquead|não passou na validação jurídica/i.test(message);
     const validation = /requer validação|condicional/i.test(message);
     if (blocked || validation) {
       const issue: SimulationV2Issue = {
-        code: jurisdictionBlocked ? "state_jurisdiction_unsupported" : blocked ? "state_rule_blocked" : "state_rule_requires_input",
+        code: jurisdictionUnsupported
+          ? "state_jurisdiction_unsupported"
+          : stateScopeUnsupported
+            ? "state_scope_unsupported"
+            : blocked
+              ? "state_rule_blocked"
+              : "state_rule_requires_input",
         level: blocked ? "blocking" : "validation",
         scope: itemId ? "item" : "operation",
         itemId,
