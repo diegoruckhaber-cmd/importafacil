@@ -18,10 +18,10 @@ O repositório está conectado ao projeto Vercel `importafacil`:
 
 - branch `main`: produção;
 - branches/PRs: preview;
-- regressão de código: workflow `.github/workflows/quality-gates.yml`;
-- build/preview: integração Vercel.
+- regressão + build: workflow `.github/workflows/recovery-validation.yml` (`Full engine validation`);
+- build/preview adicional: integração Vercel.
 
-Antes de mergear uma etapa, a regressão completa e o preview devem estar verdes. Após o merge, o deploy de produção deve ficar `READY` e os endpoints relevantes devem passar por smoke test.
+Antes de mergear uma etapa, a regressão completa, o build e o preview devem estar verdes. Após o merge, o deploy de produção deve ficar `READY` e os endpoints relevantes devem passar por smoke test.
 
 ## Fontes de verdade de release
 
