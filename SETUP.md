@@ -1,20 +1,32 @@
-# ImportaFácil V8 — infraestrutura comercial
+# ImportaFácil — infraestrutura e publicação
 
-## Banco
-O `prisma/schema.prisma` modela:
-- usuários;
-- simulações;
-- NCMs monitoradas;
-- assinaturas.
+## Execução local
 
-## Pagamento
-`/api/checkout` é a fronteira para checkout. Ele retorna 501 enquanto não houver credenciais e price ID configurados.
+Instale as dependências com `npm install` e use os scripts definidos em `package.json`. A regressão completa do motor é executada por `npm run test:all`; o build de produção por `npm run build`.
 
-## Autenticação
-A aplicação ainda não deve considerar o usuário autenticado. A próxima integração deve adicionar um provedor de autenticação e proteger as rotas de simulação/histórico.
+## Variáveis de ambiente
+
+Use `.env.example` como referência. Credenciais reais não devem ser versionadas. Integrações externas devem permanecer fail-closed quando a configuração necessária não estiver disponível.
+
+## Banco, autenticação e pagamentos
+
+Os módulos de banco, autenticação e checkout devem ser tratados como integrações independentes do motor tributário. Nenhuma ausência de credencial pode degradar silenciosamente regras fiscais ou liberar funcionalidades protegidas.
 
 ## Publicação
-Não há projeto Vercel conectado nesta conta neste momento. Portanto, esta versão está pronta para conexão, mas não foi declarada como produção.
 
-## Variáveis
-Copie `.env.example` para `.env.local` somente quando os serviços reais estiverem conectados.
+O repositório está conectado ao projeto Vercel `importafacil`:
+
+- branch `main`: produção;
+- branches/PRs: preview;
+- regressão de código: workflow `.github/workflows/quality-gates.yml`;
+- build/preview: integração Vercel.
+
+Antes de mergear uma etapa, a regressão completa e o preview devem estar verdes. Após o merge, o deploy de produção deve ficar `READY` e os endpoints relevantes devem passar por smoke test.
+
+## Fontes de verdade de release
+
+- `GET /api/launch-readiness`: prontidão e evidências;
+- `GET /api/release-scope`: escopo comercial;
+- `docs/launch-checklist.md`: resumo humano, subordinado aos contratos executáveis.
+
+O estado `eligible_for_release_review` não equivale a autorização automática de lançamento comercial irrestrito.
