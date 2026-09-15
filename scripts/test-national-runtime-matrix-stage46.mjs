@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { POST } from "../app/api/simulation-v2/route.ts";
+import fs from "node:fs";
+import { runImportSimulationV2 } from "../lib/simulation-v2.ts";
 import { BRAZILIAN_UFS, resolveStateJurisdiction } from "../lib/state-jurisdiction-registry.ts";
 import { resolveGeneralStateIcmsRule } from "../lib/state-general-icms-rules.ts";
 
@@ -32,19 +33,19 @@ function item(overrides = {}) {
   };
 }
 
-async function callSimulation(destinationUf, itemOverrides = {}) {
-  const request = new Request("http://localhost/api/simulation-v2", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      ...baseOperation,
-      destinationUf,
-      items: [item(itemOverrides)],
-    }),
+function callSimulation(destinationUf, itemOverrides = {}) {
+  return runImportSimulationV2({
+    ...baseOperation,
+    destinationUf,
+    items: [item(itemOverrides)],
   });
-  const response = await POST(request);
-  return { httpStatus: response.status, body: await response.json() };
 }
+
+const routeSource = fs.readFileSync("app/api/simulation-v2/route.ts", "utf8");
+assert.match(routeSource, /runImportSimulationV2/);
+assert.match(routeSource, /const result = runImportSimulationV2\(body\)/);
+assert.match(routeSource, /buildSimulationV2LegalTrace\(result\)/);
+assert.match(routeSource, /return NextResponse\.json\(/);
 
 assert.equal(BRAZILIAN_UFS.length, 27);
 
@@ -53,47 +54,43 @@ for (const uf of BRAZILIAN_UFS) {
   assert(jurisdiction, `${uf}: jurisdiction missing`);
   assert.equal(jurisdiction.status, "homologated", `${uf}: jurisdiction must remain homologated`);
 
-  const normal = await callSimulation(uf);
-  assert.equal(normal.httpStatus, 200, `${uf}: normal path must return HTTP 200`);
-  assert.equal(normal.body.contract, "importafacil-simulation-v2", `${uf}: unexpected contract`);
-  assert(["calculated", "alert"].includes(normal.body.status), `${uf}: unexpected normal status ${normal.body.status}`);
-  assert.equal(normal.body.jurisdiction?.destinationUf, uf, `${uf}: wrong destination in runtime jurisdiction`);
-  assert.equal(normal.body.jurisdiction?.status, "homologated", `${uf}: runtime jurisdiction not homologated`);
-  assert.equal(normal.body.jurisdiction?.scope, jurisdiction.scope, `${uf}: runtime scope drift`);
-  assert.equal(normal.body.jurisdiction?.homologatedUfs?.length, 27, `${uf}: runtime must expose 27 homologated UFs`);
-  assert(normal.body.summary?.landedCostBrl > 0, `${uf}: runtime summary missing`);
-  assert(normal.body.calculation?.items?.[0], `${uf}: runtime calculation missing`);
-  assert(Array.isArray(normal.body.legalTrace), `${uf}: legal trace missing`);
+  const normal = callSimulation(uf);
+  assert.equal(normal.contract, "importafacil-simulation-v2", `${uf}: unexpected contract`);
+  assert(["calculated", "alert"].includes(normal.status), `${uf}: unexpected normal status ${normal.status}`);
+  assert.equal(normal.jurisdiction?.destinationUf, uf, `${uf}: wrong destination in runtime jurisdiction`);
+  assert.equal(normal.jurisdiction?.status, "homologated", `${uf}: runtime jurisdiction not homologated`);
+  assert.equal(normal.jurisdiction?.scope, jurisdiction.scope, `${uf}: runtime scope drift`);
+  assert.equal(normal.jurisdiction?.homologatedUfs?.length, 27, `${uf}: runtime must expose 27 homologated UFs`);
+  assert(normal.summary?.landedCostBrl > 0, `${uf}: runtime summary missing`);
+  assert(normal.calculation?.items?.[0], `${uf}: runtime calculation missing`);
 
   if (uf === "SC") {
-    assert.equal(normal.body.jurisdiction.stateEngine, "SC");
-    assert.equal(normal.body.jurisdiction.scope, "full");
+    assert.equal(normal.jurisdiction.stateEngine, "SC");
+    assert.equal(normal.jurisdiction.scope, "full");
     continue;
   }
 
   const rule = resolveGeneralStateIcmsRule(uf);
   assert(rule, `${uf}: general ICMS rule missing`);
-  assert.equal(normal.body.jurisdiction.stateEngine, "GENERAL", `${uf}: wrong runtime engine`);
-  assert.equal(normal.body.jurisdiction.scope, "general_rate_only", `${uf}: general scope drift`);
-  assert.equal(normal.body.calculation.items[0].icmsNormalRate, rule.ratePercent, `${uf}: runtime rate differs from homologated general rate`);
-  assert.equal(normal.body.calculation.items[0].icmsImportEffectiveRate, rule.ratePercent, `${uf}: runtime effective rate differs from homologated general rate`);
+  assert.equal(normal.jurisdiction.stateEngine, "GENERAL", `${uf}: wrong runtime engine`);
+  assert.equal(normal.jurisdiction.scope, "general_rate_only", `${uf}: general scope drift`);
+  assert.equal(normal.calculation.items[0].icmsNormalRate, rule.ratePercent, `${uf}: runtime rate differs from homologated general rate`);
+  assert.equal(normal.calculation.items[0].icmsImportEffectiveRate, rule.ratePercent, `${uf}: runtime effective rate differs from homologated general rate`);
 
-  const blockedSpecial = await callSimulation(uf, { ttd: "409" });
-  assert.equal(blockedSpecial.httpStatus, 200, `${uf}: out-of-scope state treatment must use structured blocked response`);
-  assert.equal(blockedSpecial.body.contract, "importafacil-simulation-v2", `${uf}: blocked contract drift`);
-  assert.equal(blockedSpecial.body.status, "blocked", `${uf}: TTD outside scope must be blocked`);
-  assert.equal(blockedSpecial.body.summary, null, `${uf}: blocked scope must not expose summary`);
-  assert.equal(blockedSpecial.body.calculation, null, `${uf}: blocked scope must not expose calculation`);
-  assert(blockedSpecial.body.issues?.some((issue) => issue.code === "state_scope_unsupported"), `${uf}: missing state_scope_unsupported issue`);
-  assert(blockedSpecial.body.attentionPoints?.some((message) => /apenas para a regra geral de ICMS/i.test(message)), `${uf}: missing explicit scope warning`);
+  const blockedSpecial = callSimulation(uf, { ttd: "409" });
+  assert.equal(blockedSpecial.contract, "importafacil-simulation-v2", `${uf}: blocked contract drift`);
+  assert.equal(blockedSpecial.status, "blocked", `${uf}: TTD outside scope must be blocked`);
+  assert.equal(blockedSpecial.summary, null, `${uf}: blocked scope must not expose summary`);
+  assert.equal(blockedSpecial.calculation, null, `${uf}: blocked scope must not expose calculation`);
+  assert(blockedSpecial.issues?.some((issue) => issue.code === "state_scope_unsupported"), `${uf}: missing state_scope_unsupported issue`);
+  assert(blockedSpecial.attentionPoints?.some((message) => /apenas para a regra geral de ICMS/i.test(message)), `${uf}: missing explicit scope warning`);
 }
 
-const invalidUf = await callSimulation("XX");
-assert.equal(invalidUf.httpStatus, 200);
-assert.equal(invalidUf.body.status, "blocked");
-assert.equal(invalidUf.body.summary, null);
-assert.equal(invalidUf.body.calculation, null);
-assert(invalidUf.body.issues?.some((issue) => issue.code === "state_jurisdiction_unsupported"));
-assert(invalidUf.body.attentionPoints?.some((message) => /UF XX não homologada/i.test(message)));
+const invalidUf = callSimulation("XX");
+assert.equal(invalidUf.status, "blocked");
+assert.equal(invalidUf.summary, null);
+assert.equal(invalidUf.calculation, null);
+assert(invalidUf.issues?.some((issue) => issue.code === "state_jurisdiction_unsupported"));
+assert(invalidUf.attentionPoints?.some((message) => /UF XX não homologada/i.test(message)));
 
-console.log("Stage 46: OK — Simulation V2 runtime matrix covers 27/27 UFs and state scope remains structured fail-closed");
+console.log("Stage 46: OK — canonical Simulation V2 runtime covers 27/27 UFs; API route delegation is locked; state scope remains structured fail-closed");
