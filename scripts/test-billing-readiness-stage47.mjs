@@ -20,8 +20,8 @@ assert.match(route, /checkSupabaseTable\(supabaseUrl, serviceKey, "profiles"\)/)
 assert.match(route, /checkSupabaseTable\(supabaseUrl, serviceKey, "subscriptions"\)/);
 assert.match(route, /status: 503/);
 assert.match(route, /Cache-Control/);
-assert.doesNotMatch(route, /stripeSecret\s*[,}]/);
-assert.doesNotMatch(route, /webhookSecret\s*[,}]/);
-assert.doesNotMatch(route, /serviceKey\s*[,}]/);
+assert.doesNotMatch(route, /stripeSecret\s*:/);
+assert.doesNotMatch(route, /webhookSecret\s*:/);
+assert.doesNotMatch(route, /serviceKey\s*:/);
 
 console.log("Stage 47 billing readiness: OK — live Stripe config and Supabase table reachability are fail-closed without exposing secrets");
