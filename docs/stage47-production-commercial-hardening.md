@@ -51,3 +51,7 @@ A branch `main` segue sem branch protection e o repositório não possui ruleset
 ## Release
 
 Esta etapa não promove o release comercial irrestrito. `eligible_for_release_review` continua sendo um gate manual e não equivale a autorização automática de go-live.
+
+## Validação do candidato
+
+O candidato da Etapa 47 passou no workflow canônico `Full engine validation` e no preview Vercel antes do merge.
