@@ -23,9 +23,16 @@ assert.match(checkout, /Checkout ainda não configurado/);
 
 const webhook = fs.readFileSync("app/api/stripe/webhook/route.ts", "utf8");
 for (const event of ["checkout.session.completed", "customer.subscription.updated", "customer.subscription.deleted", "invoice.paid", "invoice.payment_failed"]) assert.match(webhook, new RegExp(event.replaceAll(".", "\\.")));
-assert.match(webhook, /SUPABASE_SERVICE_ROLE_KEY/);
+assert.match(webhook, /supabaseAdminHeaders/);
+assert.match(webhook, /supabaseElevatedKeyFromEnv/);
 assert.match(webhook, /STRIPE_WEBHOOK_SECRET/);
 assert.match(webhook, /assertRestOk/);
+
+const supabaseAdmin = fs.readFileSync("lib/supabase-admin.ts", "utf8");
+assert.match(supabaseAdmin, /SUPABASE_SECRET_KEY/);
+assert.match(supabaseAdmin, /SUPABASE_SERVICE_ROLE_KEY/);
+assert.match(supabaseAdmin, /sb_secret_/);
+assert.match(supabaseAdmin, /service_role/);
 
 const readiness = getLaunchReadiness();
 const releaseScope = getReleaseScope();
@@ -34,4 +41,4 @@ assert.equal(readiness.release.unrestrictedCommercial, releaseScope.unrestricted
 assert.equal(readiness.release.controlledBeta, "released_with_restrictions");
 assert.equal(readiness.release.unrestrictedCommercial, "eligible_for_release_review");
 
-console.log("Stage 47 commercial hardening: OK — Stripe fail-closed guards, webhook lifecycle, and release semantics validated");
+console.log("Stage 47 commercial hardening: OK — Stripe fail-closed guards, webhook lifecycle, Supabase elevated-key compatibility, and release semantics validated");
