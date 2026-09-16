@@ -1,4 +1,9 @@
 import { NextResponse } from "next/server";
+import {
+  supabaseAdminHeaders,
+  supabaseElevatedKeyFromEnv,
+  supabaseElevatedKeyKind,
+} from "../../../lib/supabase-admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,13 +32,10 @@ async function checkStripePrice(secret: string, priceId: string): Promise<Check>
   }
 }
 
-async function checkSupabaseTable(url: string, serviceKey: string, table: string): Promise<Check> {
+async function checkSupabaseTable(url: string, elevatedKey: string, table: string): Promise<Check> {
   try {
     const response = await fetch(`${url}/rest/v1/${table}?select=id&limit=0`, {
-      headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`,
-      },
+      headers: supabaseAdminHeaders(elevatedKey),
       cache: "no-store",
     });
     return { ok: response.ok, detail: response.ok ? "reachable" : `http_${response.status}` };
@@ -47,17 +49,26 @@ export async function GET() {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
   const priceId = process.env.STRIPE_PRO_PRICE_ID || "";
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  const elevatedKey = supabaseElevatedKeyFromEnv();
+  const elevatedKeyKind = supabaseElevatedKeyKind(elevatedKey);
 
   const environment = {
     stripeSecretConfigured: /^sk_live_|^rk_live_/.test(stripeSecret),
     webhookSecretConfigured: webhookSecret.startsWith("whsec_"),
     proPriceConfigured: priceId.startsWith("price_"),
     supabaseUrlConfigured: /^https:\/\//.test(supabaseUrl),
-    serviceRoleConfigured: serviceKey.length > 20,
+    supabaseElevatedKeyConfigured: elevatedKeyKind !== "invalid",
+    supabaseElevatedKeyKind: elevatedKeyKind,
   };
 
-  if (!Object.values(environment).every(Boolean)) {
+  const environmentOk =
+    environment.stripeSecretConfigured &&
+    environment.webhookSecretConfigured &&
+    environment.proPriceConfigured &&
+    environment.supabaseUrlConfigured &&
+    environment.supabaseElevatedKeyConfigured;
+
+  if (!environmentOk) {
     return NextResponse.json(
       { ok: false, service: "billing", environment: process.env.VERCEL_ENV || "unknown", checks: { environment } },
       { status: 503, headers: { "Cache-Control": "no-store" } },
@@ -66,8 +77,8 @@ export async function GET() {
 
   const [stripePrice, profiles, subscriptions] = await Promise.all([
     checkStripePrice(stripeSecret, priceId),
-    checkSupabaseTable(supabaseUrl, serviceKey, "profiles"),
-    checkSupabaseTable(supabaseUrl, serviceKey, "subscriptions"),
+    checkSupabaseTable(supabaseUrl, elevatedKey, "profiles"),
+    checkSupabaseTable(supabaseUrl, elevatedKey, "subscriptions"),
   ]);
 
   const ok = stripePrice.ok && profiles.ok && subscriptions.ok;

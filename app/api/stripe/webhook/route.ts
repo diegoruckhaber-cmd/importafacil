@@ -5,6 +5,11 @@ import {
   stripeUserIdFromObject,
   verifyStripeWebhookSignature,
 } from "../../../../lib/stripe-webhook";
+import {
+  supabaseAdminHeaders,
+  supabaseElevatedKeyFromEnv,
+  supabaseElevatedKeyKind,
+} from "../../../../lib/supabase-admin";
 
 export const runtime = "nodejs";
 
@@ -19,10 +24,12 @@ const RELEVANT_EVENTS = new Set([
 
 function serverConfig() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseKey = supabaseElevatedKeyFromEnv();
   const stripeSecret = process.env.STRIPE_SECRET_KEY;
-  if (!supabaseUrl || !serviceKey || !stripeSecret) throw new Error("Billing server environment is not configured.");
-  return { supabaseUrl, serviceKey, stripeSecret };
+  if (!supabaseUrl || supabaseElevatedKeyKind(supabaseKey) === "invalid" || !stripeSecret) {
+    throw new Error("Billing server environment is not configured.");
+  }
+  return { supabaseUrl, supabaseKey, stripeSecret };
 }
 
 async function readStripeSubscription(subscriptionId: string, stripeSecret: string) {
@@ -41,10 +48,9 @@ async function assertRestOk(response: Response, operation: string) {
 }
 
 async function updateSubscriptionEntitlement(userId: string, subscription: any) {
-  const { supabaseUrl, serviceKey } = serverConfig();
+  const { supabaseUrl, supabaseKey } = serverConfig();
   const headers = {
-    apikey: serviceKey,
-    Authorization: `Bearer ${serviceKey}`,
+    ...supabaseAdminHeaders(supabaseKey),
     "Content-Type": "application/json",
   };
   const plan = planForStripeSubscriptionStatus(subscription?.status);
@@ -73,7 +79,9 @@ async function updateSubscriptionEntitlement(userId: string, subscription: any) 
   });
   await assertRestOk(profileResponse, "Profile entitlement update");
   const updatedProfiles = await profileResponse.json().catch(() => []);
-  if (!Array.isArray(updatedProfiles) || updatedProfiles.length !== 1) throw new Error("Profile entitlement update did not affect exactly one profile.");
+  if (!Array.isArray(updatedProfiles) || updatedProfiles.length !== 1) {
+    throw new Error("Profile entitlement update did not affect exactly one profile.");
+  }
 }
 
 async function subscriptionForEvent(eventType: string, object: any) {
