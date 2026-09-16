@@ -51,7 +51,7 @@ export function getLaunchReadiness() {
       p0BlockingIds: blockingP0.map((item) => item.id),
     },
     release: {
-      controlledBeta: blockingP0.length === 0 && activation.status === "safe" ? "eligible_for_release_review" as const : "blocked" as const,
+      controlledBeta: blockingP0.length === 0 && activation.status === "safe" ? "released_with_restrictions" as const : "blocked" as const,
       unrestrictedCommercial: blockingP0.length === 0 && activation.status === "safe" && nationalCoverage ? "eligible_for_release_review" as const : "blocked_by_state_scope" as const,
       activeStateScope,
     },

@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const PRICE_ID = process.env.STRIPE_PRO_PRICE_ID || "price_1U2fwM3Fg8OaACj8YADPcwaQ";
-
 export async function POST(req: Request) {
   try {
     const authHeader = req.headers.get("authorization") || "";
@@ -18,14 +16,16 @@ export async function POST(req: Request) {
     if (userError || !user) return NextResponse.json({ error: "Sua sessão expirou. Entre novamente." }, { status: 401 });
 
     const secret = process.env.STRIPE_SECRET_KEY;
-    if (!secret) return NextResponse.json({ error: "Checkout ainda não configurado no ambiente." }, { status: 503 });
+    const priceId = process.env.STRIPE_PRO_PRICE_ID;
+    if (!secret || !priceId) return NextResponse.json({ error: "Checkout ainda não configurado no ambiente." }, { status: 503 });
+    if (!priceId.startsWith("price_")) return NextResponse.json({ error: "Checkout ainda não configurado no ambiente." }, { status: 503 });
 
     const origin = new URL(req.url).origin;
     const userId = user.id;
     const email = user.email || "";
     const params = new URLSearchParams();
     params.set("mode", "subscription");
-    params.set("line_items[0][price]", PRICE_ID);
+    params.set("line_items[0][price]", priceId);
     params.set("line_items[0][quantity]", "1");
     params.set("customer_email", email);
     params.set("client_reference_id", userId);
@@ -42,8 +42,11 @@ export async function POST(req: Request) {
       body: params.toString(),
       cache: "no-store",
     });
-    const data = await response.json();
-    if (!response.ok) return NextResponse.json({ error: data?.error?.message || "Não foi possível criar o checkout." }, { status: 502 });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || typeof data?.url !== "string") {
+      console.error("Stripe checkout creation failed", response.status, data?.error?.type || "unknown_error");
+      return NextResponse.json({ error: "Não foi possível iniciar o checkout agora." }, { status: 502 });
+    }
     return NextResponse.json({ url: data.url, sessionId: data.id });
   } catch {
     return NextResponse.json({ error: "Erro ao iniciar o checkout." }, { status: 500 });
