@@ -9,16 +9,32 @@ export async function POST(req: Request) {
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!supabaseUrl || !supabaseKey) return NextResponse.json({ error: "Autenticação do ambiente não está configurada." }, { status: 503 });
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json({ error: "Autenticação do ambiente não está configurada." }, { status: 503 });
+    }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: { headers: { Authorization: `Bearer ${accessToken}` } },
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
     const { data: { user }, error: userError } = await supabase.auth.getUser(accessToken);
     if (userError || !user) return NextResponse.json({ error: "Sua sessão expirou. Entre novamente." }, { status: 401 });
 
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("plan,stripe_customer_id")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (String(profile?.plan || "FREE").toUpperCase() === "PRO") {
+      return NextResponse.json({ error: "Seu plano PRO já está ativo." }, { status: 409 });
+    }
+
     const secret = process.env.STRIPE_SECRET_KEY;
     const priceId = process.env.STRIPE_PRO_PRICE_ID;
-    if (!secret || !priceId) return NextResponse.json({ error: "Checkout ainda não configurado no ambiente." }, { status: 503 });
-    if (!priceId.startsWith("price_")) return NextResponse.json({ error: "Checkout ainda não configurado no ambiente." }, { status: 503 });
+    if (!secret || !priceId || !priceId.startsWith("price_")) {
+      return NextResponse.json({ error: "Checkout ainda não configurado no ambiente." }, { status: 503 });
+    }
 
     const origin = new URL(req.url).origin;
     const userId = user.id;
@@ -27,7 +43,14 @@ export async function POST(req: Request) {
     params.set("mode", "subscription");
     params.set("line_items[0][price]", priceId);
     params.set("line_items[0][quantity]", "1");
-    params.set("customer_email", email);
+
+    const existingCustomerId =
+      typeof profile?.stripe_customer_id === "string" && profile.stripe_customer_id.startsWith("cus_")
+        ? profile.stripe_customer_id
+        : "";
+    if (existingCustomerId) params.set("customer", existingCustomerId);
+    else params.set("customer_email", email);
+
     params.set("client_reference_id", userId);
     params.set("subscription_data[metadata][user_id]", userId);
     params.set("subscription_data[metadata][plan]", "PRO");
