@@ -115,7 +115,7 @@ export default function FeedbackPage() {
   }
 
   return (
-    <main style={{minHeight:"100vh",background:"#f7f7f4",padding:"48px 24px"}}>
+    <main data-feedback-lifecycle="user-delete" style={{minHeight:"100vh",background:"#f7f7f4",padding:"48px 24px"}}>
       <div style={{maxWidth:860,margin:"auto"}}>
         <a href="/dashboard" style={{color:"#111"}}>← Meu painel</a>
         <small style={{display:"block",marginTop:30,letterSpacing:1,color:"#777"}}>BETA CONTROLADO</small>
