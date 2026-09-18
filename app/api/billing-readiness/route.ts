@@ -34,7 +34,7 @@ async function checkStripePrice(secret: string, priceId: string): Promise<Check>
 
 async function checkSupabaseTable(url: string, elevatedKey: string, table: string): Promise<Check> {
   try {
-    const response = await fetch(`${url}/rest/v1/${table}?select=id&limit=0`, {
+    const response = await fetch(`${url}/rest/v1/${table}?select=*&limit=0`, {
       headers: supabaseAdminHeaders(elevatedKey),
       cache: "no-store",
     });
@@ -75,13 +75,14 @@ export async function GET() {
     );
   }
 
-  const [stripePrice, profiles, subscriptions] = await Promise.all([
+  const [stripePrice, profiles, subscriptions, webhookEvents] = await Promise.all([
     checkStripePrice(stripeSecret, priceId),
     checkSupabaseTable(supabaseUrl, elevatedKey, "profiles"),
     checkSupabaseTable(supabaseUrl, elevatedKey, "subscriptions"),
+    checkSupabaseTable(supabaseUrl, elevatedKey, "stripe_webhook_events"),
   ]);
 
-  const ok = stripePrice.ok && profiles.ok && subscriptions.ok;
+  const ok = stripePrice.ok && profiles.ok && subscriptions.ok && webhookEvents.ok;
   return NextResponse.json(
     {
       ok,
@@ -90,7 +91,7 @@ export async function GET() {
       checks: {
         environment,
         stripe: { price: stripePrice },
-        supabase: { profiles, subscriptions },
+        supabase: { profiles, subscriptions, webhookEvents },
       },
     },
     { status: ok ? 200 : 503, headers: { "Cache-Control": "no-store" } },
