@@ -111,7 +111,7 @@ assert.doesNotMatch(service, /from ["']\.\/calculator/);
 assert.match(route, /runImportSimulationV2/);
 assert.match(page, /\/api\/simulation-v2/);
 assert.match(page, /\/api\/simulations/);
-assert.match(page, /mode:"v2"/);
+assert.match(page, /mode\\s*:\\s*"v2"/);
 assert.doesNotMatch(page, /lib\/calculator/);
 assert.match(persistenceRoute, /body\.mode === "v2"/);
 assert.match(persistenceRoute, /body\.result\.contract !== "importafacil-simulation-v2"/);
