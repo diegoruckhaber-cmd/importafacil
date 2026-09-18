@@ -23,6 +23,8 @@ const RELEVANT_EVENTS = new Set([
   "invoice.payment_failed",
 ]);
 
+type DeliveryStatus = "received" | "processed" | "failed" | "ignored";
+
 function serverConfig() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = supabaseElevatedKeyFromEnv();
@@ -31,6 +33,63 @@ function serverConfig() {
     throw new Error("Billing server environment is not configured.");
   }
   return { supabaseUrl, supabaseKey, stripeSecret };
+}
+
+function auditHeaders(supabaseKey: string) {
+  return {
+    ...supabaseAdminHeaders(supabaseKey),
+    "Content-Type": "application/json",
+  };
+}
+
+async function deliveryStatus(eventId: string): Promise<DeliveryStatus | null> {
+  const { supabaseUrl, supabaseKey } = serverConfig();
+  const response = await fetch(
+    `${supabaseUrl}/rest/v1/stripe_webhook_events?event_id=eq.${encodeURIComponent(eventId)}&select=status&limit=1`,
+    { headers: auditHeaders(supabaseKey), cache: "no-store" },
+  );
+  if (!response.ok) throw new Error(`Webhook audit lookup failed (${response.status}).`);
+  const rows = await response.json().catch(() => []);
+  const status = Array.isArray(rows) ? rows[0]?.status : null;
+  return status === "received" || status === "processed" || status === "failed" || status === "ignored"
+    ? status
+    : null;
+}
+
+async function registerDelivery(eventId: string, eventType: string) {
+  const existing = await deliveryStatus(eventId);
+  if (existing) return existing;
+
+  const { supabaseUrl, supabaseKey } = serverConfig();
+  const response = await fetch(`${supabaseUrl}/rest/v1/stripe_webhook_events`, {
+    method: "POST",
+    headers: { ...auditHeaders(supabaseKey), Prefer: "return=minimal" },
+    body: JSON.stringify({ event_id: eventId, event_type: eventType, status: "received" }),
+  });
+  if (response.status === 409) return deliveryStatus(eventId);
+  if (!response.ok) throw new Error(`Webhook audit registration failed (${response.status}).`);
+  return "received" as DeliveryStatus;
+}
+
+async function markDelivery(eventId: string, status: Exclude<DeliveryStatus, "received">) {
+  const { supabaseUrl, supabaseKey } = serverConfig();
+  const now = new Date().toISOString();
+  const response = await fetch(
+    `${supabaseUrl}/rest/v1/stripe_webhook_events?event_id=eq.${encodeURIComponent(eventId)}`,
+    {
+      method: "PATCH",
+      headers: { ...auditHeaders(supabaseKey), Prefer: "return=representation" },
+      body: JSON.stringify({
+        status,
+        processed_at: status === "processed" || status === "ignored" ? now : null,
+        updated_at: now,
+        last_error: status === "failed" ? "processing_failed" : null,
+      }),
+    },
+  );
+  if (!response.ok) throw new Error(`Webhook audit update failed (${response.status}).`);
+  const rows = await response.json().catch(() => []);
+  if (!Array.isArray(rows) || rows.length !== 1) throw new Error("Webhook audit update affected an unexpected row count.");
 }
 
 async function readStripeSubscription(subscriptionId: string, stripeSecret: string) {
@@ -44,16 +103,12 @@ async function readStripeSubscription(subscriptionId: string, stripeSecret: stri
 
 async function assertRestOk(response: Response, operation: string) {
   if (response.ok) return;
-  const detail = await response.text().catch(() => "");
-  throw new Error(`${operation} failed (${response.status})${detail ? `: ${detail.slice(0, 180)}` : ""}`);
+  throw new Error(`${operation} failed (${response.status}).`);
 }
 
 async function updateSubscriptionEntitlement(userId: string, subscription: any) {
   const { supabaseUrl, supabaseKey } = serverConfig();
-  const headers = {
-    ...supabaseAdminHeaders(supabaseKey),
-    "Content-Type": "application/json",
-  };
+  const headers = auditHeaders(supabaseKey);
   const plan = planForStripeSubscriptionStatus(subscription?.status);
   const currentPeriodEnd = subscription?.current_period_end
     ? new Date(Number(subscription.current_period_end) * 1000).toISOString()
@@ -114,20 +169,45 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
+  let eventId = "";
   try {
     const event = JSON.parse(payload);
-    if (!RELEVANT_EVENTS.has(event?.type)) return NextResponse.json({ received: true, processed: false });
+    eventId = typeof event?.id === "string" && event.id.startsWith("evt_") ? event.id : "";
+    const eventType = typeof event?.type === "string" ? event.type : "";
+    if (!eventId || !eventType) return NextResponse.json({ error: "Malformed Stripe event." }, { status: 400 });
+
+    const registeredStatus = await registerDelivery(eventId, eventType);
+    if (registeredStatus === "processed" || registeredStatus === "ignored") {
+      return NextResponse.json({ received: true, processed: registeredStatus === "processed", duplicate: true });
+    }
+
+    if (!RELEVANT_EVENTS.has(eventType)) {
+      await markDelivery(eventId, "ignored");
+      return NextResponse.json({ received: true, processed: false });
+    }
 
     const object = event?.data?.object;
-    const subscription = await subscriptionForEvent(event.type, object);
-    if (!subscription) return NextResponse.json({ received: true, processed: false });
+    const subscription = await subscriptionForEvent(eventType, object);
+    if (!subscription) {
+      await markDelivery(eventId, "ignored");
+      return NextResponse.json({ received: true, processed: false });
+    }
 
     const userId = stripeUserIdFromObject(subscription) || stripeUserIdFromObject(object);
-    if (!userId) return NextResponse.json({ received: true, processed: false });
+    if (!userId) {
+      await markDelivery(eventId, "ignored");
+      return NextResponse.json({ received: true, processed: false });
+    }
 
     await updateSubscriptionEntitlement(userId, subscription);
+    await markDelivery(eventId, "processed");
     return NextResponse.json({ received: true, processed: true });
   } catch (error) {
+    if (eventId) {
+      try { await markDelivery(eventId, "failed"); } catch (auditError) {
+        console.error("Stripe webhook audit failure", auditError instanceof Error ? auditError.message : "unknown error");
+      }
+    }
     console.error("Stripe webhook processing failed", error instanceof Error ? error.message : "unknown error");
     return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
   }
