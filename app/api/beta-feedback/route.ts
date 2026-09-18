@@ -174,3 +174,59 @@ export async function GET(req: Request) {
     { headers: { "Cache-Control": "no-store" } },
   );
 }
+
+export async function DELETE(req: Request) {
+  const startedAtMs = Date.now();
+  const authorization = req.headers.get("authorization") || "";
+  const accessToken = authorization.replace(/^Bearer\s+/i, "").trim();
+  if (!accessToken) return NextResponse.json({ error: "Faça login para excluir feedback." }, { status: 401 });
+
+  const supabase = userClient(accessToken);
+  if (!supabase) return NextResponse.json({ error: "Feedback indisponível no ambiente." }, { status: 503 });
+
+  const { data: { user }, error: userError } = await supabase.auth.getUser(accessToken);
+  if (userError || !user) return NextResponse.json({ error: "Sua sessão expirou. Entre novamente." }, { status: 401 });
+
+  let body: { id?: unknown };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Informe o feedback que deseja excluir." }, { status: 400 });
+  }
+
+  const id = String(body.id || "").trim();
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    return NextResponse.json({ error: "Identificador de feedback inválido." }, { status: 400 });
+  }
+
+  const { data, error } = await supabase
+    .from("beta_feedback")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .select("id");
+
+  if (error) {
+    emitOperationalEvent(buildOperationalEvent({
+      event: "beta.feedback",
+      outcome: "failed",
+      reasonCode: "delete_failed",
+      mode: "delete",
+      startedAtMs,
+    }));
+    return NextResponse.json({ error: "Não foi possível excluir o feedback agora." }, { status: 500 });
+  }
+
+  if (!data?.length) {
+    return NextResponse.json({ error: "Feedback não encontrado." }, { status: 404 });
+  }
+
+  emitOperationalEvent(buildOperationalEvent({
+    event: "beta.feedback",
+    outcome: "success",
+    mode: "delete",
+    startedAtMs,
+  }));
+
+  return NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
+}
