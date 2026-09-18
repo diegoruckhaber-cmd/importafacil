@@ -65,14 +65,14 @@ const operationPage = fs.readFileSync(path.join(process.cwd(), "app", "sc-operat
 const dashboardPage = fs.readFileSync(path.join(process.cwd(), "app", "dashboard", "page.tsx"), "utf8");
 const v2Page = fs.readFileSync(path.join(process.cwd(), "app", "simulacao-v2", "page.tsx"), "utf8");
 
-assert.ok(rootPage.includes('fetch("/api/sc-federal-calculate"'), "a home deve usar o backend unificado");
-assert.ok(operationPage.includes('fetch("/api/sc-federal-calculate"'), "a tela multi-item técnica deve usar o mesmo backend da home");
+assert.ok(rootPage.includes('href="/simulacao-v2"'), "a home deve direcionar para a Simulation V2 canônica");
+assert.ok(operationPage.includes('redirect("/simulacao-v2?from=sc-operation")'), "a tela técnica legada deve redirecionar para a Simulation V2 canônica");
 assert.ok(dashboardPage.includes('href="/simulacao-v2"'), "Nova simulação do dashboard deve abrir a Simulation V2 canônica");
 assert.ok(v2Page.includes('fetch("/api/simulation-v2"'), "a Simulation V2 deve usar seu contrato de orquestração canônico");
-assert.equal(operationPage.includes("calculateSCMultiItemFinalCost"), false, "a tela não deve mais calcular tributos localmente");
-assert.equal(operationPage.includes("resolveSCBenefit"), false, "a tela não deve mais resolver benefício fiscal localmente");
-assert.equal(operationPage.includes("iiRate"), false, "a tela multi-item não deve expor alíquota federal manual");
-assert.equal(operationPage.includes("ipiRate"), false, "a tela multi-item não deve expor alíquota federal manual");
+assert.equal(operationPage.includes("calculateSCMultiItemFinalCost"), false, "a rota legada não deve calcular tributos localmente");
+assert.equal(operationPage.includes("resolveSCBenefit"), false, "a rota legada não deve resolver benefício fiscal localmente");
+assert.equal(operationPage.includes("iiRate"), false, "a rota legada não deve expor alíquota federal manual");
+assert.equal(operationPage.includes("ipiRate"), false, "a rota legada não deve expor alíquota federal manual");
 assert.equal(v2Page.includes("iiRate"), false, "a Simulation V2 não deve expor alíquota federal manual");
 assert.equal(v2Page.includes("ipiRate"), false, "a Simulation V2 não deve expor alíquota federal manual");
 
