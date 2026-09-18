@@ -6,24 +6,24 @@ const stage2 = fs.readFileSync(".github/workflows/stage2-federal-source-audit.ym
 const defense = fs.readFileSync(".github/workflows/sync-mdic-defesa-comercial.yml", "utf8");
 const runbook = fs.readFileSync("docs/legislative-update-runbook.md", "utf8");
 
+function assertReadOnlyWorkflow(source, label) {
+  assert.match(source, /permissions:\s*\n\s*contents:\s*read/);
+  assert.doesNotMatch(source, /^\s*contents:\s*write\s*$/m, label + " must not grant contents write");
+  assert.doesNotMatch(source, /^\s*git\s+push(?:\s|$)/m, label + " must not push");
+}
+
 assert.match(federal, /schedule:/);
 assert.match(federal, /workflow_dispatch:/);
-assert.match(federal, /contents:\s*read/);
 assert.match(federal, /official-snapshot-candidate\.json/);
 assert.match(federal, /human_review_required_before_any_publication/);
-assert.doesNotMatch(federal, /contents:\s*write/);
-assert.doesNotMatch(federal, /git\s+push/);
+assertReadOnlyWorkflow(federal, "federal source audit");
 
 assert.match(stage2, /workflow_dispatch:/);
-assert.match(stage2, /contents:\s*read/);
-assert.doesNotMatch(stage2, /contents:\s*write/);
-assert.doesNotMatch(stage2, /git\s+push/);
 assert.match(stage2, /Upload regenerated candidate for review/);
+assertReadOnlyWorkflow(stage2, "historical Stage 2 reproducer");
 
 assert.match(defense, /schedule:/);
-assert.match(defense, /contents:\s*read/);
-assert.doesNotMatch(defense, /contents:\s*write/);
-assert.doesNotMatch(defense, /git\s+push/);
+assertReadOnlyWorkflow(defense, "defense-commercial audit");
 
 assert.match(runbook, /Coleta automática não é publicação automática/);
 assert.match(runbook, /pull request revisada/);
