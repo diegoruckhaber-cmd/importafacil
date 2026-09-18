@@ -76,6 +76,12 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      <footer style={{borderTop:"1px solid #e4e4de",padding:"26px 24px",background:"#fff"}}>
+        <div style={{maxWidth:1120,margin:"0 auto",display:"flex",justifyContent:"space-between",gap:18,flexWrap:"wrap",fontSize:13,color:"#666"}}>
+          <span>ImportaFácil · beta controlado</span>
+          <span><a href="/privacidade" style={navLink}>Privacidade</a> · <a href="/termos" style={navLink}>Termos de uso</a></span>
+        </div>
+      </footer>
     </main>
   );
 }

@@ -221,8 +221,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ received: true, processed: true });
   } catch (error) {
     if (eventId) {
-      try { await markDelivery(eventId, "failed"); } catch (auditError) {
-        console.error("Stripe webhook audit failure", auditError instanceof Error ? auditError.message : "unknown error");
+      try { await markDelivery(eventId, "failed"); } catch {
+        emit("failed", "audit_update_failed");
       }
     }
     emit("failed", "processing_failed");
