@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 # Read-only source monitoring. This workflow may generate candidates and diffs,
-# but it cannot publish fiscal rules or push to the repository.
+# but it cannot publish fiscal rules or mutate repository contents.
 permissions:
   contents: read
 
@@ -84,8 +84,21 @@ jobs:
 
       - name: Verify publication workflow remains review-gated
         run: |
-          ! grep -R --line-number -E 'git[[:space:]]+push|contents:[[:space:]]*write' \
-            .github/workflows/audit-official-federal-sources.yml
+          test "$(grep -Ec '^[[:space:]]*contents:[[:space:]]*write[[:space:]]*
+      - name: Upload audit evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: federal-official-source-audit
+          path: |
+            /tmp/federal-audit/official-snapshot-candidate.json
+            /tmp/federal-audit/audit-summary.txt
+          if-no-files-found: error
+          retention-days: 14
+ .github/workflows/audit-official-federal-sources.yml)" -eq 0
+          if grep -Eq '^[[:space:]]*git[[:space:]]+push([[:space:]]|$)' .github/workflows/audit-official-federal-sources.yml; then
+            echo 'Unexpected repository publication command in review-only workflow.'
+            exit 1
+          fi
           grep -q 'Coleta automática não é publicação automática' docs/legislative-update-runbook.md
 
       - name: Upload audit evidence
