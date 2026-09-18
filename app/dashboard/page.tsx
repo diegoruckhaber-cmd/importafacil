@@ -8,14 +8,78 @@ const kindLabel={v2:"Simulation V2",sc:"Operação SC",legacy:"Legado"};
 const statusLabel:Record<string,string>={calculated:"Calculado",alert:"Com alerta",requires_input:"Requer validação",blocked:"Bloqueado",unsupported:"Não suportado"};
 
 export default function Dashboard(){
- const[email,setEmail]=useState("");const[plan,setPlan]=useState("FREE");const[items,setItems]=useState<SavedSimulationRecord[]>([]);const[loading,setLoading]=useState(true);const[notice,setNotice]=useState("");
- useEffect(()=>{(async()=>{const{data:{user}}=await supabase.auth.getUser();if(!user){location.href="/auth";return}setEmail(user.email||"");const{data:profile}=await supabase.from("profiles").select("plan").eq("id",user.id).maybeSingle();if(profile?.plan)setPlan(profile.plan);const{data}=await supabase.from("simulations").select("id,name,input,result,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(50);setItems((data||[]) as SavedSimulationRecord[]);const params=new URLSearchParams(window.location.search);if(params.get("checkout")==="success")setNotice("Pagamento iniciado com sucesso. Seu plano será atualizado assim que a confirmação do Stripe chegar.");if(params.get("checkout")==="cancelled")setNotice("Checkout cancelado. Nenhuma alteração foi feita na sua conta.");setLoading(false)})()},[]);
- async function logout(){await supabase.auth.signOut();location.href="/"}const isFree=plan.toUpperCase()==="FREE",shown=isFree?items.slice(0,3):items;
- return <main style={{minHeight:"100vh",background:"#f7f7f4"}}><header style={{background:"white",borderBottom:"1px solid #e7e7e2"}}><div style={{maxWidth:1100,margin:"auto",padding:"18px 24px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><a href="/" style={{fontWeight:800,color:"#111",textDecoration:"none"}}>ImportaFácil</a><div style={{display:"flex",gap:14,alignItems:"center"}}><span style={{fontSize:13,color:"#666"}}>{email} · {plan}</span><button onClick={logout} style={{border:0,background:"transparent",cursor:"pointer"}}>Sair</button></div></div></header>
- <section style={{maxWidth:1100,margin:"auto",padding:"50px 24px"}}>{notice&&<div style={{marginBottom:20,padding:14,borderRadius:12,background:"#eef6ff",border:"1px solid #cfe3ff",color:"#174a7e"}}>{notice}</div>}<div style={{display:"flex",justifyContent:"space-between",gap:20,alignItems:"end",marginBottom:30,flexWrap:"wrap"}}><div><small style={{letterSpacing:1,color:"#777"}}>MINHA CONTA</small><h1 style={{fontSize:40,margin:"8px 0"}}>Suas simulações</h1><p style={{color:"#666"}}>{isFree?"Seu plano gratuito inclui até 3 simulações salvas.":"Histórico completo das suas simulações."}</p></div><div style={{display:"flex",gap:10,flexWrap:"wrap"}}><a href="/comparar" style={secondary}>Comparar V2</a><a href="/relatorio" style={secondary}>Relatório</a>{isFree&&<a href="/upgrade" style={primary}>Assinar PRO</a>}<a href="/simulacao-v2" style={primary}>Nova Simulation V2</a></div></div>
- {loading?<p>Carregando...</p>:shown.length===0?<div style={empty}><h2>Seu histórico está vazio.</h2><p style={{color:"#666"}}>Faça uma Simulation V2 e salve o resultado para começar.</p></div>:<div style={{display:"grid",gap:12}}>{shown.map(x=>{const kind=savedSimulationKind(x),status=savedSimulationStatus(x);return <a key={x.id} href={`/simulacao/${x.id}`} style={{textDecoration:"none",color:"inherit"}}><article style={row}><div><div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}><b>{x.name||"Simulação de importação"}</b><span style={pill}>{kindLabel[kind]}</span>{kind==="v2"&&<span style={pill}>{statusLabel[status]||status}</span>}</div><small style={{display:"block",color:"#888",marginTop:5}}>{new Date(x.created_at).toLocaleString("pt-BR")}</small><small style={{display:"block",color:"#536dfe",marginTop:8,fontWeight:700}}>Abrir simulação →</small></div><div style={{textAlign:"right"}}><small style={{color:"#888"}}>Custo nacionalizado</small><div style={{fontWeight:800,fontSize:20}}>{br(savedSimulationTotal(x))}</div></div></article></a>})}</div>}
- {isFree&&items.length>=3&&<div style={{marginTop:18,padding:18,borderRadius:14,background:"#fff7df",border:"1px solid #ead9a3"}}>Você atingiu o limite visual de 3 simulações no plano FREE. <a href="/upgrade" style={{fontWeight:700,color:"#111"}}>Assinar PRO</a> para liberar histórico completo.</div>}
- </section></main>
+ const[email,setEmail]=useState("");
+ const[plan,setPlan]=useState("FREE");
+ const[subscriptionStatus,setSubscriptionStatus]=useState("none");
+ const[currentPeriodEnd,setCurrentPeriodEnd]=useState<string|null>(null);
+ const[items,setItems]=useState<SavedSimulationRecord[]>([]);
+ const[loading,setLoading]=useState(true);
+ const[notice,setNotice]=useState("");
+
+ useEffect(()=>{(async()=>{
+   const{data:{session}}=await supabase.auth.getSession();
+   const user=session?.user;
+   if(!user||!session?.access_token){location.href="/auth";return}
+   setEmail(user.email||"");
+
+   const [subscriptionResponse, simulationsResponse]=await Promise.all([
+     fetch("/api/subscription",{headers:{Authorization:"Bearer "+session.access_token},cache:"no-store"}),
+     supabase.from("simulations").select("id,name,input,result,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(50),
+   ]);
+
+   if(subscriptionResponse.ok){
+     const subscription=await subscriptionResponse.json();
+     setPlan(String(subscription.plan||"FREE").toUpperCase());
+     setSubscriptionStatus(String(subscription.status||"none"));
+     setCurrentPeriodEnd(subscription.currentPeriodEnd||null);
+   }else{
+     const{data:profile}=await supabase.from("profiles").select("plan").eq("id",user.id).maybeSingle();
+     if(profile?.plan)setPlan(profile.plan);
+   }
+
+   setItems((simulationsResponse.data||[]) as SavedSimulationRecord[]);
+   const params=new URLSearchParams(window.location.search);
+   if(params.get("checkout")==="success")setNotice("Pagamento recebido pelo checkout. Seu plano será atualizado após a confirmação do Stripe.");
+   if(params.get("checkout")==="cancelled")setNotice("Checkout cancelado. Nenhuma alteração foi feita na sua conta.");
+   setLoading(false);
+ })()},[]);
+
+ async function logout(){await supabase.auth.signOut();location.href="/"}
+ const isFree=plan.toUpperCase()==="FREE",shown=isFree?items.slice(0,3):items;
+ const periodLabel=currentPeriodEnd?new Date(currentPeriodEnd).toLocaleDateString("pt-BR"):null;
+ const accountLabel=email+" · "+plan+(!isFree&&subscriptionStatus?" · "+subscriptionStatus:"");
+ const historyText=isFree?"Seu plano gratuito inclui até 3 simulações salvas.":"Histórico completo das suas simulações."+(periodLabel?" Período atual até "+periodLabel+".":"");
+
+ return <main style={{minHeight:"100vh",background:"#f7f7f4"}}>
+   <header style={{background:"white",borderBottom:"1px solid #e7e7e2"}}>
+     <div style={{maxWidth:1100,margin:"auto",padding:"18px 24px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+       <a href="/" style={{fontWeight:800,color:"#111",textDecoration:"none"}}>ImportaFácil</a>
+       <div style={{display:"flex",gap:14,alignItems:"center"}}>
+         <span style={{fontSize:13,color:"#666"}}>{accountLabel}</span>
+         <button onClick={logout} style={{border:0,background:"transparent",cursor:"pointer"}}>Sair</button>
+       </div>
+     </div>
+   </header>
+   <section style={{maxWidth:1100,margin:"auto",padding:"50px 24px"}}>
+     {notice&&<div style={{marginBottom:20,padding:14,borderRadius:12,background:"#eef6ff",border:"1px solid #cfe3ff",color:"#174a7e"}}>{notice}</div>}
+     <div style={{display:"flex",justifyContent:"space-between",gap:20,alignItems:"end",marginBottom:30,flexWrap:"wrap"}}>
+       <div>
+         <small style={{letterSpacing:1,color:"#777"}}>MINHA CONTA</small>
+         <h1 style={{fontSize:40,margin:"8px 0"}}>Suas simulações</h1>
+         <p style={{color:"#666"}}>{historyText}</p>
+       </div>
+       <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+         <a href="/comparar" style={secondary}>Comparar V2</a>
+         <a href="/relatorio" style={secondary}>Relatório</a>
+         {isFree&&<a href="/upgrade" style={primary}>Assinar PRO</a>}
+         {!isFree&&<a href="/upgrade" style={secondary}>Minha assinatura</a>}
+         <a href="/simulacao-v2" style={primary}>Nova Simulation V2</a>
+       </div>
+     </div>
+     {loading?<p>Carregando...</p>:shown.length===0?<div style={empty}><h2>Seu histórico está vazio.</h2><p style={{color:"#666"}}>Faça uma Simulation V2 e salve o resultado para começar.</p></div>:<div style={{display:"grid",gap:12}}>{shown.map(x=>{const kind=savedSimulationKind(x),status=savedSimulationStatus(x);return <a key={x.id} href={"/simulacao/"+x.id} style={{textDecoration:"none",color:"inherit"}}><article style={row}><div><div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}><b>{x.name||"Simulação de importação"}</b><span style={pill}>{kindLabel[kind]}</span>{kind==="v2"&&<span style={pill}>{statusLabel[status]||status}</span>}</div><small style={{display:"block",color:"#888",marginTop:5}}>{new Date(x.created_at).toLocaleString("pt-BR")}</small><small style={{display:"block",color:"#536dfe",marginTop:8,fontWeight:700}}>Abrir simulação →</small></div><div style={{textAlign:"right"}}><small style={{color:"#888"}}>Custo nacionalizado</small><div style={{fontWeight:800,fontSize:20}}>{br(savedSimulationTotal(x))}</div></div></article></a>})}</div>}
+     {isFree&&items.length>=3&&<div style={{marginTop:18,padding:18,borderRadius:14,background:"#fff7df",border:"1px solid #ead9a3"}}>Você atingiu o limite de 3 simulações salvas no plano FREE. <a href="/upgrade" style={{fontWeight:700,color:"#111"}}>Assinar PRO</a> para liberar o histórico completo.</div>}
+   </section>
+ </main>
 }
 const primary={padding:"12px 16px",background:"#111",color:"white",borderRadius:10,textDecoration:"none",fontWeight:700} as const;
 const secondary={padding:"12px 16px",border:"1px solid #111",color:"#111",borderRadius:10,textDecoration:"none",fontWeight:700} as const;

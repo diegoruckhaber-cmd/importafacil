@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   planForStripeSubscriptionStatus,
+  stripeCustomerIdFromObject,
   stripeSubscriptionIdFromObject,
   stripeUserIdFromObject,
   verifyStripeWebhookSignature,
@@ -57,6 +58,7 @@ async function updateSubscriptionEntitlement(userId: string, subscription: any) 
   const currentPeriodEnd = subscription?.current_period_end
     ? new Date(Number(subscription.current_period_end) * 1000).toISOString()
     : null;
+  const customerId = stripeCustomerIdFromObject(subscription);
 
   const subscriptionResponse = await fetch(`${supabaseUrl}/rest/v1/subscriptions?on_conflict=provider_subscription_id`, {
     method: "POST",
@@ -75,7 +77,14 @@ async function updateSubscriptionEntitlement(userId: string, subscription: any) 
   const profileResponse = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}`, {
     method: "PATCH",
     headers: { ...headers, Prefer: "return=representation" },
-    body: JSON.stringify({ plan, updated_at: new Date().toISOString() }),
+    body: JSON.stringify({
+      plan,
+      stripe_customer_id: customerId,
+      stripe_subscription_id: subscription.id,
+      subscription_status: subscription.status,
+      current_period_end: currentPeriodEnd,
+      updated_at: new Date().toISOString(),
+    }),
   });
   await assertRestOk(profileResponse, "Profile entitlement update");
   const updatedProfiles = await profileResponse.json().catch(() => []);

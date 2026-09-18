@@ -41,6 +41,13 @@ export function stripeSubscriptionIdFromObject(object: any): string | null {
   return null;
 }
 
+export function stripeCustomerIdFromObject(object: any): string | null {
+  const customer = object?.customer;
+  if (typeof customer === "string" && customer) return customer;
+  if (typeof customer?.id === "string" && customer.id) return customer.id;
+  return null;
+}
+
 export function stripeUserIdFromObject(object: any): string | null {
   const userId = object?.metadata?.user_id || object?.client_reference_id;
   return typeof userId === "string" && userId.trim() ? userId.trim() : null;
