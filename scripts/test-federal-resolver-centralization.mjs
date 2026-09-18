@@ -12,9 +12,12 @@ assert.doesNotMatch(api, /resolveUniqueRate/);
 assert.doesNotMatch(api, /node:fs/);
 
 const lab = read("app/sc-federal-live/page.tsx");
-assert.match(lab, /\/api\/federal-resolve/);
+assert.match(lab, /redirect\("\/simulacao-v2"\)/);
 assert.doesNotMatch(lab, /federal-tax-resolution/);
 assert.doesNotMatch(lab, /resolveFederalTaxes\s*\(/);
+
+const v2Route = read("app/api/simulation-v2/route.ts");
+assert.match(v2Route, /runImportSimulationV2/);
 
 const unified = read("lib/unified-import-simulation.ts");
 assert.match(unified, /resolveFederalTaxes/);
