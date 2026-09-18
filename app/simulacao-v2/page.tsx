@@ -266,15 +266,44 @@ export default function SimulationV2Page() {
   const resultStyle = statusStyle[status];
 
   return (
-    <main className="wrap scTest" style={{ paddingTop: 36, paddingBottom: 70 }}>
-      <header className="scHeader">
-        <div>
-          <div className="eyebrow dark">IMPORTAFÁCIL · SIMULATION V2</div>
-          <h1>Da NCM ao custo nacionalizado, com o escopo fiscal explícito.</h1>
-          <p>Escolha a UF de destino. O motor aplica a jurisdição homologada, resolve os tributos federais e sinaliza o que precisa de validação.</p>
+    <main className="simulatorPage">
+      <div className="simulatorTopbar">
+        <div className="wrap simulatorNav">
+          <a className="logo" href="/">ImportaFácil</a>
+          <div className="simulatorNavLinks">
+            <a href="/">Início</a>
+            <a href="/dashboard">Meu painel</a>
+            <a className="navCta" href="/upgrade">PRO</a>
+          </div>
         </div>
-        <a className="secondaryBtn" href="/dashboard">Meu painel</a>
-      </header>
+      </div>
+
+      <section className="simulatorHero" aria-labelledby="simulator-title">
+        <div className="wrap simulatorHeroInner">
+          <div>
+            <div className="eyebrow">SIMULADOR DE IMPORTAÇÃO</div>
+            <h1 id="simulator-title">Simule sua importação antes de fechar a compra.</h1>
+            <p>
+              Informe a operação e veja tributos, despesas, custo nacionalizado,
+              custo por unidade e preço alvo em uma visão única.
+            </p>
+            <div className="proof">
+              <span>✓ 27 UFs cobertas</span>
+              <span>✓ Tributos federais automáticos</span>
+              <span>✓ Resultado auditável</span>
+            </div>
+          </div>
+          <div className="simulatorHeroCard">
+            <small>RESUMO DA OPERAÇÃO</small>
+            <b>{name || "Nova simulação"}</b>
+            <div className="simHeroMetric"><span>Mercadorias</span><strong>{money(merchandise)}</strong></div>
+            <div className="simHeroMetric"><span>Destino</span><strong>{destinationUf} · {UF_NAMES[destinationUf]}</strong></div>
+            <div className="simHeroMetric"><span>Itens</span><strong>{items.length}</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <div className="wrap simulatorWorkspace">
 
       {validationIssues.length > 0 && (
         <div role="alert" style={{ ...statusStyle.requires_input, border: `1px solid ${statusStyle.requires_input.border}`, borderRadius: 14, padding: 16, marginBottom: 18 }}>
@@ -286,8 +315,8 @@ export default function SimulationV2Page() {
       <section className="card" style={{ marginBottom: 18 }}>
         <div className="resultTop">
           <div>
-            <div className="eyebrow dark">1. OPERAÇÃO</div>
-            <h2>Premissas compartilhadas</h2>
+            <div className="eyebrow dark">1. DADOS DA OPERAÇÃO</div>
+            <h2>Comece pelas premissas principais</h2>
           </div>
           <div style={{ textAlign: "right" }}>
             <small>Mercadorias</small>
@@ -361,11 +390,11 @@ export default function SimulationV2Page() {
             lineHeight: 1.5,
           }}
         >
-          <b>Escopo estadual: {isSC ? "SC · motor estadual completo" : `${destinationUf} · general_rate_only`}</b>
+          <b>{isSC ? "Santa Catarina · regras estaduais específicas disponíveis" : `${destinationUf} · regra geral de ICMS`}</b>
           <div style={{ marginTop: 5, fontSize: 13 }}>
             {isSC
-              ? "Santa Catarina mantém as regras e validações específicas já homologadas, inclusive TTD quando informado."
-              : "Para esta UF, o motor usa automaticamente a alíquota geral de ICMS homologada. Benefícios, reduções, isenções, ST, diferimentos, antecipações e regimes especiais permanecem fora do escopo automático."}
+              ? "Se sua operação utilizar um TTD, você poderá informar os dados específicos no item."
+              : "Para este estado, a simulação utiliza a alíquota geral de ICMS aplicável à importação. Benefícios e regimes especiais não são presumidos automaticamente."}
           </div>
         </div>
       </section>
@@ -373,9 +402,9 @@ export default function SimulationV2Page() {
       <section className="card" style={{ marginBottom: 18 }}>
         <div className="resultTop">
           <div>
-            <div className="eyebrow dark">2. ITENS</div>
-            <h2>Produtos da importação</h2>
-            <p>II, IPI, PIS-Importação e COFINS-Importação são resolvidos pelo motor. Fora de SC, o ICMS geral homologado também substitui qualquer valor manual.</p>
+            <div className="eyebrow dark">2. MERCADORIAS</div>
+            <h2>O que você vai importar?</h2>
+            <p>Informe os dados comerciais de cada produto. As alíquotas federais são buscadas pelo sistema a partir da NCM.</p>
           </div>
           <button className="secondaryBtn" type="button" onClick={() => {
             const n = next.current++;
@@ -454,7 +483,7 @@ export default function SimulationV2Page() {
         </div>
 
         <button className="primary" onClick={calculate} disabled={loading} style={{ marginTop: 20 }}>
-          {loading ? "Calculando..." : "Calcular Simulation V2"}
+          {loading ? "Calculando..." : "Calcular importação"}
         </button>
         {message && <p role="alert" style={{ marginTop: 14, color: "#b42318" }}>{message}</p>}
       </section>
@@ -475,9 +504,12 @@ export default function SimulationV2Page() {
               <h2>{name}</h2>
               <p>
                 Destino: <b>{result.operation?.destinationUf || destinationUf}</b> ·
-                Escopo: <b>{result.jurisdiction?.scope || (isSC ? "full" : "general_rate_only")}</b> ·
-                Motor: {result.engine}
+                Tratamento estadual: <b>{isSC ? "regras específicas de SC" : "regra geral de ICMS"}</b>
               </p>
+              <details className="technicalDetails">
+                <summary>Detalhes técnicos do cálculo</summary>
+                <p>Escopo interno: {result.jurisdiction?.scope || (isSC ? "full" : "general_rate_only")} · Motor: {result.engine}</p>
+              </details>
             </div>
             {result.summary && (
               <div style={{ textAlign: "right" }}>
@@ -547,6 +579,14 @@ export default function SimulationV2Page() {
           </div>
         </section>
       )}
+
+      </div>
+      <footer className="simulatorFooter">
+        <div className="wrap">
+          <span>ImportaFácil · beta controlado</span>
+          <span><a href="/privacidade">Privacidade</a> · <a href="/termos">Termos de uso</a></span>
+        </div>
+      </footer>
     </main>
   );
 }
