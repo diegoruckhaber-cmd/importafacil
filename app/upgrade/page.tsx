@@ -3,8 +3,58 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 
 export default function Upgrade(){
- const[ready,setReady]=useState(false); const[loading,setLoading]=useState(false); const[error,setError]=useState("");
- useEffect(()=>{supabase.auth.getUser().then(({data})=>{if(!data.user){location.href="/auth";return}setReady(true)})},[]);
- async function checkout(){setLoading(true);setError("");const{data:{session}}=await supabase.auth.getSession();if(!session?.access_token){location.href="/auth";return}const r=await fetch("/api/checkout",{method:"POST",headers:{Authorization:`Bearer ${session.access_token}`}});const d=await r.json().catch(()=>({}));if(!r.ok){setError(d.error||"Não foi possível iniciar o checkout.");setLoading(false);return}location.href=d.url;}
- return <main style={{minHeight:"100vh",background:"#f7f7f4",padding:"70px 24px"}}><div style={{maxWidth:720,margin:"auto",background:"white",border:"1px solid #e5e5df",borderRadius:22,padding:42}}><a href="/dashboard" style={{color:"#111"}}>← Voltar</a><small style={{display:"block",marginTop:35,letterSpacing:1,color:"#777"}}>IMPORTAFÁCIL PRO</small><h1 style={{fontSize:44,margin:"8px 0 14px"}}>Mais decisões. Menos planilhas.</h1><p style={{fontSize:18,lineHeight:1.6,color:"#666"}}>Tenha as ferramentas que transformam uma simulação em uma decisão de importação.</p><div style={{display:"grid",gap:12,margin:"28px 0"}}>{["Comparação de cenários","Histórico completo de simulações","Relatórios profissionais","Recursos avançados do ImportaFácil"].map(x=><div key={x} style={{padding:14,border:"1px solid #eee",borderRadius:11}}>✓ {x}</div>)}</div><div style={{display:"flex",alignItems:"baseline",gap:8,marginBottom:20}}><strong style={{fontSize:36}}>R$ 29,90</strong><span style={{color:"#777"}}>/ mês</span></div><button onClick={checkout} disabled={loading||!ready} style={{width:"100%",padding:16,border:0,borderRadius:11,background:"#111",color:"white",fontSize:16,fontWeight:800,cursor:"pointer"}}>{loading?"Abrindo checkout...":"Assinar PRO"}</button>{error&&<p style={{color:"#b42318",marginTop:14}}>{error}</p>}<p style={{fontSize:12,color:"#888",marginTop:18}}>O pagamento é processado com segurança pela Stripe. O plano PRO só é liberado após confirmação da assinatura.</p></div></main>
+ const[ready,setReady]=useState(false);
+ const[loading,setLoading]=useState(false);
+ const[error,setError]=useState("");
+ const[plan,setPlan]=useState("FREE");
+ const[status,setStatus]=useState("none");
+
+ useEffect(()=>{(async()=>{
+   const{data:{session}}=await supabase.auth.getSession();
+   if(!session?.user){location.href="/auth";return}
+   try{
+     const response=await fetch("/api/subscription",{headers:{Authorization:"Bearer "+session.access_token},cache:"no-store"});
+     if(response.ok){
+       const data=await response.json();
+       setPlan(String(data.plan||"FREE").toUpperCase());
+       setStatus(String(data.status||"none"));
+     }
+   }finally{setReady(true)}
+ })()},[]);
+
+ async function checkout(){
+   setLoading(true);setError("");
+   const{data:{session}}=await supabase.auth.getSession();
+   if(!session?.access_token){location.href="/auth";return}
+   const r=await fetch("/api/checkout",{method:"POST",headers:{Authorization:"Bearer "+session.access_token}});
+   const d=await r.json().catch(()=>({}));
+   if(!r.ok){setError(d.error||"Não foi possível iniciar o checkout.");setLoading(false);return}
+   location.href=d.url;
+ }
+
+ const isPro=plan==="PRO";
+ return <main style={{minHeight:"100vh",background:"#f7f7f4",padding:"70px 24px"}}>
+   <div style={{maxWidth:720,margin:"auto",background:"white",border:"1px solid #e5e5df",borderRadius:22,padding:42}}>
+     <a href="/dashboard" style={{color:"#111"}}>← Voltar</a>
+     <small style={{display:"block",marginTop:35,letterSpacing:1,color:"#777"}}>IMPORTAFÁCIL PRO</small>
+     <h1 style={{fontSize:44,margin:"8px 0 14px"}}>{isPro?"Seu PRO está ativo.":"Mais decisões. Menos planilhas."}</h1>
+     <p style={{fontSize:18,lineHeight:1.6,color:"#666"}}>
+       {isPro?"Sua assinatura já libera o histórico completo e os recursos PRO disponíveis.":"Tenha as ferramentas que transformam uma simulação em uma decisão de importação."}
+     </p>
+     <div style={{display:"grid",gap:12,margin:"28px 0"}}>
+       {["Comparação de cenários","Histórico completo de simulações","Relatórios profissionais","Recursos avançados do ImportaFácil"].map(x=><div key={x} style={{padding:14,border:"1px solid #eee",borderRadius:11}}>✓ {x}</div>)}
+     </div>
+     {isPro?<>
+       <div style={{padding:14,borderRadius:11,background:"#eef8ef",border:"1px solid #cce7cf",marginBottom:18}}>
+         Plano PRO · status {status}
+       </div>
+       <a href="/dashboard" style={{display:"block",textAlign:"center",width:"100%",boxSizing:"border-box",padding:16,borderRadius:11,background:"#111",color:"white",fontSize:16,fontWeight:800,textDecoration:"none"}}>Ir para meu painel</a>
+     </>:<>
+       <div style={{display:"flex",alignItems:"baseline",gap:8,marginBottom:20}}><strong style={{fontSize:36}}>R$ 29,90</strong><span style={{color:"#777"}}>/ mês</span></div>
+       <button onClick={checkout} disabled={loading||!ready} style={{width:"100%",padding:16,border:0,borderRadius:11,background:"#111",color:"white",fontSize:16,fontWeight:800,cursor:"pointer"}}>{loading?"Abrindo checkout...":"Assinar PRO"}</button>
+       {error&&<p style={{color:"#b42318",marginTop:14}}>{error}</p>}
+       <p style={{fontSize:12,color:"#888",marginTop:18}}>O pagamento é processado com segurança pela Stripe. O plano PRO só é liberado após confirmação da assinatura.</p>
+     </>}
+   </div>
+ </main>
 }
