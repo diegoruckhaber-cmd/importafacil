@@ -3,8 +3,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 
-const AUTH_REDIRECT_URL = "https://importafacil-projetovendas.vercel.app/auth";
-
 function friendlyAuthError(error: unknown) {
   const raw = error instanceof Error ? error.message : String(error || "");
   const normalized = raw.toLowerCase();
@@ -67,7 +65,7 @@ export default function AuthPage() {
           password,
           options: {
             data: { full_name: name.trim() },
-            emailRedirectTo: AUTH_REDIRECT_URL,
+            emailRedirectTo: window.location.origin + "/auth",
           },
         });
 
