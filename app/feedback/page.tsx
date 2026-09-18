@@ -26,6 +26,7 @@ export default function FeedbackPage() {
   const [history, setHistory] = useState<FeedbackRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [deletingId, setDeletingId] = useState("");
   const [notice, setNotice] = useState("");
 
   async function authToken() {
@@ -57,6 +58,33 @@ export default function FeedbackPage() {
     if (from?.startsWith("/")) setPagePath(from.slice(0, 200));
     loadHistory();
   }, []);
+
+  async function removeFeedback(id: string) {
+    if (!window.confirm("Excluir este feedback da sua conta?")) return;
+    setDeletingId(id);
+    setNotice("");
+    const token = await authToken();
+    if (!token) return;
+
+    const response = await fetch("/api/beta-feedback", {
+      method: "DELETE",
+      headers: {
+        Authorization: "Bearer " + token,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setNotice(data.error || "Não foi possível excluir o feedback.");
+      setDeletingId("");
+      return;
+    }
+
+    setHistory(rows => rows.filter(row => row.id !== id));
+    setNotice("Feedback excluído da sua conta.");
+    setDeletingId("");
+  }
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -135,7 +163,17 @@ export default function FeedbackPage() {
                   <small style={{color:"#888"}}>{new Date(row.created_at).toLocaleString("pt-BR")}</small>
                 </div>
                 <p style={{lineHeight:1.55,whiteSpace:"pre-wrap"}}>{row.message}</p>
-                {row.page_path&&<small style={{color:"#777"}}>Página: {row.page_path}</small>}
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,marginTop:10,flexWrap:"wrap"}}>
+                  {row.page_path?<small style={{color:"#777"}}>Página: {row.page_path}</small>:<span />}
+                  <button
+                    type="button"
+                    disabled={deletingId===row.id}
+                    onClick={()=>removeFeedback(row.id)}
+                    style={{border:"1px solid #d7d7d0",background:"white",borderRadius:8,padding:"8px 10px",cursor:"pointer"}}
+                  >
+                    {deletingId===row.id?"Excluindo...":"Excluir"}
+                  </button>
+                </div>
               </article>)}
             </div>
           }
