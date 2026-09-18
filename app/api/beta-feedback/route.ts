@@ -6,6 +6,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const CATEGORIES = new Set(["bug", "calculation_question", "ux", "feature_request", "other"]);
+const MAX_FEEDBACK_PER_HOUR = 10;
 
 function userClient(accessToken: string) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -70,6 +71,38 @@ export async function POST(req: Request) {
     }
     if (message.length < 10 || message.length > 2000) {
       return NextResponse.json({ error: "O feedback deve ter entre 10 e 2.000 caracteres." }, { status: 400 });
+    }
+
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count: recentCount, error: quotaError } = await supabase
+      .from("beta_feedback")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("created_at", oneHourAgo);
+
+    if (quotaError) {
+      emitOperationalEvent(buildOperationalEvent({
+        event: "beta.feedback",
+        outcome: "failed",
+        reasonCode: "quota_check_failed",
+        mode: category,
+        startedAtMs,
+      }));
+      return NextResponse.json({ error: "Não foi possível validar o limite de feedback agora." }, { status: 503 });
+    }
+
+    if ((recentCount || 0) >= MAX_FEEDBACK_PER_HOUR) {
+      emitOperationalEvent(buildOperationalEvent({
+        event: "beta.feedback",
+        outcome: "rejected",
+        reasonCode: "hourly_quota_exceeded",
+        mode: category,
+        startedAtMs,
+      }));
+      return NextResponse.json(
+        { error: "Limite temporário de feedback atingido. Tente novamente mais tarde." },
+        { status: 429, headers: { "Retry-After": "3600", "Cache-Control": "no-store" } },
+      );
     }
 
     const { data, error } = await supabase
