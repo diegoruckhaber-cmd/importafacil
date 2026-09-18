@@ -1,23 +1,572 @@
 "use client";
+
+import type { ReactNode } from "react";
 import { useMemo, useRef, useState } from "react";
 import DefenseCommercialExporterSelector from "../components/DefenseCommercialExporterSelector";
 import { supabase } from "../../lib/supabase";
+import { BRAZILIAN_UFS } from "../../lib/state-jurisdiction-registry";
 
-type TTD="409"|"410"|"77"|"none";type Destination="commercial_resale"|"industrialization";type TriState=""|"yes"|"no";type Status="calculated"|"alert"|"requires_input"|"blocked"|"unsupported";
-type Item={id:string;name:string;ncm:string;origin:string;quantity:number;fobUnit:number;weightKg:number;volumeM3:number;icms:number;exporter:string;iiExCode:string;ipiExCode:string;iiQuotaConfirmed:TriState;aeronauticalEligible:TriState;ttd:TTD;destination:Destination;validConcession:boolean;importEntryInSC:boolean;industrializationInSC:boolean;sameNcmPositionAfterFractionation:boolean;decree2128Prohibited:boolean;targetMarginPercent:number};
-const today=new Date().toISOString().slice(0,10);const money=(v:number)=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});const pct=(v:number)=>`${Number(v||0).toLocaleString("pt-BR",{maximumFractionDigits:2})}%`;const statusLabel:Record<Status,string>={calculated:"Calculado",alert:"Calculado com alerta",requires_input:"Requer validação",blocked:"Bloqueado",unsupported:"Não suportado automaticamente"};
-const makeItem=(n:number,m=20):Item=>({id:`ITEM-${String(n).padStart(3,"0")}`,name:`Produto ${n}`,ncm:"",origin:"",quantity:1000,fobUnit:10,weightKg:0,volumeM3:0,icms:17,exporter:"",iiExCode:"",ipiExCode:"",iiQuotaConfirmed:"",aeronauticalEligible:"",ttd:"none",destination:"commercial_resale",validConcession:false,importEntryInSC:true,industrializationInSC:false,sameNcmPositionAfterFractionation:true,decree2128Prohibited:false,targetMarginPercent:m});const tri=(v:TriState)=>v==="yes"?true:v==="no"?false:undefined;
-export default function SimulationV2Page(){
- const next=useRef(2);const[name,setName]=useState("Pré-estudo de importação"),[date,setDate]=useState(today),[exchange,setExchange]=useState(5.5),[freight,setFreight]=useState(1200),[insurance,setInsurance]=useState(100),[storage,setStorage]=useState(3500),[otherBrl,setOtherBrl]=useState(0),[transportMode,setTransportMode]=useState("maritime_long_course"),[declarationType,setDeclarationType]=useState("di"),[margin,setMargin]=useState(20),[items,setItems]=useState<Item[]>([makeItem(1)]),[result,setResult]=useState<any>(null),[loading,setLoading]=useState(false),[saving,setSaving]=useState(false),[message,setMessage]=useState("");
- const merchandise=useMemo(()=>items.reduce((s,x)=>s+x.quantity*x.fobUnit*exchange,0),[items,exchange]);const invalidate=()=>{setResult(null);setMessage("")};
- const update=<K extends keyof Item>(id:string,k:K,v:Item[K])=>{setItems(xs=>xs.map(x=>x.id===id?{...x,[k]:v}:x));invalidate()};
- const payload=()=>({scenarioName:name,date,exchange,freight,insurance,storage,otherBrl,transportMode,declarationType,additions:items.length,targetMarginPercent:margin,items:items.map(x=>({itemId:x.id,name:x.name,ncm:x.ncm,origin:x.origin,quantity:x.quantity,weightKg:x.weightKg,volumeM3:x.volumeM3,fobUnit:x.fobUnit,icms:x.icms,exporter:x.exporter||undefined,iiExCode:x.iiExCode||undefined,ipiExCode:x.ipiExCode||undefined,iiQuotaConfirmed:tri(x.iiQuotaConfirmed),aeronauticalEligible:tri(x.aeronauticalEligible),ttd:x.ttd,destination:x.destination,validConcession:x.validConcession,importEntryInSC:x.importEntryInSC,industrializationInSC:x.industrializationInSC,sameNcmPositionAfterFractionation:x.sameNcmPositionAfterFractionation,decree2128Prohibited:x.decree2128Prohibited,targetMarginPercent:x.targetMarginPercent}))});
- async function calculate(){setLoading(true);setMessage("");setResult(null);try{const r=await fetch("/api/simulation-v2",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload())});const d=await r.json();if(!r.ok)throw new Error(d.error||"Não foi possível calcular.");setResult(d)}catch(e){setMessage(e instanceof Error?e.message:"Não foi possível calcular.")}finally{setLoading(false)}}
- async function save(){if(!result)return;setSaving(true);setMessage("");try{const{data:{session}}=await supabase.auth.getSession();if(!session){location.href="/auth";return}const r=await fetch("/api/simulations",{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${session.access_token}`},body:JSON.stringify({mode:"v2",name,input:payload(),result})});const d=await r.json();if(!r.ok)throw new Error(d.error||"Não foi possível salvar.");location.href=`/simulacao/${d.id}`}catch(e){setMessage(e instanceof Error?e.message:"Não foi possível salvar.")}finally{setSaving(false)}}
- const status=(result?.status||"calculated") as Status;
- return <main className="wrap scTest" style={{paddingTop:36,paddingBottom:70}}><header className="scHeader"><div><div className="eyebrow dark">IMPORTAFÁCIL · SIMULATION V2</div><h1>Da NCM ao custo e à decisão comercial, item por item.</h1><p>Motor unificado, resolução federal automática, regras de SC e defesa comercial em um único pré-estudo.</p></div><a className="secondaryBtn" href="/dashboard">Meu painel</a></header>
- <section className="card" style={{marginBottom:18}}><div className="resultTop"><div><div className="eyebrow dark">1. OPERAÇÃO</div><h2>Premissas compartilhadas</h2></div><div style={{textAlign:"right"}}><small>Mercadorias</small><div style={{fontWeight:800,fontSize:22}}>{money(merchandise)}</div></div></div><div className="fields four"><Field label="Nome do pré-estudo"><input value={name} onChange={e=>{setName(e.target.value);invalidate()}}/></Field><Field label="Data"><input type="date" value={date} onChange={e=>{setDate(e.target.value);invalidate()}}/></Field><Num label="Câmbio R$/US$" value={exchange} set={setExchange} invalidate={invalidate}/><Num label="Frete internacional US$" value={freight} set={setFreight} invalidate={invalidate}/><Num label="Seguro internacional US$" value={insurance} set={setInsurance} invalidate={invalidate}/><Num label="Armazenagem R$" value={storage} set={setStorage} invalidate={invalidate}/><Num label="Outras despesas R$" value={otherBrl} set={setOtherBrl} invalidate={invalidate}/><Field label="Margem alvo padrão %"><input type="number" min="0" max="99.99" value={margin} onChange={e=>{const v=Number(e.target.value);setMargin(v);setItems(xs=>xs.map(x=>({...x,targetMarginPercent:v})));invalidate()}}/></Field><Field label="Modal"><select value={transportMode} onChange={e=>{setTransportMode(e.target.value);invalidate()}}><option value="maritime_long_course">Marítimo — longo curso</option><option value="cabotage">Cabotagem</option><option value="air">Aéreo</option><option value="road">Rodoviário</option><option value="rail">Ferroviário</option><option value="not_informed">Não informado</option></select></Field><Field label="Declaração"><select value={declarationType} onChange={e=>{setDeclarationType(e.target.value);invalidate()}}><option value="di">DI</option><option value="duimp">DUIMP</option></select></Field></div></section>
- <section className="card" style={{marginBottom:18}}><div className="resultTop"><div><div className="eyebrow dark">2. ITENS</div><h2>Produtos da importação</h2><p>II, IPI, PIS-Importação e COFINS-Importação não são digitados manualmente.</p></div><button className="secondaryBtn" type="button" onClick={()=>{const n=next.current++;setItems(xs=>[...xs,makeItem(n,margin)]);invalidate()}}>+ Adicionar item</button></div><div style={{display:"grid",gap:18}}>{items.map((x,i)=><article key={x.id} className="miniCard" style={{padding:20}}><div className="resultTop"><b>{x.id} · Item {i+1}</b>{items.length>1&&<button className="secondaryBtn" onClick={()=>{setItems(xs=>xs.filter(y=>y.id!==x.id));invalidate()}}>Excluir</button>}</div><div className="fields four" style={{marginTop:14}}><Text label="Descrição" value={x.name} set={v=>update(x.id,"name",v)}/><Text label="NCM" value={x.ncm} set={v=>update(x.id,"ncm",v.replace(/\D/g,"").slice(0,8))}/><Text label="País de origem" value={x.origin} set={v=>update(x.id,"origin",v)}/><ItemNum label="Quantidade" value={x.quantity} set={v=>update(x.id,"quantity",v)}/><ItemNum label="FOB unitário US$" value={x.fobUnit} set={v=>update(x.id,"fobUnit",v)}/><ItemNum label="Peso líquido kg" value={x.weightKg} set={v=>update(x.id,"weightKg",v)}/><ItemNum label="Volume m³" value={x.volumeM3} set={v=>update(x.id,"volumeM3",v)}/><ItemNum label="ICMS normal %" value={x.icms} set={v=>update(x.id,"icms",v)}/><ItemNum label="Margem alvo %" value={x.targetMarginPercent} set={v=>update(x.id,"targetMarginPercent",v)}/><DefenseCommercialExporterSelector ncm={x.ncm} origin={x.origin} date={date} value={x.exporter} onChange={v=>update(x.id,"exporter",v)}/><Text label="EX do II" value={x.iiExCode} set={v=>update(x.id,"iiExCode",v)}/><Text label="EX do IPI" value={x.ipiExCode} set={v=>update(x.id,"ipiExCode",v)}/><Field label="Quota II"><select value={x.iiQuotaConfirmed} onChange={e=>update(x.id,"iiQuotaConfirmed",e.target.value as TriState)}><option value="">Não informado</option><option value="yes">Confirmada</option><option value="no">Não elegível</option></select></Field><Field label="Enquadramento aeronáutico"><select value={x.aeronauticalEligible} onChange={e=>update(x.id,"aeronauticalEligible",e.target.value as TriState)}><option value="">Não informado</option><option value="yes">Elegível</option><option value="no">Não elegível</option></select></Field><Field label="Regime SC"><select value={x.ttd} onChange={e=>update(x.id,"ttd",e.target.value as TTD)}><option value="none">Sem TTD — normal</option><option value="77">TTD 77</option><option value="409">TTD 409</option><option value="410">TTD 410</option></select></Field><Field label="Destinação"><select value={x.destination} onChange={e=>update(x.id,"destination",e.target.value as Destination)}><option value="commercial_resale">Revenda/comercialização</option><option value="industrialization">Industrialização</option></select></Field></div>{x.ttd!=="none"&&<div className="checks" style={{marginTop:14}}><Check label="Ato concessivo válido" checked={x.validConcession} set={v=>update(x.id,"validConcession",v)}/><Check label="Entrada/importação em SC" checked={x.importEntryInSC} set={v=>update(x.id,"importEntryInSC",v)}/>{x.destination==="industrialization"&&<Check label="Industrialização em SC" checked={x.industrializationInSC} set={v=>update(x.id,"industrializationInSC",v)}/>}<Check label="Mantém posição NCM após fracionamento" checked={x.sameNcmPositionAfterFractionation} set={v=>update(x.id,"sameNcmPositionAfterFractionation",v)}/><Check label="Há vedação conhecida no Decreto SC 2.128/2009" checked={x.decree2128Prohibited} set={v=>update(x.id,"decree2128Prohibited",v)}/></div>}</article>)}</div><button className="primary" onClick={calculate} disabled={loading} style={{marginTop:20}}>{loading?"Calculando...":"Calcular Simulation V2"}</button>{message&&<p style={{marginTop:14}}>{message}</p>}</section>
- {result&&<section className="card"><div className="resultTop"><div><div className="eyebrow dark">3. RESULTADO</div><h2>{statusLabel[status]}</h2><p>Contrato: {result.contract} · Motor: {result.engine}</p></div>{result.summary&&<div style={{textAlign:"right"}}><small>Capital estimado</small><div style={{fontWeight:900,fontSize:28}}>{money(result.summary.capitalRequiredBrl)}</div></div>}</div>{result.summary&&<><div className="resultGrid">{[["Mercadorias",result.summary.merchandiseBrl],["Tributos",result.summary.importTaxesBrl],["Defesa comercial",result.summary.defenseCommercialBrl],["Custo nacionalizado",result.summary.landedCostBrl],["Receita alvo",result.summary.targetRevenueBrl],["Lucro estimado",result.summary.estimatedProfitBrl]].map(([a,b])=><div className="miniCard" key={String(a)}><small>{a}</small><b>{money(Number(b))}</b></div>)}</div><div style={{overflowX:"auto",marginTop:24}}><table className="importTable"><thead><tr><th>Item</th><th>Status</th><th>NCM</th><th>II</th><th>IPI</th><th>Custo/un.</th><th>Margem</th><th>Preço alvo/un.</th></tr></thead><tbody>{result.items.map((x:any)=><tr key={x.itemId}><td>{x.name}</td><td>{statusLabel[x.status as Status]||x.status}</td><td>{x.ncm}</td><td>{pct(x.federal?.ii?.rate)}</td><td>{pct(x.federal?.ipi?.rate)}</td><td>{money(x.commercial?.breakEvenPricePerUnitBrl)}</td><td>{pct(x.commercial?.targetMarginPercent)}</td><td>{money(x.commercial?.targetSalePricePerUnitBrl)}</td></tr>)}</tbody></table></div></>}{result.attentionPoints?.length>0&&<div className="infoNote" style={{marginTop:18}}><b>Pontos de atenção</b><ul>{result.attentionPoints.map((x:string,i:number)=><li key={i}>{x}</li>)}</ul></div>}<div style={{display:"flex",gap:10,flexWrap:"wrap",marginTop:20}}><button className="primary" onClick={save} disabled={saving}>{saving?"Salvando...":"Salvar no histórico"}</button><button className="secondaryBtn" onClick={()=>window.print()}>Imprimir / Salvar PDF</button></div></section>}</main>
+type TTD = "409" | "410" | "77" | "none";
+type Destination = "commercial_resale" | "industrialization";
+type TriState = "" | "yes" | "no";
+type Status = "calculated" | "alert" | "requires_input" | "blocked" | "unsupported";
+
+type Item = {
+  id: string;
+  name: string;
+  ncm: string;
+  origin: string;
+  quantity: number;
+  fobUnit: number;
+  weightKg: number;
+  volumeM3: number;
+  icms: number;
+  exporter: string;
+  iiExCode: string;
+  ipiExCode: string;
+  iiQuotaConfirmed: TriState;
+  aeronauticalEligible: TriState;
+  ttd: TTD;
+  destination: Destination;
+  validConcession: boolean;
+  importEntryInSC: boolean;
+  industrializationInSC: boolean;
+  sameNcmPositionAfterFractionation: boolean;
+  decree2128Prohibited: boolean;
+  targetMarginPercent: number;
+};
+
+const today = new Date().toISOString().slice(0, 10);
+const money = (value: number) => Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const pct = (value: number) => `${Number(value || 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
+const statusLabel: Record<Status, string> = {
+  calculated: "Cálculo concluído",
+  alert: "Cálculo concluído com alertas",
+  requires_input: "Faltam informações para concluir",
+  blocked: "Cálculo bloqueado por segurança",
+  unsupported: "Operação fora do escopo automático",
+};
+const statusHelp: Record<Status, string> = {
+  calculated: "O motor concluiu o pré-estudo com as premissas informadas.",
+  alert: "O cálculo foi concluído, mas há pontos de atenção que precisam ser lidos antes da decisão.",
+  requires_input: "Não trate este pré-estudo como resultado final. Complete ou valide as informações indicadas abaixo.",
+  blocked: "O motor interrompeu a operação para evitar um cálculo tributário potencialmente incorreto.",
+  unsupported: "Há tratamento fiscal ou classificação fora do catálogo automático desta versão.",
+};
+const statusStyle: Record<Status, { background: string; border: string; color: string }> = {
+  calculated: { background: "#f2fbf5", border: "#b7e1c4", color: "#18794e" },
+  alert: { background: "#fffaf0", border: "#f0d58a", color: "#9a6700" },
+  requires_input: { background: "#fffaf0", border: "#f0d58a", color: "#9a6700" },
+  blocked: { background: "#fff5f5", border: "#f1b7b7", color: "#b42318" },
+  unsupported: { background: "#fff5f5", border: "#f1b7b7", color: "#b42318" },
+};
+
+const UF_NAMES: Record<string, string> = {
+  AC: "Acre", AL: "Alagoas", AP: "Amapá", AM: "Amazonas", BA: "Bahia", CE: "Ceará",
+  DF: "Distrito Federal", ES: "Espírito Santo", GO: "Goiás", MA: "Maranhão", MT: "Mato Grosso",
+  MS: "Mato Grosso do Sul", MG: "Minas Gerais", PA: "Pará", PB: "Paraíba", PR: "Paraná",
+  PE: "Pernambuco", PI: "Piauí", RJ: "Rio de Janeiro", RN: "Rio Grande do Norte",
+  RS: "Rio Grande do Sul", RO: "Rondônia", RR: "Roraima", SC: "Santa Catarina",
+  SP: "São Paulo", SE: "Sergipe", TO: "Tocantins",
+};
+
+const makeItem = (n: number, margin = 20): Item => ({
+  id: `ITEM-${String(n).padStart(3, "0")}`,
+  name: `Produto ${n}`,
+  ncm: "",
+  origin: "",
+  quantity: 1000,
+  fobUnit: 10,
+  weightKg: 0,
+  volumeM3: 0,
+  icms: 17,
+  exporter: "",
+  iiExCode: "",
+  ipiExCode: "",
+  iiQuotaConfirmed: "",
+  aeronauticalEligible: "",
+  ttd: "none",
+  destination: "commercial_resale",
+  validConcession: false,
+  importEntryInSC: true,
+  industrializationInSC: false,
+  sameNcmPositionAfterFractionation: true,
+  decree2128Prohibited: false,
+  targetMarginPercent: margin,
+});
+
+const tri = (value: TriState) => value === "yes" ? true : value === "no" ? false : undefined;
+
+export default function SimulationV2Page() {
+  const next = useRef(2);
+  const resultRef = useRef<HTMLElement | null>(null);
+  const [name, setName] = useState("Pré-estudo de importação");
+  const [date, setDate] = useState(today);
+  const [destinationUf, setDestinationUf] = useState("SC");
+  const [exchange, setExchange] = useState(5.5);
+  const [freight, setFreight] = useState(1200);
+  const [insurance, setInsurance] = useState(100);
+  const [storage, setStorage] = useState(3500);
+  const [otherBrl, setOtherBrl] = useState(0);
+  const [transportMode, setTransportMode] = useState("maritime_long_course");
+  const [declarationType, setDeclarationType] = useState("di");
+  const [margin, setMargin] = useState(20);
+  const [items, setItems] = useState<Item[]>([makeItem(1)]);
+  const [result, setResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [validationIssues, setValidationIssues] = useState<string[]>([]);
+
+  const isSC = destinationUf === "SC";
+  const merchandise = useMemo(
+    () => items.reduce((sum, item) => sum + item.quantity * item.fobUnit * exchange, 0),
+    [items, exchange],
+  );
+
+  const invalidate = () => {
+    setResult(null);
+    setMessage("");
+    setValidationIssues([]);
+  };
+
+  const update = <K extends keyof Item>(id: string, key: K, value: Item[K]) => {
+    setItems((rows) => rows.map((row) => row.id === id ? { ...row, [key]: value } : row));
+    invalidate();
+  };
+
+  const payload = () => ({
+    scenarioName: name,
+    date,
+    destinationUf,
+    exchange,
+    freight,
+    insurance,
+    storage,
+    otherBrl,
+    transportMode,
+    declarationType,
+    additions: items.length,
+    targetMarginPercent: margin,
+    items: items.map((item) => ({
+      itemId: item.id,
+      name: item.name,
+      ncm: item.ncm,
+      origin: item.origin,
+      quantity: item.quantity,
+      weightKg: item.weightKg,
+      volumeM3: item.volumeM3,
+      fobUnit: item.fobUnit,
+      icms: item.icms,
+      exporter: item.exporter || undefined,
+      iiExCode: item.iiExCode || undefined,
+      ipiExCode: item.ipiExCode || undefined,
+      iiQuotaConfirmed: tri(item.iiQuotaConfirmed),
+      aeronauticalEligible: tri(item.aeronauticalEligible),
+      ttd: isSC ? item.ttd : "none",
+      destination: item.destination,
+      validConcession: isSC ? item.validConcession : false,
+      importEntryInSC: isSC ? item.importEntryInSC : false,
+      industrializationInSC: isSC ? item.industrializationInSC : false,
+      sameNcmPositionAfterFractionation: isSC ? item.sameNcmPositionAfterFractionation : true,
+      decree2128Prohibited: isSC ? item.decree2128Prohibited : false,
+      targetMarginPercent: item.targetMarginPercent,
+    })),
+  });
+
+  function validateInput() {
+    const issues: string[] = [];
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) issues.push("Informe uma data de importação válida.");
+    if (!BRAZILIAN_UFS.includes(destinationUf as (typeof BRAZILIAN_UFS)[number])) issues.push("Selecione uma UF de destino válida.");
+    if (!Number.isFinite(exchange) || exchange <= 0) issues.push("O câmbio deve ser maior que zero.");
+    if (!Number.isFinite(freight) || freight < 0) issues.push("O frete internacional não pode ser negativo.");
+    if (!Number.isFinite(insurance) || insurance < 0) issues.push("O seguro internacional não pode ser negativo.");
+    if (!Number.isFinite(storage) || storage < 0) issues.push("A armazenagem não pode ser negativa.");
+    if (!Number.isFinite(otherBrl) || otherBrl < 0) issues.push("Outras despesas não podem ser negativas.");
+    if (!Number.isFinite(margin) || margin < 0 || margin >= 100) issues.push("A margem padrão deve estar entre 0% e menos de 100%.");
+    if (!items.length) issues.push("Inclua pelo menos um item.");
+
+    items.forEach((item, index) => {
+      const label = `Item ${index + 1}`;
+      if (!/^\d{8}$/.test(item.ncm)) issues.push(`${label}: informe uma NCM com exatamente 8 dígitos.`);
+      if (!item.origin.trim()) issues.push(`${label}: informe o país de origem.`);
+      if (!Number.isFinite(item.quantity) || item.quantity <= 0) issues.push(`${label}: a quantidade deve ser maior que zero.`);
+      if (!Number.isFinite(item.fobUnit) || item.fobUnit < 0) issues.push(`${label}: o FOB unitário não pode ser negativo.`);
+      if (!Number.isFinite(item.weightKg) || item.weightKg < 0) issues.push(`${label}: o peso não pode ser negativo.`);
+      if (!Number.isFinite(item.volumeM3) || item.volumeM3 < 0) issues.push(`${label}: o volume não pode ser negativo.`);
+      if (!Number.isFinite(item.targetMarginPercent) || item.targetMarginPercent < 0 || item.targetMarginPercent >= 100) {
+        issues.push(`${label}: a margem alvo deve estar entre 0% e menos de 100%.`);
+      }
+      if (isSC && (!Number.isFinite(item.icms) || item.icms < 0 || item.icms >= 100)) {
+        issues.push(`${label}: informe uma alíquota normal de ICMS SC válida.`);
+      }
+    });
+
+    const totalWeight = items.reduce((sum, item) => sum + Number(item.weightKg || 0), 0);
+    if (freight > 0 && totalWeight <= 0) {
+      issues.push("Informe peso líquido em pelo menos um item para ratear o frete internacional.");
+    }
+    return issues;
+  }
+
+  async function calculate() {
+    const issues = validateInput();
+    setValidationIssues(issues);
+    setMessage("");
+    setResult(null);
+    if (issues.length) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch("/api/simulation-v2", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload()),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Não foi possível calcular.");
+      setResult(data);
+      requestAnimationFrame(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Não foi possível calcular.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function save() {
+    if (!result) return;
+    setSaving(true);
+    setMessage("");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        location.href = "/auth";
+        return;
+      }
+      const response = await fetch("/api/simulations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ mode: "v2", name, input: payload(), result }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Não foi possível salvar.");
+      location.href = `/simulacao/${data.id}`;
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Não foi possível salvar.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const status = (result?.status || "calculated") as Status;
+  const resultStyle = statusStyle[status];
+
+  return (
+    <main className="wrap scTest" style={{ paddingTop: 36, paddingBottom: 70 }}>
+      <header className="scHeader">
+        <div>
+          <div className="eyebrow dark">IMPORTAFÁCIL · SIMULATION V2</div>
+          <h1>Da NCM ao custo nacionalizado, com o escopo fiscal explícito.</h1>
+          <p>Escolha a UF de destino. O motor aplica a jurisdição homologada, resolve os tributos federais e sinaliza o que precisa de validação.</p>
+        </div>
+        <a className="secondaryBtn" href="/dashboard">Meu painel</a>
+      </header>
+
+      {validationIssues.length > 0 && (
+        <div role="alert" style={{ ...statusStyle.requires_input, border: `1px solid ${statusStyle.requires_input.border}`, borderRadius: 14, padding: 16, marginBottom: 18 }}>
+          <b>Revise os dados antes de calcular</b>
+          <ul style={{ marginBottom: 0 }}>{validationIssues.map((issue) => <li key={issue}>{issue}</li>)}</ul>
+        </div>
+      )}
+
+      <section className="card" style={{ marginBottom: 18 }}>
+        <div className="resultTop">
+          <div>
+            <div className="eyebrow dark">1. OPERAÇÃO</div>
+            <h2>Premissas compartilhadas</h2>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <small>Mercadorias</small>
+            <div style={{ fontWeight: 800, fontSize: 22 }}>{money(merchandise)}</div>
+          </div>
+        </div>
+
+        <div className="fields four">
+          <Field label="Nome do pré-estudo"><input value={name} onChange={(e) => { setName(e.target.value); invalidate(); }} /></Field>
+          <Field label="Data"><input type="date" value={date} onChange={(e) => { setDate(e.target.value); invalidate(); }} /></Field>
+          <Field label="UF de destino">
+            <select
+              aria-label="UF de destino"
+              value={destinationUf}
+              onChange={(e) => {
+                const uf = e.target.value;
+                setDestinationUf(uf);
+                setItems((rows) => rows.map((row) => uf === "SC" ? row : { ...row, ttd: "none" }));
+                invalidate();
+              }}
+            >
+              {BRAZILIAN_UFS.map((uf) => <option key={uf} value={uf}>{uf} — {UF_NAMES[uf]}</option>)}
+            </select>
+          </Field>
+          <Num label="Câmbio R$/US$" value={exchange} set={setExchange} invalidate={invalidate} />
+          <Num label="Frete internacional US$" value={freight} set={setFreight} invalidate={invalidate} />
+          <Num label="Seguro internacional US$" value={insurance} set={setInsurance} invalidate={invalidate} />
+          <Num label="Armazenagem R$" value={storage} set={setStorage} invalidate={invalidate} />
+          <Num label="Outras despesas R$" value={otherBrl} set={setOtherBrl} invalidate={invalidate} />
+          <Field label="Margem alvo padrão %">
+            <input
+              type="number"
+              min="0"
+              max="99.99"
+              value={margin}
+              onChange={(e) => {
+                const value = Number(e.target.value);
+                setMargin(value);
+                setItems((rows) => rows.map((row) => ({ ...row, targetMarginPercent: value })));
+                invalidate();
+              }}
+            />
+          </Field>
+          <Field label="Modal">
+            <select value={transportMode} onChange={(e) => { setTransportMode(e.target.value); invalidate(); }}>
+              <option value="maritime_long_course">Marítimo — longo curso</option>
+              <option value="cabotage">Cabotagem</option>
+              <option value="air">Aéreo</option>
+              <option value="road">Rodoviário</option>
+              <option value="rail">Ferroviário</option>
+              <option value="not_informed">Não informado</option>
+            </select>
+          </Field>
+          <Field label="Declaração">
+            <select value={declarationType} onChange={(e) => { setDeclarationType(e.target.value); invalidate(); }}>
+              <option value="di">DI</option>
+              <option value="duimp">DUIMP</option>
+            </select>
+          </Field>
+        </div>
+
+        <div
+          data-state-scope={isSC ? "full" : "general_rate_only"}
+          style={{
+            marginTop: 18,
+            padding: 15,
+            borderRadius: 12,
+            border: "1px solid #dbe5ff",
+            background: "#f8faff",
+            color: "#344054",
+            lineHeight: 1.5,
+          }}
+        >
+          <b>Escopo estadual: {isSC ? "SC · motor estadual completo" : `${destinationUf} · general_rate_only`}</b>
+          <div style={{ marginTop: 5, fontSize: 13 }}>
+            {isSC
+              ? "Santa Catarina mantém as regras e validações específicas já homologadas, inclusive TTD quando informado."
+              : "Para esta UF, o motor usa automaticamente a alíquota geral de ICMS homologada. Benefícios, reduções, isenções, ST, diferimentos, antecipações e regimes especiais permanecem fora do escopo automático."}
+          </div>
+        </div>
+      </section>
+
+      <section className="card" style={{ marginBottom: 18 }}>
+        <div className="resultTop">
+          <div>
+            <div className="eyebrow dark">2. ITENS</div>
+            <h2>Produtos da importação</h2>
+            <p>II, IPI, PIS-Importação e COFINS-Importação são resolvidos pelo motor. Fora de SC, o ICMS geral homologado também substitui qualquer valor manual.</p>
+          </div>
+          <button className="secondaryBtn" type="button" onClick={() => {
+            const n = next.current++;
+            setItems((rows) => [...rows, makeItem(n, margin)]);
+            invalidate();
+          }}>+ Adicionar item</button>
+        </div>
+
+        <div style={{ display: "grid", gap: 18 }}>
+          {items.map((item, index) => (
+            <article key={item.id} className="miniCard" style={{ padding: 20 }}>
+              <div className="resultTop">
+                <b>{item.id} · Item {index + 1}</b>
+                {items.length > 1 && <button type="button" className="secondaryBtn" onClick={() => {
+                  setItems((rows) => rows.filter((row) => row.id !== item.id));
+                  invalidate();
+                }}>Excluir</button>}
+              </div>
+
+              <div className="fields four" style={{ marginTop: 14 }}>
+                <Text label="Descrição" value={item.name} set={(value) => update(item.id, "name", value)} />
+                <Text label="NCM (8 dígitos)" value={item.ncm} set={(value) => update(item.id, "ncm", value.replace(/\D/g, "").slice(0, 8))} />
+                <Text label="País de origem" value={item.origin} set={(value) => update(item.id, "origin", value)} />
+                <ItemNum label="Quantidade" value={item.quantity} set={(value) => update(item.id, "quantity", value)} />
+                <ItemNum label="FOB unitário US$" value={item.fobUnit} set={(value) => update(item.id, "fobUnit", value)} />
+                <ItemNum label="Peso líquido kg" value={item.weightKg} set={(value) => update(item.id, "weightKg", value)} />
+                <ItemNum label="Volume m³" value={item.volumeM3} set={(value) => update(item.id, "volumeM3", value)} />
+                {isSC && <ItemNum label="Alíquota ICMS normal SC %" value={item.icms} set={(value) => update(item.id, "icms", value)} />}
+                <ItemNum label="Margem alvo %" value={item.targetMarginPercent} set={(value) => update(item.id, "targetMarginPercent", value)} />
+                <DefenseCommercialExporterSelector ncm={item.ncm} origin={item.origin} date={date} value={item.exporter} onChange={(value) => update(item.id, "exporter", value)} />
+                <Text label="EX do II" value={item.iiExCode} set={(value) => update(item.id, "iiExCode", value)} />
+                <Text label="EX do IPI" value={item.ipiExCode} set={(value) => update(item.id, "ipiExCode", value)} />
+                <Field label="Quota II">
+                  <select value={item.iiQuotaConfirmed} onChange={(e) => update(item.id, "iiQuotaConfirmed", e.target.value as TriState)}>
+                    <option value="">Não informado</option>
+                    <option value="yes">Confirmada</option>
+                    <option value="no">Não elegível</option>
+                  </select>
+                </Field>
+                <Field label="Enquadramento aeronáutico">
+                  <select value={item.aeronauticalEligible} onChange={(e) => update(item.id, "aeronauticalEligible", e.target.value as TriState)}>
+                    <option value="">Não informado</option>
+                    <option value="yes">Elegível</option>
+                    <option value="no">Não elegível</option>
+                  </select>
+                </Field>
+                {isSC && (
+                  <Field label="Regime SC">
+                    <select value={item.ttd} onChange={(e) => update(item.id, "ttd", e.target.value as TTD)}>
+                      <option value="none">Sem TTD — normal</option>
+                      <option value="77">TTD 77</option>
+                      <option value="409">TTD 409</option>
+                      <option value="410">TTD 410</option>
+                    </select>
+                  </Field>
+                )}
+                <Field label="Destinação">
+                  <select value={item.destination} onChange={(e) => update(item.id, "destination", e.target.value as Destination)}>
+                    <option value="commercial_resale">Revenda/comercialização</option>
+                    <option value="industrialization">Industrialização</option>
+                  </select>
+                </Field>
+              </div>
+
+              {isSC && item.ttd !== "none" && (
+                <div className="checks" style={{ marginTop: 14 }}>
+                  <Check label="Ato concessivo válido" checked={item.validConcession} set={(value) => update(item.id, "validConcession", value)} />
+                  <Check label="Entrada/importação em SC" checked={item.importEntryInSC} set={(value) => update(item.id, "importEntryInSC", value)} />
+                  {item.destination === "industrialization" && <Check label="Industrialização em SC" checked={item.industrializationInSC} set={(value) => update(item.id, "industrializationInSC", value)} />}
+                  <Check label="Mantém posição NCM após fracionamento" checked={item.sameNcmPositionAfterFractionation} set={(value) => update(item.id, "sameNcmPositionAfterFractionation", value)} />
+                  <Check label="Há vedação conhecida no Decreto SC 2.128/2009" checked={item.decree2128Prohibited} set={(value) => update(item.id, "decree2128Prohibited", value)} />
+                </div>
+              )}
+            </article>
+          ))}
+        </div>
+
+        <button className="primary" onClick={calculate} disabled={loading} style={{ marginTop: 20 }}>
+          {loading ? "Calculando..." : "Calcular Simulation V2"}
+        </button>
+        {message && <p role="alert" style={{ marginTop: 14, color: "#b42318" }}>{message}</p>}
+      </section>
+
+      {result && (
+        <section className="card" ref={resultRef}>
+          <div
+            data-simulation-status={status}
+            style={{ background: resultStyle.background, border: `1px solid ${resultStyle.border}`, color: resultStyle.color, borderRadius: 14, padding: 16, marginBottom: 22 }}
+          >
+            <b style={{ fontSize: 18 }}>{statusLabel[status]}</b>
+            <div style={{ marginTop: 6, lineHeight: 1.5 }}>{statusHelp[status]}</div>
+          </div>
+
+          <div className="resultTop">
+            <div>
+              <div className="eyebrow dark">3. RESULTADO</div>
+              <h2>{name}</h2>
+              <p>
+                Destino: <b>{result.operation?.destinationUf || destinationUf}</b> ·
+                Escopo: <b>{result.jurisdiction?.scope || (isSC ? "full" : "general_rate_only")}</b> ·
+                Motor: {result.engine}
+              </p>
+            </div>
+            {result.summary && (
+              <div style={{ textAlign: "right" }}>
+                <small>Capital estimado</small>
+                <div style={{ fontWeight: 900, fontSize: 28 }}>{money(result.summary.capitalRequiredBrl)}</div>
+              </div>
+            )}
+          </div>
+
+          {result.summary && (
+            <>
+              <div className="resultGrid">
+                {[
+                  ["Mercadorias", result.summary.merchandiseBrl],
+                  ["Tributos", result.summary.importTaxesBrl],
+                  ["Defesa comercial", result.summary.defenseCommercialBrl],
+                  ["Custo nacionalizado", result.summary.landedCostBrl],
+                  ["Receita alvo", result.summary.targetRevenueBrl],
+                  ["Lucro estimado", result.summary.estimatedProfitBrl],
+                ].map(([label, value]) => (
+                  <div className="miniCard" key={String(label)}>
+                    <small>{label}</small>
+                    <b>{money(Number(value))}</b>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ overflowX: "auto", marginTop: 24 }}>
+                <table className="importTable">
+                  <thead>
+                    <tr>
+                      <th>Item</th><th>Status</th><th>NCM</th><th>II</th><th>IPI</th><th>ICMS</th><th>Custo/un.</th><th>Margem</th><th>Preço alvo/un.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.items.map((row: any) => (
+                      <tr key={row.itemId}>
+                        <td>{row.name}</td>
+                        <td>{statusLabel[row.status as Status] || row.status}</td>
+                        <td>{row.ncm}</td>
+                        <td>{pct(row.federal?.ii?.rate)}</td>
+                        <td>{pct(row.federal?.ipi?.rate)}</td>
+                        <td>{pct(row.state?.icmsGeneralRate ?? row.calculation?.icmsNormalRate)}</td>
+                        <td>{money(row.commercial?.breakEvenPricePerUnitBrl)}</td>
+                        <td>{pct(row.commercial?.targetMarginPercent)}</td>
+                        <td>{money(row.commercial?.targetSalePricePerUnitBrl)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+
+          {result.attentionPoints?.length > 0 && (
+            <div className="infoNote" style={{ marginTop: 18 }}>
+              <b>Pontos de atenção</b>
+              <ul>{result.attentionPoints.map((point: string, index: number) => <li key={index}>{point}</li>)}</ul>
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 20 }}>
+            <button className="primary" onClick={save} disabled={saving}>
+              {saving ? "Salvando..." : status === "calculated" || status === "alert" ? "Salvar no histórico" : "Salvar pré-estudo"}
+            </button>
+            <button className="secondaryBtn" onClick={() => window.print()}>Imprimir / Salvar PDF</button>
+          </div>
+        </section>
+      )}
+    </main>
+  );
 }
-function Field({label,children}:{label:string;children:React.ReactNode}){return <label>{label}{children}</label>}function Num({label,value,set,invalidate}:{label:string;value:number;set:(v:number)=>void;invalidate:()=>void}){return <Field label={label}><input type="number" min="0" step="any" value={value} onChange={e=>{set(Number(e.target.value));invalidate()}}/></Field>}function Text({label,value,set}:{label:string;value:string;set:(v:string)=>void}){return <Field label={label}><input value={value} onChange={e=>set(e.target.value)}/></Field>}function ItemNum({label,value,set}:{label:string;value:number;set:(v:number)=>void}){return <Field label={label}><input type="number" min="0" step="any" value={value} onChange={e=>set(Number(e.target.value))}/></Field>}function Check({label,checked,set}:{label:string;checked:boolean;set:(v:boolean)=>void}){return <label><input type="checkbox" checked={checked} onChange={e=>set(e.target.checked)}/>{label}</label>}
+
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return <label>{label}{children}</label>;
+}
+
+function Num({ label, value, set, invalidate }: { label: string; value: number; set: (value: number) => void; invalidate: () => void }) {
+  return <Field label={label}><input type="number" min="0" step="any" value={value} onChange={(e) => { set(Number(e.target.value)); invalidate(); }} /></Field>;
+}
+
+function Text({ label, value, set }: { label: string; value: string; set: (value: string) => void }) {
+  return <Field label={label}><input value={value} onChange={(e) => set(e.target.value)} /></Field>;
+}
+
+function ItemNum({ label, value, set }: { label: string; value: number; set: (value: number) => void }) {
+  return <Field label={label}><input type="number" min="0" step="any" value={value} onChange={(e) => set(Number(e.target.value))} /></Field>;
+}
+
+function Check({ label, checked, set }: { label: string; checked: boolean; set: (value: boolean) => void }) {
+  return <label><input type="checkbox" checked={checked} onChange={(e) => set(e.target.checked)} />{label}</label>;
+}

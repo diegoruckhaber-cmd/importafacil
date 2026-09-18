@@ -50,7 +50,7 @@ const compare = fs.readFileSync("app/comparar/page.tsx", "utf8");
 assert.match(api, /body\.mode === "v2"/);
 assert.match(api, /importafacil-simulation-v2/);
 assert.match(v2Page, /Salvar no histórico/);
-assert.match(v2Page, /mode:"v2"/);
+assert.match(v2Page, /mode\s*:\s*"v2"/);
 assert.match(dashboard, /savedSimulationKind/);
 assert.match(detail, /V2Result/);
 assert.match(report, /Nenhuma alíquota ou benefício é recalculado/);
