@@ -6,7 +6,7 @@ export default function HomePage() {
       <header style={{borderBottom:"1px solid #e4e4de",background:"#fff"}}>
         <div style={{maxWidth:1120,margin:"0 auto",padding:"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:20}}>
           <a href="/" style={{fontWeight:900,fontSize:20,color:"#111",textDecoration:"none"}}>ImportaFácil</a>
-          <nav style={{display:"flex",gap:18,alignItems:"center",flexWrap:"wrap"}}>
+          <nav aria-label="Navegação principal" style={{display:"flex",gap:18,alignItems:"center",flexWrap:"wrap"}}>
             <a href="/simulacao-v2" style={navLink}>Simular</a>
             <a href="/regras" style={navLink}>Regras</a>
             <a href="/auth" style={navLink}>Entrar</a>
@@ -15,10 +15,10 @@ export default function HomePage() {
         </div>
       </header>
 
-      <section style={{maxWidth:1120,margin:"0 auto",padding:"86px 24px 68px",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:46,alignItems:"center"}}>
+      <section aria-labelledby="hero-title" style={{maxWidth:1120,margin:"0 auto",padding:"86px 24px 68px",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:46,alignItems:"center"}}>
         <div>
           <div style={eyebrow}>BETA CONTROLADO · 27 UFs ATIVAS</div>
-          <h1 style={{fontSize:"clamp(42px,6vw,72px)",lineHeight:1.02,letterSpacing:"-0.04em",margin:"18px 0 24px",maxWidth:760}}>
+          <h1 id="hero-title" style={{fontSize:"clamp(40px,6vw,72px)",lineHeight:1.02,letterSpacing:"-0.04em",margin:"18px 0 24px",maxWidth:760}}>
             Antes de importar, descubra se a conta fecha.
           </h1>
           <p style={{fontSize:20,lineHeight:1.6,color:"#5d5d57",maxWidth:700}}>
