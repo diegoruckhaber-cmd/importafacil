@@ -1,16 +1,13 @@
 name: Stage 2 Federal Source Audit
 
 on:
-  push:
-    branches:
-      - stage2/federal-authoritative-snapshot
-    paths:
-      - '.github/workflows/stage2-federal-source-audit.yml'
-      - 'scripts/inspect-federal-tariff-workbook.py'
-      - 'scripts/ingest-official-fiscal-data.py'
+  workflow_dispatch:
 
+# Historical Stage 2 reproducer only. It may regenerate a candidate for audit,
+# but it cannot push or publish fiscal data. Production publication requires a
+# reviewed pull request under docs/legislative-update-runbook.md.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   inspect-official-sources:
@@ -93,14 +90,12 @@ jobs:
               handle.write('\n')
           print('snapshotBlobSha=', blob)
           PY
-      - name: Publish snapshot and integrity pin to branch
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add data/federal/official-snapshot-2026-09-08.json data/federal/snapshot-integrity-manifest.json
-          if git diff --cached --quiet; then
-            echo 'Snapshot and integrity manifest are already current.'
-          else
-            git commit -m 'data: publish authoritative federal snapshot 2026-09-08'
-            git push
-          fi
+      - name: Upload regenerated candidate for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage2-federal-snapshot-regenerated-candidate
+          path: |
+            data/federal/official-snapshot-2026-09-08.json
+            data/federal/snapshot-integrity-manifest.json
+          if-no-files-found: error
+          retention-days: 14
