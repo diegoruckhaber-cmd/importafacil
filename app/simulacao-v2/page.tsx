@@ -434,33 +434,6 @@ export default function SimulationV2Page() {
                 <ItemNum label="Volume m³" value={item.volumeM3} set={(value) => update(item.id, "volumeM3", value)} />
                 {isSC && <ItemNum label="Alíquota ICMS normal SC %" value={item.icms} set={(value) => update(item.id, "icms", value)} />}
                 <ItemNum label="Margem alvo %" value={item.targetMarginPercent} set={(value) => update(item.id, "targetMarginPercent", value)} />
-                <DefenseCommercialExporterSelector ncm={item.ncm} origin={item.origin} date={date} value={item.exporter} onChange={(value) => update(item.id, "exporter", value)} />
-                <Text label="EX do II" value={item.iiExCode} set={(value) => update(item.id, "iiExCode", value)} />
-                <Text label="EX do IPI" value={item.ipiExCode} set={(value) => update(item.id, "ipiExCode", value)} />
-                <Field label="Quota II">
-                  <select value={item.iiQuotaConfirmed} onChange={(e) => update(item.id, "iiQuotaConfirmed", e.target.value as TriState)}>
-                    <option value="">Não informado</option>
-                    <option value="yes">Confirmada</option>
-                    <option value="no">Não elegível</option>
-                  </select>
-                </Field>
-                <Field label="Enquadramento aeronáutico">
-                  <select value={item.aeronauticalEligible} onChange={(e) => update(item.id, "aeronauticalEligible", e.target.value as TriState)}>
-                    <option value="">Não informado</option>
-                    <option value="yes">Elegível</option>
-                    <option value="no">Não elegível</option>
-                  </select>
-                </Field>
-                {isSC && (
-                  <Field label="Regime SC">
-                    <select value={item.ttd} onChange={(e) => update(item.id, "ttd", e.target.value as TTD)}>
-                      <option value="none">Sem TTD — normal</option>
-                      <option value="77">TTD 77</option>
-                      <option value="409">TTD 409</option>
-                      <option value="410">TTD 410</option>
-                    </select>
-                  </Field>
-                )}
                 <Field label="Destinação">
                   <select value={item.destination} onChange={(e) => update(item.id, "destination", e.target.value as Destination)}>
                     <option value="commercial_resale">Revenda/comercialização</option>
@@ -468,6 +441,40 @@ export default function SimulationV2Page() {
                   </select>
                 </Field>
               </div>
+
+              <details className="advancedPanel">
+                <summary>Opções avançadas e tratamentos específicos</summary>
+                <p>Use estes campos apenas quando a sua operação tiver enquadramentos ou informações adicionais.</p>
+                <div className="fields four advancedFields">
+                  <DefenseCommercialExporterSelector ncm={item.ncm} origin={item.origin} date={date} value={item.exporter} onChange={(value) => update(item.id, "exporter", value)} />
+                  <Text label="EX do II" value={item.iiExCode} set={(value) => update(item.id, "iiExCode", value)} />
+                  <Text label="EX do IPI" value={item.ipiExCode} set={(value) => update(item.id, "ipiExCode", value)} />
+                  <Field label="Quota II">
+                    <select value={item.iiQuotaConfirmed} onChange={(e) => update(item.id, "iiQuotaConfirmed", e.target.value as TriState)}>
+                      <option value="">Não informado</option>
+                      <option value="yes">Confirmada</option>
+                      <option value="no">Não elegível</option>
+                    </select>
+                  </Field>
+                  <Field label="Enquadramento aeronáutico">
+                    <select value={item.aeronauticalEligible} onChange={(e) => update(item.id, "aeronauticalEligible", e.target.value as TriState)}>
+                      <option value="">Não informado</option>
+                      <option value="yes">Elegível</option>
+                      <option value="no">Não elegível</option>
+                    </select>
+                  </Field>
+                  {isSC && (
+                    <Field label="Regime tributário SC">
+                      <select value={item.ttd} onChange={(e) => update(item.id, "ttd", e.target.value as TTD)}>
+                        <option value="none">Sem TTD — tributação normal</option>
+                        <option value="77">TTD 77</option>
+                        <option value="409">TTD 409</option>
+                        <option value="410">TTD 410</option>
+                      </select>
+                    </Field>
+                  )}
+                </div>
+              </details>
 
               {isSC && item.ttd !== "none" && (
                 <div className="checks" style={{ marginTop: 14 }}>
