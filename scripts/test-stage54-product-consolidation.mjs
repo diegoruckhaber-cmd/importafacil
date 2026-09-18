@@ -3,9 +3,10 @@ import fs from "node:fs";
 
 const home=fs.readFileSync("app/page.tsx","utf8");
 assert.match(home,/href="\/simulacao-v2"/);
-assert.match(home,/Abrir Simulation V2/);
-assert.match(home,/FLUXO CANÔNICO/);
+assert.match(home,/Simular gratuitamente/);
+assert.match(home,/NÃO É SÓ UMA CALCULADORA/);
 assert.match(home,/BETA CONTROLADO/);
+assert.match(home,/PLANOS/);
 assert.match(home,/href="\/upgrade"/);
 assert.doesNotMatch(home,/fetch\("\/api\/sc-federal-calculate"/);
 assert.doesNotMatch(home,/Calcular operação/);
