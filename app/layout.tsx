@@ -38,11 +38,13 @@ export default function RootLayout({children}:{children:React.ReactNode}) {
         <a className="skipLink" href="#conteudo-principal">Pular para o conteúdo principal</a>
         <TemporaryIIAlertEnhancer />
         <aside
+          className="betaBar"
           aria-label="Status de disponibilidade do produto"
           data-release-scope="controlled-beta"
-          style={{padding:"10px 18px",borderBottom:"1px solid #d8d8d8",fontSize:13,lineHeight:1.45}}
         >
-          <strong>{release.controlledBeta.label}</strong> · {release.controlledBeta.notice}
+          <span><strong>Beta controlado</strong> · Cobertura tributária nas 27 UFs.</span>
+          <a href="/regras">Entenda o escopo</a>
+          <span className="srOnly">{release.controlledBeta.label} · {release.controlledBeta.notice}</span>
         </aside>
         <div id="conteudo-principal">{children}</div>
       </body>
