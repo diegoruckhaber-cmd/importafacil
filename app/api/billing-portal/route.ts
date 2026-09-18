@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createStripePortalSession } from "../../../lib/stripe-billing-portal";
+import { buildOperationalEvent, emitOperationalEvent } from "../../../lib/operational-observability";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,16 +17,29 @@ function userClient(accessToken: string) {
 }
 
 export async function POST(req: Request) {
+  const startedAtMs = Date.now();
+  const emit = (outcome: "success" | "rejected" | "failed", reasonCode?: string) =>
+    emitOperationalEvent(buildOperationalEvent({ event: "billing.portal", outcome, reasonCode, startedAtMs }));
+
   try {
     const authorization = req.headers.get("authorization") || "";
     const accessToken = authorization.replace(/^Bearer\s+/i, "").trim();
-    if (!accessToken) return NextResponse.json({ error: "Sessão autenticada é obrigatória." }, { status: 401 });
+    if (!accessToken) {
+      emit("rejected", "auth_required");
+      return NextResponse.json({ error: "Sessão autenticada é obrigatória." }, { status: 401 });
+    }
 
     const supabase = userClient(accessToken);
-    if (!supabase) return NextResponse.json({ error: "Autenticação do ambiente não está configurada." }, { status: 503 });
+    if (!supabase) {
+      emit("failed", "auth_environment_missing");
+      return NextResponse.json({ error: "Autenticação do ambiente não está configurada." }, { status: 503 });
+    }
 
     const { data: { user }, error: userError } = await supabase.auth.getUser(accessToken);
-    if (userError || !user) return NextResponse.json({ error: "Sua sessão expirou. Entre novamente." }, { status: 401 });
+    if (userError || !user) {
+      emit("rejected", "session_invalid");
+      return NextResponse.json({ error: "Sua sessão expirou. Entre novamente." }, { status: 401 });
+    }
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
@@ -34,17 +48,19 @@ export async function POST(req: Request) {
       .maybeSingle();
 
     if (profileError) {
-      console.error("Billing portal profile lookup failed", profileError.code || "unknown");
+      emit("failed", "profile_lookup");
       return NextResponse.json({ error: "Não foi possível consultar sua assinatura." }, { status: 500 });
     }
 
     const customerId = typeof profile?.stripe_customer_id === "string" ? profile.stripe_customer_id : "";
     if (!customerId.startsWith("cus_")) {
+      emit("rejected", "customer_missing");
       return NextResponse.json({ error: "Sua conta ainda não possui uma assinatura Stripe gerenciável." }, { status: 409 });
     }
 
     const stripeSecret = process.env.STRIPE_SECRET_KEY || "";
     if (!/^sk_live_|^rk_live_/.test(stripeSecret)) {
+      emit("failed", "billing_environment_missing");
       return NextResponse.json({ error: "Portal de cobrança indisponível no ambiente." }, { status: 503 });
     }
 
@@ -55,12 +71,13 @@ export async function POST(req: Request) {
       returnUrl: `${origin}/upgrade?portal=returned`,
     });
 
+    emit("success");
     return NextResponse.json(
       { url: session.url },
       { headers: { "Cache-Control": "no-store" } },
     );
-  } catch (error) {
-    console.error("Billing portal session failed", error instanceof Error ? error.message : "unknown");
+  } catch {
+    emit("failed", "stripe_portal_session");
     return NextResponse.json({ error: "Não foi possível abrir o portal de cobrança agora." }, { status: 502 });
   }
 }
