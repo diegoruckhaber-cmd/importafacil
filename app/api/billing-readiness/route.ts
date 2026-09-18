@@ -10,6 +10,15 @@ export const dynamic = "force-dynamic";
 
 type Check = { ok: boolean; detail: string };
 
+const STRIPE_LIFECYCLE_EVENTS = [
+  "checkout.session.completed",
+  "customer.subscription.created",
+  "customer.subscription.updated",
+  "customer.subscription.deleted",
+  "invoice.paid",
+  "invoice.payment_failed",
+] as const;
+
 async function checkStripePrice(secret: string, priceId: string): Promise<Check> {
   try {
     const response = await fetch(`https://api.stripe.com/v1/prices/${encodeURIComponent(priceId)}`, {
@@ -27,6 +36,29 @@ async function checkStripePrice(secret: string, priceId: string): Promise<Check>
       price?.recurring?.interval === "month" &&
       price?.recurring?.interval_count === 1;
     return { ok: expected, detail: expected ? "live_monthly_brl_2990" : "unexpected_price_configuration" };
+  } catch {
+    return { ok: false, detail: "request_failed" };
+  }
+}
+
+async function checkStripeWebhookEndpoint(secret: string): Promise<Check> {
+  try {
+    const response = await fetch("https://api.stripe.com/v1/webhook_endpoints?limit=100", {
+      headers: { Authorization: `Bearer ${secret}` },
+      cache: "no-store",
+    });
+    if (!response.ok) return { ok: false, detail: `http_${response.status}` };
+    const payload = await response.json();
+    const endpoints = Array.isArray(payload?.data) ? payload.data : [];
+    const expectedUrl = "https://importafacil-gamma.vercel.app/api/stripe/webhook";
+    const endpoint = endpoints.find((row: any) => row?.url === expectedUrl && row?.livemode === true);
+    if (!endpoint) return { ok: false, detail: "live_endpoint_not_found" };
+    if (endpoint.status !== "enabled") return { ok: false, detail: "endpoint_not_enabled" };
+    const enabledEvents = new Set<string>(Array.isArray(endpoint.enabled_events) ? endpoint.enabled_events : []);
+    const missing = STRIPE_LIFECYCLE_EVENTS.filter((event) => !enabledEvents.has(event));
+    return missing.length
+      ? { ok: false, detail: `missing_events_${missing.length}` }
+      : { ok: true, detail: "live_lifecycle_endpoint_enabled" };
   } catch {
     return { ok: false, detail: "request_failed" };
   }
@@ -75,14 +107,15 @@ export async function GET() {
     );
   }
 
-  const [stripePrice, profiles, subscriptions, webhookEvents] = await Promise.all([
+  const [stripePrice, stripeWebhook, profiles, subscriptions, webhookEvents] = await Promise.all([
     checkStripePrice(stripeSecret, priceId),
+    checkStripeWebhookEndpoint(stripeSecret),
     checkSupabaseTable(supabaseUrl, elevatedKey, "profiles"),
     checkSupabaseTable(supabaseUrl, elevatedKey, "subscriptions"),
     checkSupabaseTable(supabaseUrl, elevatedKey, "stripe_webhook_events"),
   ]);
 
-  const ok = stripePrice.ok && profiles.ok && subscriptions.ok && webhookEvents.ok;
+  const ok = stripePrice.ok && stripeWebhook.ok && profiles.ok && subscriptions.ok && webhookEvents.ok;
   return NextResponse.json(
     {
       ok,
@@ -90,7 +123,7 @@ export async function GET() {
       environment: process.env.VERCEL_ENV || "unknown",
       checks: {
         environment,
-        stripe: { price: stripePrice },
+        stripe: { price: stripePrice, webhook: stripeWebhook },
         supabase: { profiles, subscriptions, webhookEvents },
       },
     },
