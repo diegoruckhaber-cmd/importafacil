@@ -18,8 +18,8 @@ assert.match(layout,/aria-label="Status de disponibilidade do produto"/);
 assert.doesNotMatch(home,/["']use client["']/);
 assert.doesNotMatch(home,/\bfetch\s*\(/);
 assert.match(home,/aria-label="Navegação principal"/);
-assert.match(home,/aria-labelledby="hero-title"/);
-assert.match(home,/id="hero-title"/);
+assert.match(home,/aria-labelledby="home-hero-title"/);
+assert.match(home,/id="home-hero-title"/);
 
 assert.match(css,/\.skipLink/);
 assert.match(css,/:focus-visible/);

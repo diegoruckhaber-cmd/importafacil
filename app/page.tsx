@@ -1,93 +1,153 @@
-import type { CSSProperties } from "react";
-
 export default function HomePage() {
   return (
-    <main style={{minHeight:"100vh",background:"#f7f7f4",color:"#111"}}>
-      <header style={{borderBottom:"1px solid #e4e4de",background:"#fff"}}>
-        <div style={{maxWidth:1120,margin:"0 auto",padding:"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:20}}>
-          <a href="/" style={{fontWeight:900,fontSize:20,color:"#111",textDecoration:"none"}}>ImportaFácil</a>
-          <nav aria-label="Navegação principal" style={{display:"flex",gap:18,alignItems:"center",flexWrap:"wrap"}}>
-            <a href="/simulacao-v2" style={navLink}>Simular</a>
-            <a href="/regras" style={navLink}>Regras</a>
-            <a href="/auth" style={navLink}>Entrar</a>
-            <a href="/upgrade" style={{...navLink,fontWeight:800}}>PRO</a>
+    <main className="marketingPage">
+      <header className="marketingHeader">
+        <div className="wrap nav">
+          <a className="logo" href="/">ImportaFácil</a>
+          <nav aria-label="Navegação principal" className="marketingNav">
+            <a href="#como-funciona">Como funciona</a>
+            <a href="#pro">Planos</a>
+            <a href="/auth">Entrar</a>
+            <a className="navCta" href="/simulacao-v2">Simular grátis</a>
           </nav>
         </div>
+
+        <section className="wrap hero" aria-labelledby="home-hero-title">
+          <div>
+            <div className="eyebrow">PRÉ-ESTUDO DE IMPORTAÇÃO</div>
+            <h1 id="home-hero-title">Antes de importar, descubra se a conta fecha.</h1>
+            <p>
+              Simule tributos, despesas e custo nacionalizado antes de comprometer seu capital.
+              Compare cenários com uma visão clara do que realmente impacta sua importação.
+            </p>
+            <div className="heroActions">
+              <a className="primary" href="/simulacao-v2">Simular gratuitamente</a>
+              <a className="ghost" href="#como-funciona">Ver como funciona</a>
+            </div>
+            <div className="proof">
+              <span>✓ 27 UFs cobertas</span>
+              <span>✓ Alíquotas federais automáticas</span>
+              <span>✓ Premissas transparentes</span>
+            </div>
+          </div>
+
+          <div className="heroPanel">
+            <small>VISÃO DA OPERAÇÃO</small>
+            <b>Da compra ao custo nacionalizado</b>
+            <div className="big">1 visão<span> para decidir melhor</span></div>
+            <div className="mini"><span>Tributos</span><strong>II · IPI · PIS · COFINS · ICMS</strong></div>
+            <div className="mini"><span>Logística</span><strong>Frete · seguro · despesas</strong></div>
+            <div className="mini"><span>Decisão</span><strong>Custo · preço alvo · margem</strong></div>
+          </div>
+        </section>
       </header>
 
-      <section aria-labelledby="hero-title" style={{maxWidth:1120,margin:"0 auto",padding:"86px 24px 68px",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:46,alignItems:"center"}}>
+      <section className="wrap section" id="como-funciona">
+        <div className="sectionHead">
+          <div>
+            <div className="eyebrow dark">SIMPLES NA TELA. FORTE POR TRÁS.</div>
+            <h2>Uma simulação para enxergar a operação inteira.</h2>
+            <p>
+              Você informa os dados da compra. O ImportaFácil organiza a operação,
+              resolve os tributos disponíveis e apresenta o custo de forma legível para decisão.
+            </p>
+          </div>
+        </div>
+        <div className="featuresCommercial">
+          <Feature n="01" t="Informe a operação" d="NCM, origem, quantidade, FOB, câmbio e estado de destino." />
+          <Feature n="02" t="Inclua a logística" d="Frete, seguro, armazenagem e demais despesas da nacionalização." />
+          <Feature n="03" t="Receba o custo" d="Tributos, custo nacionalizado e custo unitário em uma visão única." />
+          <Feature n="04" t="Decida com contexto" d="Preço alvo, margem e alertas aparecem sem esconder premissas importantes." />
+        </div>
+      </section>
+
+      <section className="darkSection">
+        <div className="wrap two">
+          <div>
+            <div className="eyebrow">NÃO É SÓ UMA CALCULADORA</div>
+            <h2>Uma camada de decisão para quem importa.</h2>
+            <p>
+              O ImportaFácil transforma dados dispersos em uma resposta objetiva:
+              quanto custa, onde estão os riscos e qual resultado a operação precisa entregar.
+            </p>
+          </div>
+          <div className="features">
+            <Feature n="01" t="Custo real" d="Mercadoria, logística, tributos e despesas em uma visão única." />
+            <Feature n="02" t="Cenários" d="Compare fornecedores, lotes e premissas antes de decidir." />
+            <Feature n="03" t="Rastreabilidade" d="O resultado mantém as premissas e fontes usadas no pré-estudo." />
+            <Feature n="04" t="Rentabilidade" d="Custo unitário, preço alvo, margem e capital necessário." />
+          </div>
+        </div>
+      </section>
+
+      <section className="wrap section" id="pro">
+        <div className="sectionHead">
+          <div>
+            <div className="eyebrow dark">PLANOS</div>
+            <h2>Comece grátis. Evolua quando fizer sentido.</h2>
+            <p>Use o simulador para validar a ferramenta. O PRO adiciona histórico, comparação e relatórios.</p>
+          </div>
+        </div>
+        <div className="priceGrid">
+          <div className="priceCard">
+            <small>GRÁTIS</small>
+            <h3>Para começar</h3>
+            <b>R$ 0</b>
+            <ul>
+              <li>Simulação tributária</li>
+              <li>Pré-estudo de custo</li>
+              <li>Até 3 simulações salvas</li>
+              <li>Alertas do cálculo</li>
+            </ul>
+            <a className="secondaryBtn" href="/simulacao-v2">Começar grátis</a>
+          </div>
+          <div className="priceCard featured">
+            <div className="tag">BETA CONTROLADO</div>
+            <small>PRO</small>
+            <h3>Para quem importa</h3>
+            <b>R$ 29,90<em>/mês</em></b>
+            <ul>
+              <li>Histórico completo</li>
+              <li>Comparação de cenários</li>
+              <li>Relatórios profissionais</li>
+              <li>Gestão da assinatura</li>
+            </ul>
+            <a className="secondaryBtn" href="/upgrade">Assinar PRO</a>
+          </div>
+          <div className="priceCard">
+            <small>EMPRESA</small>
+            <h3>Para equipes</h3>
+            <b>Em breve</b>
+            <ul>
+              <li>Múltiplos usuários</li>
+              <li>Dashboard corporativo</li>
+              <li>Controles por empresa</li>
+              <li>Fluxos compartilhados</li>
+            </ul>
+            <span className="secondaryBtn disabledCta">Em desenvolvimento</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="wrap salesClosing">
         <div>
-          <div style={eyebrow}>BETA CONTROLADO · 27 UFs ATIVAS</div>
-          <h1 id="hero-title" style={{fontSize:"clamp(40px,6vw,72px)",lineHeight:1.02,letterSpacing:"-0.04em",margin:"18px 0 24px",maxWidth:760}}>
-            Antes de importar, descubra se a conta fecha.
-          </h1>
-          <p style={{fontSize:20,lineHeight:1.6,color:"#5d5d57",maxWidth:700}}>
-            Um único fluxo para tributos federais, ICMS estadual, custo nacionalizado, alertas jurídicos e memória auditável da simulação.
-          </p>
-          <div style={{display:"flex",gap:12,flexWrap:"wrap",marginTop:32}}>
-            <a href="/simulacao-v2" style={primary}>Abrir Simulation V2</a>
-            <a href="/auth" style={secondary}>Criar conta</a>
-          </div>
-          <p style={{fontSize:13,color:"#777",marginTop:18,lineHeight:1.5}}>
-            Nas UFs em escopo <b>general_rate_only</b>, o produto aplica a regra geral homologada e mantém benefícios, ST, reduções e regimes especiais fora do cálculo automático.
-          </p>
+          <div className="eyebrow dark">PRONTO PARA SIMULAR?</div>
+          <h2>Descubra o custo antes de fazer o pedido.</h2>
+          <p>Leva poucos minutos para montar um pré-estudo e enxergar a operação com muito mais clareza.</p>
         </div>
-        <div style={{background:"#111",color:"#fff",borderRadius:24,padding:34,minHeight:340,display:"grid",alignContent:"space-between",boxShadow:"0 25px 70px rgba(0,0,0,.14)"}}>
-          <div>
-            <div style={{fontSize:12,letterSpacing:1.4,color:"#aaa"}}>FLUXO CANÔNICO</div>
-            <h2 style={{fontSize:34,lineHeight:1.15,margin:"12px 0 20px"}}>Simulation V2</h2>
-            <p style={{color:"#c6c6c1",lineHeight:1.6}}>A experiência principal do ImportaFácil agora concentra entrada, cálculo, alertas e resultado em uma única superfície.</p>
-          </div>
-          <div style={{display:"grid",gap:10}}>
-            {["NCM e fontes federais oficiais","ICMS nas 27 UFs homologadas","Defesa comercial e alertas fail-closed","Histórico, comparação e relatórios"].map((item,index)=>
-              <div key={item} style={{display:"flex",gap:12,padding:"12px 0",borderTop:"1px solid #333"}}>
-                <b style={{color:"#888"}}>{String(index+1).padStart(2,"0")}</b><span>{item}</span>
-              </div>
-            )}
-          </div>
-        </div>
+        <a className="primaryBtn" href="/simulacao-v2">Fazer uma simulação</a>
       </section>
 
-      <section style={{background:"#fff",borderTop:"1px solid #e4e4de",borderBottom:"1px solid #e4e4de"}}>
-        <div style={{maxWidth:1120,margin:"0 auto",padding:"64px 24px"}}>
-          <div style={eyebrow}>UM PRODUTO, UM FLUXO</div>
-          <h2 style={{fontSize:38,margin:"12px 0 32px"}}>Do pré-estudo à decisão.</h2>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:16}}>
-            {[
-              ["01","Informe a operação","Destino, NCM, origem, quantidade, valores e premissas da importação."],
-              ["02","O motor resolve","Fontes federais, ICMS, defesa comercial e escopo jurídico são avaliados sem atalhos silenciosos."],
-              ["03","Leia o status","Calculado, alerta, requer informação, bloqueado ou não suportado: o sistema explicita o que sabe."],
-              ["04","Guarde a memória","Usuários autenticados podem salvar, comparar e gerar relatórios a partir do snapshot calculado."]
-            ].map(([n,title,body])=><article key={n} style={card}><small style={{color:"#888",fontWeight:800}}>{n}</small><h3 style={{fontSize:21,margin:"12px 0"}}>{title}</h3><p style={{color:"#666",lineHeight:1.55,margin:0}}>{body}</p></article>)}
-          </div>
-        </div>
-      </section>
-
-      <section id="pro" style={{maxWidth:1120,margin:"0 auto",padding:"72px 24px"}}>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:24,alignItems:"center"}}>
-          <div>
-            <div style={eyebrow}>IMPORTAFÁCIL PRO</div>
-            <h2 style={{fontSize:42,margin:"12px 0 18px"}}>R$ 29,90 <span style={{fontSize:18,color:"#777",fontWeight:400}}>/ mês</span></h2>
-            <p style={{color:"#666",lineHeight:1.6,fontSize:18}}>Histórico completo, comparação de cenários, relatórios profissionais e recursos avançados para quem importa com frequência.</p>
-          </div>
-          <div style={{display:"grid",gap:12}}>
-            <a href="/upgrade" style={primary}>Assinar PRO</a>
-            <a href="/dashboard" style={secondary}>Abrir meu painel</a>
-          </div>
-        </div>
-      </section>
-      <footer style={{borderTop:"1px solid #e4e4de",padding:"26px 24px",background:"#fff"}}>
-        <div style={{maxWidth:1120,margin:"0 auto",display:"flex",justifyContent:"space-between",gap:18,flexWrap:"wrap",fontSize:13,color:"#666"}}>
-          <span>ImportaFácil · beta controlado</span>
-          <span><a href="/privacidade" style={navLink}>Privacidade</a> · <a href="/termos" style={navLink}>Termos de uso</a></span>
+      <footer>
+        <div className="wrap">
+          <b>ImportaFácil</b>
+          <span>Beta controlado · <a href="/privacidade">Privacidade</a> · <a href="/termos">Termos de uso</a></span>
         </div>
       </footer>
     </main>
   );
 }
 
-const navLink: CSSProperties={color:"#333",textDecoration:"none",fontSize:14};
-const eyebrow: CSSProperties={fontSize:12,fontWeight:900,letterSpacing:1.2,color:"#666"};
-const primary: CSSProperties={display:"inline-block",padding:"14px 19px",borderRadius:11,background:"#111",color:"#fff",textDecoration:"none",fontWeight:800,textAlign:"center"};
-const secondary: CSSProperties={display:"inline-block",padding:"13px 19px",borderRadius:11,border:"1px solid #111",color:"#111",textDecoration:"none",fontWeight:800,textAlign:"center"};
-const card: CSSProperties={background:"#f8f8f5",border:"1px solid #e5e5df",borderRadius:18,padding:24};
+function Feature({n,t,d}:{n:string;t:string;d:string}) {
+  return <div className="feature"><span>{n}</span><div><b>{t}</b><p>{d}</p></div></div>;
+}
