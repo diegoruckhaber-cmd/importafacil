@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { calculate, SimulationInput } from "../../../lib/calculator";
 
-const supabaseUrl = "https://fagjbhhmbpdsmoyjcood.supabase.co";
-const supabasePublishableKey = "sb_publishable_9akcQKdMBZYFvwCbNvnW-A_n0rYOudi";
-
 function clientForToken(accessToken: string) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabasePublishableKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabasePublishableKey) return null;
   return createClient(supabaseUrl, supabasePublishableKey, {
     global: { headers: { Authorization: `Bearer ${accessToken}` } },
     auth: { autoRefreshToken: false, persistSession: false },
@@ -17,13 +19,14 @@ async function authenticatedClient(req: Request) {
   const accessToken = authorization?.replace(/^Bearer\s+/i, "").trim();
   if (!accessToken) return { error: NextResponse.json({ error: "Faça login para salvar a simulação." }, { status: 401 }) };
   const supabase = clientForToken(accessToken);
+  if (!supabase) return { error: NextResponse.json({ error: "Autenticação do ambiente não está configurada." }, { status: 503 }) };
   const { data: userData, error: userError } = await supabase.auth.getUser(accessToken);
   if (userError || !userData.user) return { error: NextResponse.json({ error: "Sessão expirada. Faça login novamente." }, { status: 401 }) };
   return { supabase, user: userData.user };
 }
 
 type Authenticated = {
-  supabase: ReturnType<typeof clientForToken>;
+  supabase: NonNullable<ReturnType<typeof clientForToken>>;
   user: { id: string };
 };
 
