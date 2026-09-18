@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 export default function HomePage() {
   return (
     <main style={{minHeight:"100vh",background:"#f7f7f4",color:"#111"}}>
@@ -78,8 +80,8 @@ export default function HomePage() {
   );
 }
 
-const navLink: React.CSSProperties={color:"#333",textDecoration:"none",fontSize:14};
-const eyebrow: React.CSSProperties={fontSize:12,fontWeight:900,letterSpacing:1.2,color:"#666"};
-const primary: React.CSSProperties={display:"inline-block",padding:"14px 19px",borderRadius:11,background:"#111",color:"#fff",textDecoration:"none",fontWeight:800,textAlign:"center"};
-const secondary: React.CSSProperties={display:"inline-block",padding:"13px 19px",borderRadius:11,border:"1px solid #111",color:"#111",textDecoration:"none",fontWeight:800,textAlign:"center"};
-const card: React.CSSProperties={background:"#f8f8f5",border:"1px solid #e5e5df",borderRadius:18,padding:24};
+const navLink: CSSProperties={color:"#333",textDecoration:"none",fontSize:14};
+const eyebrow: CSSProperties={fontSize:12,fontWeight:900,letterSpacing:1.2,color:"#666"};
+const primary: CSSProperties={display:"inline-block",padding:"14px 19px",borderRadius:11,background:"#111",color:"#fff",textDecoration:"none",fontWeight:800,textAlign:"center"};
+const secondary: CSSProperties={display:"inline-block",padding:"13px 19px",borderRadius:11,border:"1px solid #111",color:"#111",textDecoration:"none",fontWeight:800,textAlign:"center"};
+const card: CSSProperties={background:"#f8f8f5",border:"1px solid #e5e5df",borderRadius:18,padding:24};
