@@ -11,6 +11,7 @@ import {
   supabaseElevatedKeyFromEnv,
   supabaseElevatedKeyKind,
 } from "../../../../lib/supabase-admin";
+import { buildOperationalEvent, emitOperationalEvent } from "../../../../lib/operational-observability";
 
 export const runtime = "nodejs";
 
@@ -160,12 +161,20 @@ async function subscriptionForEvent(eventType: string, object: any) {
 }
 
 export async function POST(req: Request) {
+  const startedAtMs = Date.now();
+  let eventType = "";
+  const emit = (outcome: "success" | "rejected" | "failed" | "ignored" | "duplicate", reasonCode?: string) =>
+    emitOperationalEvent(buildOperationalEvent({ event: "billing.webhook", outcome, reasonCode, eventType: eventType || undefined, startedAtMs }));
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (!webhookSecret) return NextResponse.json({ error: "Webhook is not configured." }, { status: 503 });
+  if (!webhookSecret) {
+    emit("failed", "webhook_environment_missing");
+    return NextResponse.json({ error: "Webhook is not configured." }, { status: 503 });
+  }
 
   const payload = await req.text();
   const signature = req.headers.get("stripe-signature") || "";
   if (!verifyStripeWebhookSignature(payload, signature, webhookSecret)) {
+    emit("rejected", "invalid_signature");
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
@@ -173,16 +182,21 @@ export async function POST(req: Request) {
   try {
     const event = JSON.parse(payload);
     eventId = typeof event?.id === "string" && event.id.startsWith("evt_") ? event.id : "";
-    const eventType = typeof event?.type === "string" ? event.type : "";
-    if (!eventId || !eventType) return NextResponse.json({ error: "Malformed Stripe event." }, { status: 400 });
+    eventType = typeof event?.type === "string" ? event.type : "";
+    if (!eventId || !eventType) {
+      emit("rejected", "malformed_event");
+      return NextResponse.json({ error: "Malformed Stripe event." }, { status: 400 });
+    }
 
     const registeredStatus = await registerDelivery(eventId, eventType);
     if (registeredStatus === "processed" || registeredStatus === "ignored") {
+      emit("duplicate");
       return NextResponse.json({ received: true, processed: registeredStatus === "processed", duplicate: true });
     }
 
     if (!RELEVANT_EVENTS.has(eventType)) {
       await markDelivery(eventId, "ignored");
+      emit("ignored", "event_not_relevant");
       return NextResponse.json({ received: true, processed: false });
     }
 
@@ -190,17 +204,20 @@ export async function POST(req: Request) {
     const subscription = await subscriptionForEvent(eventType, object);
     if (!subscription) {
       await markDelivery(eventId, "ignored");
+      emit("ignored", "subscription_not_resolved");
       return NextResponse.json({ received: true, processed: false });
     }
 
     const userId = stripeUserIdFromObject(subscription) || stripeUserIdFromObject(object);
     if (!userId) {
       await markDelivery(eventId, "ignored");
+      emit("ignored", "user_mapping_missing");
       return NextResponse.json({ received: true, processed: false });
     }
 
     await updateSubscriptionEntitlement(userId, subscription);
     await markDelivery(eventId, "processed");
+    emit("success");
     return NextResponse.json({ received: true, processed: true });
   } catch (error) {
     if (eventId) {
@@ -208,7 +225,7 @@ export async function POST(req: Request) {
         console.error("Stripe webhook audit failure", auditError instanceof Error ? auditError.message : "unknown error");
       }
     }
-    console.error("Stripe webhook processing failed", error instanceof Error ? error.message : "unknown error");
+    emit("failed", "processing_failed");
     return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
   }
 }
