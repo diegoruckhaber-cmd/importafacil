@@ -5,7 +5,8 @@ export type OperationalEvent = {
     | "billing.checkout"
     | "billing.portal"
     | "billing.webhook"
-    | "simulation.snapshot";
+    | "simulation.snapshot"
+    | "beta.feedback";
   outcome: "success" | "rejected" | "failed" | "ignored" | "duplicate";
   durationMs: number;
   reasonCode?: string;
