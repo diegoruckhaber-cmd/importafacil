@@ -1,0 +1,99 @@
+name: Audit official federal fiscal sources
+
+on:
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+
+# Read-only source monitoring. This workflow may generate candidates and diffs,
+# but it cannot publish fiscal rules or push to the repository.
+permissions:
+  contents: read
+
+jobs:
+  audit-official-federal-sources:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout published fiscal knowledge
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install parser dependency
+        run: python -m pip install --disable-pip-version-check openpyxl
+
+      - name: Download active official MDIC and RFB workbooks
+        run: |
+          mkdir -p /tmp/federal-audit
+          curl --fail --location --retry 4 --retry-delay 3 \
+            'https://www.gov.br/mdic/pt-br/assuntos/camex/estrategia-comercial/arquivos-listas/08-09-2026-anexos-i-a-x-resolucao-gecex-272-21.xlsx' \
+            --output /tmp/federal-audit/mdic.xlsx
+          curl --fail --location --retry 4 --retry-delay 3 \
+            'https://www.gov.br/receitafederal/pt-br/acesso-a-informacao/legislacao/documentos-e-arquivos/tipi.xlsx/@@download/file' \
+            --output /tmp/federal-audit/tipi.xlsx
+          test -s /tmp/federal-audit/mdic.xlsx
+          test -s /tmp/federal-audit/tipi.xlsx
+
+      - name: Inspect workbook structure
+        run: |
+          python scripts/inspect-federal-tariff-workbook.py /tmp/federal-audit/mdic.xlsx
+          python scripts/inspect-federal-tariff-workbook.py /tmp/federal-audit/tipi.xlsx
+
+      - name: Generate review-only candidate
+        run: |
+          python scripts/ingest-official-fiscal-data.py \
+            --mdic /tmp/federal-audit/mdic.xlsx \
+            --tipi /tmp/federal-audit/tipi.xlsx \
+            --output /tmp/federal-audit/official-snapshot-candidate.json \
+            --mdic-published 2026-09-08 \
+            --tipi-updated 2026-02-13
+
+      - name: Compare candidate with published snapshot
+        run: |
+          python - <<'PY' | tee /tmp/federal-audit/audit-summary.txt
+          import hashlib, json
+          from pathlib import Path
+
+          published = Path("data/federal/official-snapshot-2026-09-08.json")
+          candidate = Path("/tmp/federal-audit/official-snapshot-candidate.json")
+          p = json.loads(published.read_text(encoding="utf-8"))
+          c = json.loads(candidate.read_text(encoding="utf-8"))
+
+          assert c["schemaVersion"] == p["schemaVersion"] == 4
+          assert c["sources"]["mdic"]["baseAppliedCount"] > 8000
+          assert c["sources"]["rfbTipi"]["recordCount"] > 8000
+
+          def semantic_records(doc):
+              return doc.get("records", [])
+
+          same = semantic_records(p) == semantic_records(c)
+          print("published_records=", len(semantic_records(p)))
+          print("candidate_records=", len(semantic_records(c)))
+          print("semantic_equal=", str(same).lower())
+          print("published_sha256=", hashlib.sha256(published.read_bytes()).hexdigest())
+          print("candidate_sha256=", hashlib.sha256(candidate.read_bytes()).hexdigest())
+          if not same:
+              print("candidate_change_detected=true")
+              print("action=human_review_required_before_any_publication")
+          else:
+              print("candidate_change_detected=false")
+          PY
+
+      - name: Verify publication workflow remains review-gated
+        run: |
+          ! grep -R --line-number -E 'git[[:space:]]+push|contents:[[:space:]]*write' \
+            .github/workflows/audit-official-federal-sources.yml
+          grep -q 'Coleta automática não é publicação automática' docs/legislative-update-runbook.md
+
+      - name: Upload audit evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: federal-official-source-audit
+          path: |
+            /tmp/federal-audit/official-snapshot-candidate.json
+            /tmp/federal-audit/audit-summary.txt
+          if-no-files-found: error
+          retention-days: 14
