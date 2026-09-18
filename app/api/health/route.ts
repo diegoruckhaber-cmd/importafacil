@@ -12,6 +12,7 @@ export async function GET() {
     simulationEngine: "unified-multi-item-v1",
     federalEngine: "authoritative-federal-v2",
     federalSnapshot: "official-snapshot-2026-09-08",
+    observabilityContract: "importafacil-operational-observability-v1",
     stateScope: activeStateScope.length === 27 ? "national_27_uf" : "restricted",
     activeStateCount: activeStateScope.length,
     activeStateScope,
