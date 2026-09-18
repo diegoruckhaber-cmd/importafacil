@@ -3,7 +3,7 @@ import {
   savedSimulationStatus,
   savedSimulationTotal,
   type SavedSimulationRecord,
-} from "./simulation-record";
+} from "./simulation-record.ts";
 
 export type DashboardStatusFilter =
   | "all"
