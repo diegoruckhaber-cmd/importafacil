@@ -51,6 +51,7 @@ export async function POST(req: Request) {
     }
 
     const origin = new URL(req.url).origin;
+    const email = user.email || "";
     const params = new URLSearchParams();
     params.set("mode", "subscription");
     params.set("line_items[0][price]", priceId);
@@ -61,7 +62,7 @@ export async function POST(req: Request) {
         ? profile.stripe_customer_id
         : "";
     if (existingCustomerId) params.set("customer", existingCustomerId);
-    else params.set("customer_email", user.email || "");
+    else params.set("customer_email", email);
 
     params.set("client_reference_id", user.id);
     params.set("subscription_data[metadata][user_id]", user.id);
