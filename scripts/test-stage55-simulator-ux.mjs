@@ -10,8 +10,8 @@ assert.match(page, /destinationUf/);
 assert.match(page, /BRAZILIAN_UFS\.map/);
 assert.match(page, /data-state-scope/);
 assert.match(page, /general_rate_only/);
-assert.match(page, /motor estadual completo/);
-assert.match(page, /Benefícios, reduções, isenções, ST, diferimentos, antecipações e regimes especiais/);
+assert.match(page, /regras estaduais específicas disponíveis/);
+assert.match(page, /Benefícios e regimes especiais não são presumidos automaticamente/);
 
 assert.match(page, /NCM com exatamente 8 dígitos/);
 assert.match(page, /informe o país de origem/);
@@ -32,6 +32,9 @@ assert.match(page, /ttd: isSC \? item\.ttd : "none"/);
 assert.match(page, /row\.state\?\.icmsGeneralRate/);
 assert.match(page, /fetch\("\/api\/simulation-v2"/);
 assert.doesNotMatch(page, /label="ICMS normal %"/);
+assert.match(page, /Opções avançadas e tratamentos específicos/);
+assert.match(page, /Calcular importação/);
+assert.doesNotMatch(page, /Calcular Simulation V2/);
 
 const engine = fs.readFileSync("lib/unified-import-simulation.ts", "utf8");
 assert.match(engine, /generalStateRule!\.ratePercent/);
