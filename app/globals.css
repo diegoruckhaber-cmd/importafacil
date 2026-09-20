@@ -23,3 +23,8 @@ footer a{color:inherit}
 
 @media(max-width:980px){.featuresCommercial{grid-template-columns:1fr 1fr}.simulatorHeroInner{grid-template-columns:1fr}.simulatorHeroCard{max-width:620px}.simulatorWorkspace .fields.four{grid-template-columns:1fr 1fr}}
 @media(max-width:640px){.marketingNav a:not(.navCta){display:none}.simulatorNavLinks a:first-child{display:none}.featuresCommercial{grid-template-columns:1fr}.salesClosing{align-items:flex-start;flex-direction:column}.simulatorHeroInner{padding-top:38px;padding-bottom:42px}.simulatorHero h1{font-size:38px}.simulatorWorkspace{padding-top:18px}.simulatorWorkspace .fields.four{grid-template-columns:1fr}.simulatorWorkspace>.card{padding:18px}.betaBar{justify-content:flex-start;padding-left:16px;padding-right:16px}}
+
+/* Stage 66 — guided simulator onboarding */
+.simulatorGuide{margin:0 0 18px;padding:18px 20px;border:1px solid #dbe5ff;border-radius:16px;background:linear-gradient(135deg,#f8faff 0%,#fff 100%);display:grid;grid-template-columns:minmax(220px,.8fr) minmax(320px,1.2fr);gap:18px 28px;align-items:start}
+.simulatorGuide b{display:block;margin-top:6px;font-size:18px;letter-spacing:-.01em}.simulatorGuide ol{margin:0;padding-left:20px;color:#475467;font-size:13px;line-height:1.65}.simulatorGuide p{grid-column:1/-1;margin:0;padding-top:12px;border-top:1px solid #e6ecff;color:#667085;font-size:12px;line-height:1.55}.fieldHint{display:block;margin-top:5px;color:#7b8494;font-size:10px;font-weight:500;line-height:1.4;text-transform:none}.simulatorWorkspace .fields label:has(.fieldHint){align-self:start}
+@media(max-width:760px){.simulatorGuide{grid-template-columns:1fr}.simulatorGuide p{grid-column:auto}}
