@@ -3,7 +3,7 @@ import fs from "node:fs";
 
 const home = fs.readFileSync("app/page.tsx", "utf8");
 assert.match(home, /href="\/simulacao-v2"/);
-assert.match(home, /Abrir Simulation V2/);
+assert.match(home, /Simular gratuitamente/);
 assert.match(home, /href="\/upgrade"/);
 assert.match(home, /BETA CONTROLADO/);
 assert.doesNotMatch(home, /Quero ser avisado/);
