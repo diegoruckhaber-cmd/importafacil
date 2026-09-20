@@ -28,3 +28,8 @@ The Stage 64 migration was applied to the production Supabase project. Live insp
 - delete policy uses `auth.uid() = user_id`.
 
 No fiscal rule, billing logic or release scope changes in this stage.
+
+
+## Preview gate
+
+The branch remains merge-gated on a fresh READY preview. If the deployment provider temporarily refuses a build because of an account-level rate limit, the preview is reissued after the external window clears; the merge is not performed against a failed/missing preview.
