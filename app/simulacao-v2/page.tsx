@@ -5,6 +5,7 @@ import { useMemo, useRef, useState } from "react";
 import DefenseCommercialExporterSelector from "../components/DefenseCommercialExporterSelector";
 import { supabase } from "../../lib/supabase";
 import { BRAZILIAN_UFS } from "../../lib/state-jurisdiction-registry";
+import { SIMULATOR_FIELD_GUIDANCE as HELP } from "../../lib/simulator-field-guidance";
 
 type TTD = "409" | "410" | "77" | "none";
 type Destination = "commercial_resale" | "industrialization";
@@ -305,6 +306,19 @@ export default function SimulationV2Page() {
 
       <div className="wrap simulatorWorkspace">
 
+      <aside className="simulatorGuide" aria-label="Como preencher a simulação">
+        <div>
+          <div className="eyebrow dark">COMO PREENCHER</div>
+          <b>Comece pelos dados comerciais que você já conhece.</b>
+        </div>
+        <ol>
+          <li><strong>Operação:</strong> destino, câmbio e despesas gerais.</li>
+          <li><strong>Mercadorias:</strong> NCM, origem, quantidade, FOB e peso.</li>
+          <li><strong>Tratamentos específicos:</strong> abra as opções avançadas apenas quando se aplicarem.</li>
+        </ol>
+        <p>Se você não souber um dado, evite estimar no escuro. O simulador informa o que precisa ser validado antes de concluir.</p>
+      </aside>
+
       {validationIssues.length > 0 && (
         <div role="alert" style={{ ...statusStyle.requires_input, border: `1px solid ${statusStyle.requires_input.border}`, borderRadius: 14, padding: 16, marginBottom: 18 }}>
           <b>Revise os dados antes de calcular</b>
@@ -327,7 +341,7 @@ export default function SimulationV2Page() {
         <div className="fields four">
           <Field label="Nome do pré-estudo"><input value={name} onChange={(e) => { setName(e.target.value); invalidate(); }} /></Field>
           <Field label="Data"><input type="date" value={date} onChange={(e) => { setDate(e.target.value); invalidate(); }} /></Field>
-          <Field label="UF de destino">
+          <Field label="UF de destino" hint={HELP.destinationUf}>
             <select
               aria-label="UF de destino"
               value={destinationUf}
@@ -341,12 +355,12 @@ export default function SimulationV2Page() {
               {BRAZILIAN_UFS.map((uf) => <option key={uf} value={uf}>{uf} — {UF_NAMES[uf]}</option>)}
             </select>
           </Field>
-          <Num label="Câmbio R$/US$" value={exchange} set={setExchange} invalidate={invalidate} />
-          <Num label="Frete internacional US$" value={freight} set={setFreight} invalidate={invalidate} />
-          <Num label="Seguro internacional US$" value={insurance} set={setInsurance} invalidate={invalidate} />
-          <Num label="Armazenagem R$" value={storage} set={setStorage} invalidate={invalidate} />
+          <Num label="Câmbio R$/US$" hint={HELP.exchange} value={exchange} set={setExchange} invalidate={invalidate} />
+          <Num label="Frete internacional US$" hint={HELP.freight} value={freight} set={setFreight} invalidate={invalidate} />
+          <Num label="Seguro internacional US$" hint={HELP.insurance} value={insurance} set={setInsurance} invalidate={invalidate} />
+          <Num label="Armazenagem R$" hint={HELP.storage} value={storage} set={setStorage} invalidate={invalidate} />
           <Num label="Outras despesas R$" value={otherBrl} set={setOtherBrl} invalidate={invalidate} />
-          <Field label="Margem alvo padrão %">
+          <Field label="Margem alvo padrão %" hint={HELP.margin}>
             <input
               type="number"
               min="0"
@@ -360,7 +374,7 @@ export default function SimulationV2Page() {
               }}
             />
           </Field>
-          <Field label="Modal">
+          <Field label="Modal" hint={HELP.transportMode}>
             <select value={transportMode} onChange={(e) => { setTransportMode(e.target.value); invalidate(); }}>
               <option value="maritime_long_course">Marítimo — longo curso</option>
               <option value="cabotage">Cabotagem</option>
@@ -370,7 +384,7 @@ export default function SimulationV2Page() {
               <option value="not_informed">Não informado</option>
             </select>
           </Field>
-          <Field label="Declaração">
+          <Field label="Declaração" hint={HELP.declaration}>
             <select value={declarationType} onChange={(e) => { setDeclarationType(e.target.value); invalidate(); }}>
               <option value="di">DI</option>
               <option value="duimp">DUIMP</option>
@@ -426,15 +440,15 @@ export default function SimulationV2Page() {
 
               <div className="fields four" style={{ marginTop: 14 }}>
                 <Text label="Descrição" value={item.name} set={(value) => update(item.id, "name", value)} />
-                <Text label="NCM (8 dígitos)" value={item.ncm} set={(value) => update(item.id, "ncm", value.replace(/\D/g, "").slice(0, 8))} />
-                <Text label="País de origem" value={item.origin} set={(value) => update(item.id, "origin", value)} />
+                <Text label="NCM (8 dígitos)" hint={HELP.ncm} value={item.ncm} set={(value) => update(item.id, "ncm", value.replace(/\D/g, "").slice(0, 8))} />
+                <Text label="País de origem" hint={HELP.origin} value={item.origin} set={(value) => update(item.id, "origin", value)} />
                 <ItemNum label="Quantidade" value={item.quantity} set={(value) => update(item.id, "quantity", value)} />
-                <ItemNum label="FOB unitário US$" value={item.fobUnit} set={(value) => update(item.id, "fobUnit", value)} />
-                <ItemNum label="Peso líquido kg" value={item.weightKg} set={(value) => update(item.id, "weightKg", value)} />
+                <ItemNum label="FOB unitário US$" hint={HELP.fobUnit} value={item.fobUnit} set={(value) => update(item.id, "fobUnit", value)} />
+                <ItemNum label="Peso líquido kg" hint={HELP.weight} value={item.weightKg} set={(value) => update(item.id, "weightKg", value)} />
                 <ItemNum label="Volume m³" value={item.volumeM3} set={(value) => update(item.id, "volumeM3", value)} />
                 {isSC && <ItemNum label="Alíquota ICMS normal SC %" value={item.icms} set={(value) => update(item.id, "icms", value)} />}
                 <ItemNum label="Margem alvo %" value={item.targetMarginPercent} set={(value) => update(item.id, "targetMarginPercent", value)} />
-                <Field label="Destinação">
+                <Field label="Destinação" hint={HELP.destination}>
                   <select value={item.destination} onChange={(e) => update(item.id, "destination", e.target.value as Destination)}>
                     <option value="commercial_resale">Revenda/comercialização</option>
                     <option value="industrialization">Industrialização</option>
@@ -598,20 +612,20 @@ export default function SimulationV2Page() {
   );
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
-  return <label>{label}{children}</label>;
+function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+  return <label>{label}{children}{hint && <small className="fieldHint">{hint}</small>}</label>;
 }
 
-function Num({ label, value, set, invalidate }: { label: string; value: number; set: (value: number) => void; invalidate: () => void }) {
-  return <Field label={label}><input type="number" min="0" step="any" value={value} onChange={(e) => { set(Number(e.target.value)); invalidate(); }} /></Field>;
+function Num({ label, hint, value, set, invalidate }: { label: string; hint?: string; value: number; set: (value: number) => void; invalidate: () => void }) {
+  return <Field label={label} hint={hint}><input type="number" min="0" step="any" value={value} onChange={(e) => { set(Number(e.target.value)); invalidate(); }} /></Field>;
 }
 
-function Text({ label, value, set }: { label: string; value: string; set: (value: string) => void }) {
-  return <Field label={label}><input value={value} onChange={(e) => set(e.target.value)} /></Field>;
+function Text({ label, hint, value, set }: { label: string; hint?: string; value: string; set: (value: string) => void }) {
+  return <Field label={label} hint={hint}><input value={value} onChange={(e) => set(e.target.value)} /></Field>;
 }
 
-function ItemNum({ label, value, set }: { label: string; value: number; set: (value: number) => void }) {
-  return <Field label={label}><input type="number" min="0" step="any" value={value} onChange={(e) => set(Number(e.target.value))} /></Field>;
+function ItemNum({ label, hint, value, set }: { label: string; hint?: string; value: number; set: (value: number) => void }) {
+  return <Field label={label} hint={hint}><input type="number" min="0" step="any" value={value} onChange={(e) => set(Number(e.target.value))} /></Field>;
 }
 
 function Check({ label, checked, set }: { label: string; checked: boolean; set: (value: boolean) => void }) {

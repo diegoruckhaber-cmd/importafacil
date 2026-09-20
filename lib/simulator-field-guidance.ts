@@ -1,0 +1,15 @@
+export const SIMULATOR_FIELD_GUIDANCE = {
+  destinationUf: "Estado brasileiro em que a mercadoria será nacionalizada para este pré-estudo.",
+  exchange: "Taxa de câmbio em reais por dólar usada para converter os valores em US$.",
+  freight: "Frete internacional total da operação, em dólares.",
+  insurance: "Seguro internacional total. Se não houver seguro contratado, use zero.",
+  storage: "Estimativa de armazenagem e despesas do terminal no Brasil, em reais.",
+  margin: "Margem comercial desejada sobre a receita estimada. Não representa tributo.",
+  transportMode: "Modal principal utilizado na chegada da carga ao Brasil.",
+  declaration: "Use DUIMP quando esse for o fluxo aduaneiro previsto; caso contrário, mantenha DI.",
+  ncm: "Código NCM brasileiro com 8 dígitos. A classificação correta é essencial para os tributos.",
+  origin: "País de origem da mercadoria, não apenas o país de embarque.",
+  fobUnit: "Valor unitário da mercadoria no Incoterm FOB, em dólares.",
+  weight: "Peso líquido do item. É usado no rateio do frete internacional entre os produtos.",
+  destination: "Informe se a mercadoria será revendida ou utilizada em industrialização.",
+} as const;
