@@ -27,14 +27,17 @@ jobs:
         run: python -m pip install --disable-pip-version-check requests beautifulsoup4
 
       - name: Collect candidate from official MDIC sources
-        run: python scripts/sync-mdic-defesa-comercial.py
+        run: |
+          set -o pipefail
+          mkdir -p /tmp/mdic-audit
+          python scripts/sync-mdic-defesa-comercial.py --output /tmp/mdic-audit/candidate.json | tee /tmp/mdic-audit/collection-report.json
 
       - name: Validate candidate catalog
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
-          p = Path('data/defesa-comercial-mdic.json')
+          p = Path('/tmp/mdic-audit/candidate.json')
           data = json.loads(p.read_text(encoding='utf-8'))
           assert len(data) >= 40, f'Expected at least 40 measures, got {len(data)}'
           assert all(item.get('ncm') and item.get('origins') and item.get('sourceUrl') for item in data)
@@ -73,7 +76,9 @@ jobs:
           PY
 
       - name: Run defense commercial resolver tests
-        run: npx --yes tsx scripts/test-defesa-comercial-resolver.mjs
+        run: |
+          cp /tmp/mdic-audit/candidate.json data/defesa-comercial-mdic.json
+          npx --yes tsx scripts/test-defesa-comercial-resolver.mjs
 
       - name: Summarize candidate diff for human review
         run: |
@@ -86,9 +91,12 @@ jobs:
           fi
 
       - name: Upload candidate for review
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: mdic-defense-commercial-candidate
-          path: data/defesa-comercial-mdic.json
+          path: |
+            /tmp/mdic-audit/candidate.json
+            /tmp/mdic-audit/collection-report.json
           if-no-files-found: error
           retention-days: 14

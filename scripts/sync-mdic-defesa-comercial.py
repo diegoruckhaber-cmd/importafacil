@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import json
 import re
 import time
@@ -15,7 +16,7 @@ HEADERS = {"User-Agent": "ImportaFacil/1.0 (official MDIC catalog synchronizer)"
 
 UNIT_PATTERNS = [
     ("USD_PER_THOUSAND_UNITS", re.compile(r"(?:US\$|USD)\s*([\d.,]+)\s*/\s*(?:mil\s*unidades|milheiro|milheiros)", re.I)),
-    ("USD_PER_KG", re.compile(r"(?:US\$|USD)\s*([\d.,]+)\s*/\s*kg", re.I)),
+    ("USD_PER_KG", re.compile(r"(?:US\$|USD)\s*([\d.,]+)\s*/\s*(?:kg|quilogramas?)", re.I)),
     ("USD_PER_TON", re.compile(r"(?:US\$|USD)\s*([\d.,]+)\s*/\s*(?:t|ton|tonelada|toneladas)", re.I)),
     ("USD_PER_PAIR", re.compile(r"(?:US\$|USD)\s*([\d.,]+)\s*/\s*par", re.I)),
     ("USD_PER_UNIT", re.compile(r"(?:US\$|USD)\s*([\d.,]+)\s*/\s*(?:unidade|unidades|un)", re.I)),
@@ -24,17 +25,17 @@ UNIT_PATTERNS = [
 ]
 
 SUFFIX_UNIT_PATTERNS = [
-    ("USD_PER_THOUSAND_UNITS", re.compile(r"([\d.,]+)\s*(?:US\$|USD)\s*/\s*(?:mil\s*unidades|milheiro|milheiros)", re.I)),
-    ("USD_PER_KG", re.compile(r"([\d.,]+)\s*(?:US\$|USD)\s*/\s*kg", re.I)),
-    ("USD_PER_TON", re.compile(r"([\d.,]+)\s*(?:US\$|USD)\s*/\s*(?:t|ton|tonelada|toneladas)", re.I)),
-    ("USD_PER_PAIR", re.compile(r"([\d.,]+)\s*(?:US\$|USD)\s*/\s*par", re.I)),
-    ("USD_PER_UNIT", re.compile(r"([\d.,]+)\s*(?:US\$|USD)\s*/\s*(?:unidade|unidades|un)", re.I)),
-    ("USD_PER_SQUARE_METER", re.compile(r"([\d.,]+)\s*(?:US\$|USD)\s*/\s*m(?:²|2|etros?\s*quadrados?)", re.I)),
+    ("USD_PER_THOUSAND_UNITS", re.compile(r"([\d.,]+)\s*(?:\(\s*em\s*)?(?:US\$|USD)\s*/\s*(?:mil\s*unidades|milheiro|milheiros)", re.I)),
+    ("USD_PER_KG", re.compile(r"([\d.,]+)\s*(?:\(\s*em\s*)?(?:US\$|USD)\s*/\s*(?:kg|quilogramas?)", re.I)),
+    ("USD_PER_TON", re.compile(r"([\d.,]+)\s*(?:\(\s*em\s*)?(?:US\$|USD)\s*/\s*(?:t|ton|tonelada|toneladas)", re.I)),
+    ("USD_PER_PAIR", re.compile(r"([\d.,]+)\s*(?:\(\s*em\s*)?(?:US\$|USD)\s*/\s*par", re.I)),
+    ("USD_PER_UNIT", re.compile(r"([\d.,]+)\s*(?:\(\s*em\s*)?(?:US\$|USD)\s*/\s*(?:unidade|unidades|un)", re.I)),
+    ("USD_PER_SQUARE_METER", re.compile(r"([\d.,]+)\s*(?:\(\s*em\s*)?(?:US\$|USD)\s*/\s*m(?:²|2|etros?\s*quadrados?)", re.I)),
 ]
 
 HEADER_UNIT_PATTERNS = [
     ("USD_PER_THOUSAND_UNITS", re.compile(r"(?:US\$|USD)\s*/\s*(?:mil\s*unidades|milheiro|milheiros)", re.I)),
-    ("USD_PER_KG", re.compile(r"(?:US\$|USD)\s*/\s*kg", re.I)),
+    ("USD_PER_KG", re.compile(r"(?:US\$|USD)\s*/\s*(?:kg|quilogramas?)", re.I)),
     ("USD_PER_TON", re.compile(r"(?:US\$|USD)\s*/\s*(?:t|ton|tonelada|toneladas)", re.I)),
     ("USD_PER_PAIR", re.compile(r"(?:US\$|USD)\s*/\s*par", re.I)),
     ("USD_PER_UNIT", re.compile(r"(?:US\$|USD)\s*/\s*(?:unidade|unidades|un)", re.I)),
@@ -58,7 +59,8 @@ def clean_text(text):
 def normalize_origin(value):
     value = clean_text(value)
     value = re.sub(r"\([^)]*\)", "", value)
-    value = re.sub(r"[\*,:;]+$", "", value).strip().lower()
+    value = re.sub(r"[\*,:;.]+$", "", value).strip().lower()
+    value = re.sub(r"^[-–—]\s*", "", value)
     replacements = {
         "coreia": "Coreia do Sul", "coreia do sul": "Coreia do Sul", "coréia do sul": "Coreia do Sul",
         "japao": "Japão", "japão": "Japão",
@@ -221,6 +223,11 @@ def parse_page(url, html):
     soup = BeautifulSoup(html, "html.parser")
     h1 = soup.find("h1")
     title = clean_text(h1.get_text(" ", strip=True)) if h1 else ""
+    # Inline formatting must not split a currency, rate or exporter into
+    # unrelated lines (e.g. US$ <span>75,11/t</span>).
+    for inline in soup.find_all(["span", "strong", "b", "em", "i", "a"]):
+        inline.unwrap()
+    soup.smooth()
     text = soup.get_text("\n", strip=True)
     type_match = re.search(r"Tipo de [Mm]edida:\s*([^\n]+)", text)
     if not type_match or "antidumping" not in type_match.group(1).lower():
@@ -259,6 +266,9 @@ def parse_page(url, html):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output", default=OUTPUT)
+    args = parser.parse_args()
     session = requests.Session()
     session.headers.update(HEADERS)
     index = session.get(INDEX_URL, timeout=60)
@@ -286,14 +296,16 @@ def main():
     if len(measures) < 40:
         raise RuntimeError(f"Crawl incompleto: {len(measures)} medidas extraídas de {len(urls)} páginas.")
     measures.sort(key=lambda x: (x["ncm"], x["product"], x["sourceUrl"]))
-    with open(OUTPUT, "w", encoding="utf-8") as fh:
+    with open(args.output, "w", encoding="utf-8") as fh:
         json.dump(measures, fh, ensure_ascii=False, indent=2)
         fh.write("\n")
     missing_options = [
         {"ncm": item["ncm"], "product": item["product"], "origins": [o for o, opts in item["exportersByOrigin"].items() if not opts], "sourceUrl": item["sourceUrl"]}
         for item in measures if any(not opts for opts in item["exportersByOrigin"].values())
     ]
-    print(json.dumps({"indexPages": len(urls), "antidumpingMeasures": len(measures), "missingExporterOptions": missing_options[:50], "missingExporterOptionCount": len(missing_options), "failures": failures[:20]}, ensure_ascii=False, indent=2))
+    print(json.dumps({"indexPages": len(urls), "antidumpingMeasures": len(measures), "missingExporterOptions": missing_options[:50], "missingExporterOptionCount": len(missing_options), "failures": failures}, ensure_ascii=False, indent=2))
+    if failures:
+        raise RuntimeError(f"Crawl incompleto: {len(failures)} páginas oficiais não puderam ser coletadas.")
 
 
 if __name__ == "__main__":
