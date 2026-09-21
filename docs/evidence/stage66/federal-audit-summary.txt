@@ -1,0 +1,6 @@
+published_records= 32514
+candidate_records= 32514
+semantic_equal= true
+published_sha256= a93a6645e5384feaf01f2a898284e5584c7a31acc3919b7a46b1704b1747b43e
+candidate_sha256= a93a6645e5384feaf01f2a898284e5584c7a31acc3919b7a46b1704b1747b43e
+candidate_change_detected=false

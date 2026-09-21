@@ -84,17 +84,7 @@ jobs:
 
       - name: Verify publication workflow remains review-gated
         run: |
-          test "$(grep -Ec '^[[:space:]]*contents:[[:space:]]*write[[:space:]]*
-      - name: Upload audit evidence
-        uses: actions/upload-artifact@v4
-        with:
-          name: federal-official-source-audit
-          path: |
-            /tmp/federal-audit/official-snapshot-candidate.json
-            /tmp/federal-audit/audit-summary.txt
-          if-no-files-found: error
-          retention-days: 14
- .github/workflows/audit-official-federal-sources.yml)" -eq 0
+          test "$(grep -Ec '^[[:space:]]*contents:[[:space:]]*write[[:space:]]*$' .github/workflows/audit-official-federal-sources.yml)" -eq 0
           if grep -Eq '^[[:space:]]*git[[:space:]]+push([[:space:]]|$)' .github/workflows/audit-official-federal-sources.yml; then
             echo 'Unexpected repository publication command in review-only workflow.'
             exit 1
