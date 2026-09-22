@@ -28,3 +28,18 @@ footer a{color:inherit}
 .simulatorGuide{margin:0 0 18px;padding:18px 20px;border:1px solid #dbe5ff;border-radius:16px;background:linear-gradient(135deg,#f8faff 0%,#fff 100%);display:grid;grid-template-columns:minmax(220px,.8fr) minmax(320px,1.2fr);gap:18px 28px;align-items:start}
 .simulatorGuide b{display:block;margin-top:6px;font-size:18px;letter-spacing:-.01em}.simulatorGuide ol{margin:0;padding-left:20px;color:#475467;font-size:13px;line-height:1.65}.simulatorGuide p{grid-column:1/-1;margin:0;padding-top:12px;border-top:1px solid #e6ecff;color:#667085;font-size:12px;line-height:1.55}.fieldHint{display:block;margin-top:5px;color:#7b8494;font-size:10px;font-weight:500;line-height:1.4;text-transform:none}.simulatorWorkspace .fields label:has(.fieldHint){align-self:start}
 @media(max-width:760px){.simulatorGuide{grid-template-columns:1fr}.simulatorGuide p{grid-column:auto}}
+
+
+/* Stage 68 — unified product chrome */
+.productTopbar{background:#0b1530;border-bottom:1px solid #ffffff14;color:#fff}
+.productNav{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.productTopbar .logo{color:#fff;text-decoration:none;font-weight:900;font-size:21px}
+.productNavLinks{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.productNavLinks a{color:#bcd0ff;text-decoration:none;font-size:13px;font-weight:800}
+.productNavLinks a:hover{color:#fff}
+.productNavLinks .navCta{background:#2b65f7;color:#fff;padding:9px 12px;border-radius:9px}
+.productAccount{font-size:12px;color:#9fb0c9;max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.productLogout{border:0;background:transparent;color:#fff;font-weight:800;cursor:pointer;padding:9px 4px}
+.productLogout:hover{text-decoration:underline}
+@media(max-width:640px){.productNav{align-items:flex-start;padding-top:14px;padding-bottom:14px}.productNavLinks{gap:10px}.productNavLinks a:not(.navCta){font-size:12px}.productAccount{max-width:220px;white-space:normal}}
+@media print{.productTopbar,.betaBar,.skipLink{display:none!important}}
