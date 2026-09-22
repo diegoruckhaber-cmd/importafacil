@@ -7,7 +7,7 @@ const HIDDEN_ROUTES = new Set(["/", "/simulacao-v2", "/privacidade", "/termos", 
 export default function GlobalProductNav() {
   const pathname = usePathname();
 
-  if (HIDDEN_ROUTES.has(pathname) || pathname.startsWith("/sc-")) return null;
+  if (HIDDEN_ROUTES.has(pathname) || pathname === "/dashboard" || pathname.startsWith("/sc-")) return null;
 
   const authRoute = pathname === "/auth" || pathname === "/login";
 
