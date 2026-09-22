@@ -108,22 +108,7 @@ class ParserRegression(unittest.TestCase):
         </table>
         """
         soup = mdic.BeautifulSoup(html, "html.parser")
-        original_guard = mdic.extract_index_entries
-        table = next(t for t in soup.find_all("table") if "produto" in t.get_text(" ", strip=True).lower())
-        entries = []
-        seen = set()
-        for row in table.find_all("tr"):
-            cells = row.find_all(["th", "td"], recursive=False)
-            if len(cells) < 3:
-                continue
-            anchor = cells[0].find("a", href=True)
-            if not anchor:
-                continue
-            url = mdic.urljoin(mdic.INDEX_URL, anchor["href"])
-            if url in seen:
-                continue
-            seen.add(url)
-            entries.append({"url": url, "origins": mdic.split_origins(cells[2].get_text(" ", strip=True))})
+        entries = mdic.extract_index_entries(soup)
         self.assertEqual(len(entries), 2)
         self.assertTrue(entries[0]["url"].endswith("/resina-de-polipropileno"))
         self.assertEqual([x.lower() for x in entries[0]["origins"]], ["áfrica do sul", "índia"])
