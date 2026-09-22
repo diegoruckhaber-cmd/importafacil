@@ -14,30 +14,30 @@ create table if not exists public.pilot_responses (
 
 alter table public.pilot_responses enable row level security;
 
-revoke all on table public.pilot_responses from anon;
+revoke all on table public.pilot_responses from anon, authenticated;
 grant select, insert, update, delete on table public.pilot_responses to authenticated;
 
 drop policy if exists pilot_responses_select_own on public.pilot_responses;
 create policy pilot_responses_select_own
 on public.pilot_responses for select
 to authenticated
-using (auth.uid() = user_id);
+using ((select auth.uid()) = user_id);
 
 drop policy if exists pilot_responses_insert_own on public.pilot_responses;
 create policy pilot_responses_insert_own
 on public.pilot_responses for insert
 to authenticated
-with check (auth.uid() = user_id);
+with check ((select auth.uid()) = user_id);
 
 drop policy if exists pilot_responses_update_own on public.pilot_responses;
 create policy pilot_responses_update_own
 on public.pilot_responses for update
 to authenticated
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
+using ((select auth.uid()) = user_id)
+with check ((select auth.uid()) = user_id);
 
 drop policy if exists pilot_responses_delete_own on public.pilot_responses;
 create policy pilot_responses_delete_own
 on public.pilot_responses for delete
 to authenticated
-using (auth.uid() = user_id);
+using ((select auth.uid()) = user_id);
