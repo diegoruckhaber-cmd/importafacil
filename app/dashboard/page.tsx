@@ -156,9 +156,9 @@ export default function Dashboard() {
         {!loading && (
           <div style={metricGrid}>
             <Metric label="Simulações visíveis" value={String(insights.totalSaved)} detail={isFree ? "limite FREE: 3" : "simulações carregadas"} />
-            <Metric label="Simulação" value={String(insights.v2Count)} detail="snapshots do motor canônico" />
+            <Metric label="Simulação" value={String(insights.v2Count)} detail="resultados oficiais salvos" />
             <Metric label="Pontos de atenção" value={String(insights.attentionCount)} detail="alerta, validação ou bloqueio" />
-            <Metric label="Último custo salvo" value={insights.latestId ? br(insights.latestCostBrl) : "—"} detail="sem recalcular o snapshot" />
+            <Metric label="Último custo salvo" value={insights.latestId ? br(insights.latestCostBrl) : "—"} detail="resultado salvo, sem novo cálculo" />
           </div>
         )}
 
@@ -174,7 +174,7 @@ export default function Dashboard() {
               />
             </label>
             <label style={label}>
-              Status V2
+              Status da simulação
               <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as DashboardStatusFilter)} style={input}>
                 {statusFilters.map((filter) => <option key={filter.value} value={filter.value}>{filter.label}</option>)}
               </select>
@@ -190,7 +190,7 @@ export default function Dashboard() {
         ) : planVisible.length === 0 ? (
           <div style={empty}>
             <h2>Seu histórico está vazio.</h2>
-            <p style={{ color: "#666" }}>Faça uma Simulação e salve o resultado para começar.</p>
+            <p style={{ color: "#666" }}>Faça uma simulação e salve o resultado para começar.</p>
             <a href="/simulacao-v2" style={primary}>Criar primeira simulação</a>
           </div>
         ) : shown.length === 0 ? (
