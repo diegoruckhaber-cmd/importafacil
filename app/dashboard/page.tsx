@@ -16,7 +16,7 @@ import {
 import { supabase } from "../../lib/supabase";
 
 const br = (n: number) => Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const kindLabel = { v2: "Simulation V2", sc: "Operação SC", legacy: "Legado" };
+const kindLabel = { v2: "Simulação", sc: "Operação SC", legacy: "Legado" };
 const statusLabel: Record<string, string> = {
   calculated: "Calculado",
   alert: "Com alerta",
@@ -123,13 +123,13 @@ export default function Dashboard() {
     : "Histórico completo das suas simulações." + (periodLabel ? " Período atual até " + periodLabel + "." : "");
 
   return (
-    <main style={{ minHeight: "100vh", background: "#f7f7f4" }}>
-      <header style={{ background: "white", borderBottom: "1px solid #e7e7e2" }}>
+    <main style={{ minHeight: "100vh", background: "#f5f7fb" }}>
+      <header style={{ background: "#0b1530", borderBottom: "1px solid #ffffff14" }}>
         <div style={{ maxWidth: 1180, margin: "auto", padding: "18px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
-          <a href="/" style={{ fontWeight: 900, color: "#111", textDecoration: "none" }}>ImportaFácil</a>
+          <a href="/" style={{ fontWeight: 900, color: "#fff", textDecoration: "none", fontSize: 20 }}>ImportaFácil</a>
           <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
-            <span style={{ fontSize: 13, color: "#666" }}>{accountLabel}</span>
-            <button onClick={logout} style={{ border: 0, background: "transparent", cursor: "pointer" }}>Sair</button>
+            <span style={{ fontSize: 13, color: "#bcd0ff" }}>{accountLabel}</span>
+            <button onClick={logout} style={{ border: 0, background: "transparent", cursor: "pointer", color: "#fff", fontWeight: 700 }}>Sair</button>
           </div>
         </div>
       </header>
@@ -144,25 +144,25 @@ export default function Dashboard() {
             <p style={{ color: "#666", marginBottom: 0 }}>{historyText}</p>
           </div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            {!isFree && <a href="/comparar" style={secondary}>Comparar V2</a>}
+            {!isFree && <a href="/comparar" style={secondary}>Comparar cenários</a>}
             {!isFree && insights.latestV2Id && <a href={"/relatorio?id=" + insights.latestV2Id} style={secondary}>Relatório mais recente</a>}
             {isFree && <a href="/upgrade" style={primary}>Assinar PRO</a>}
             {!isFree && <a href="/upgrade" style={secondary}>Minha assinatura</a>}
             <a href="/feedback?from=/dashboard" style={secondary}>Enviar feedback</a>
-            <a href="/simulacao-v2" style={primary}>Nova Simulation V2</a>
+            <a href="/simulacao-v2" style={primary}>Nova simulação</a>
           </div>
         </div>
 
         {!loading && (
           <div style={metricGrid}>
             <Metric label="Simulações visíveis" value={String(insights.totalSaved)} detail={isFree ? "limite FREE: 3" : "simulações carregadas"} />
-            <Metric label="Simulation V2" value={String(insights.v2Count)} detail="snapshots do motor canônico" />
+            <Metric label="Simulação" value={String(insights.v2Count)} detail="snapshots do motor canônico" />
             <Metric label="Pontos de atenção" value={String(insights.attentionCount)} detail="alerta, validação ou bloqueio" />
             <Metric label="Último custo salvo" value={insights.latestId ? br(insights.latestCostBrl) : "—"} detail="sem recalcular o snapshot" />
           </div>
         )}
 
-        <div style={{ background: "white", border: "1px solid #e5e5df", borderRadius: 18, padding: 18, margin: "22px 0" }}>
+        <div style={{ background: "white", border: "1px solid #e4e7ec", borderRadius: 18, padding: 18, margin: "22px 0" }}>
           <div style={{ display: "grid", gridTemplateColumns: "minmax(220px,1fr) minmax(220px,320px)", gap: 12 }}>
             <label style={label}>
               Buscar nas simulações carregadas
@@ -190,7 +190,7 @@ export default function Dashboard() {
         ) : planVisible.length === 0 ? (
           <div style={empty}>
             <h2>Seu histórico está vazio.</h2>
-            <p style={{ color: "#666" }}>Faça uma Simulation V2 e salve o resultado para começar.</p>
+            <p style={{ color: "#666" }}>Faça uma Simulação e salve o resultado para começar.</p>
             <a href="/simulacao-v2" style={primary}>Criar primeira simulação</a>
           </div>
         ) : shown.length === 0 ? (
@@ -221,7 +221,7 @@ export default function Dashboard() {
                     <small style={{ color: "#888" }}>Custo nacionalizado</small>
                     <div style={{ fontWeight: 900, fontSize: 20 }}>{br(savedSimulationTotal(record))}</div>
                     {!isFree && kind === "v2" && (
-                      <a href={"/relatorio?id=" + record.id} style={{ fontSize: 12, color: "#555", fontWeight: 700 }}>Relatório</a>
+                      <a href={"/relatorio?id=" + record.id} style={{ fontSize: 12, color: "#315fe2", fontWeight: 700 }}>Relatório</a>
                     )}
                   </div>
                 </article>
@@ -232,7 +232,7 @@ export default function Dashboard() {
 
         {isFree && items.length >= 3 && (
           <div style={{ marginTop: 18, padding: 18, borderRadius: 14, background: "#fff7df", border: "1px solid #ead9a3" }}>
-            Você atingiu o limite de 3 simulações salvas no plano FREE. <a href="/upgrade" style={{ fontWeight: 800, color: "#111" }}>Assinar PRO</a> libera o histórico completo, comparação e relatórios.
+            Você atingiu o limite de 3 simulações salvas no plano FREE. <a href="/upgrade" style={{ fontWeight: 800, color: "#315fe2" }}>Assinar PRO</a> libera o histórico completo, comparação e relatórios.
           </div>
         )}
         {!isFree && hasMore && <button disabled={loadingMore} onClick={loadMore}>{loadingMore ? "Carregando..." : "Carregar mais simulações"}</button>}
@@ -261,14 +261,14 @@ function statusPill(status: string): CSSProperties {
   };
 }
 
-const primary: CSSProperties = { padding: "12px 16px", background: "#111", color: "white", borderRadius: 10, textDecoration: "none", fontWeight: 800, display: "inline-block" };
-const secondary: CSSProperties = { padding: "11px 15px", border: "1px solid #111", color: "#111", borderRadius: 10, textDecoration: "none", fontWeight: 700, display: "inline-block" };
+const primary: CSSProperties = { padding: "12px 16px", background: "#2b65f7", color: "white", borderRadius: 10, textDecoration: "none", fontWeight: 800, display: "inline-block" };
+const secondary: CSSProperties = { padding: "11px 15px", border: "1px solid #c8d7ff", color: "#2443a8", background: "#eef2ff", borderRadius: 10, textDecoration: "none", fontWeight: 700, display: "inline-block" };
 const secondaryButton: CSSProperties = { ...secondary, background: "white", cursor: "pointer" };
-const empty: CSSProperties = { background: "white", border: "1px solid #e5e5df", borderRadius: 18, padding: 40 };
-const row: CSSProperties = { background: "white", border: "1px solid #e5e5df", borderRadius: 16, padding: 20, display: "flex", justifyContent: "space-between", gap: 20, alignItems: "center", flexWrap: "wrap" };
-const pill: CSSProperties = { fontSize: 11, padding: "4px 7px", background: "#f0f0ec", borderRadius: 999, color: "#555", fontWeight: 700 };
+const empty: CSSProperties = { background: "white", border: "1px solid #e4e7ec", borderRadius: 18, padding: 40 };
+const row: CSSProperties = { background: "white", border: "1px solid #e4e7ec", borderRadius: 16, padding: 20, display: "flex", justifyContent: "space-between", gap: 20, alignItems: "center", flexWrap: "wrap" };
+const pill: CSSProperties = { fontSize: 11, padding: "4px 7px", background: "#f2f4f7", borderRadius: 999, color: "#555", fontWeight: 700 };
 const metricGrid: CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))", gap: 12 };
-const metric: CSSProperties = { background: "white", border: "1px solid #e5e5df", borderRadius: 16, padding: 18 };
+const metric: CSSProperties = { background: "white", border: "1px solid #e4e7ec", borderRadius: 16, padding: 18 };
 const noticeStyle: CSSProperties = { marginBottom: 20, padding: 14, borderRadius: 12, background: "#eef6ff", border: "1px solid #cfe3ff", color: "#174a7e" };
 const label: CSSProperties = { display: "grid", gap: 7, fontSize: 13, fontWeight: 700, color: "#555" };
 const input: CSSProperties = { width: "100%", boxSizing: "border-box", padding: "11px 12px", border: "1px solid #d8d8d2", borderRadius: 10, background: "white", fontSize: 14 };
