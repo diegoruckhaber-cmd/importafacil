@@ -117,7 +117,7 @@ export default function FeedbackPage() {
   return (
     <main data-feedback-lifecycle="user-delete" style={{minHeight:"100vh",background:"#f5f7fb",padding:"48px 24px"}}>
       <div style={{maxWidth:860,margin:"auto"}}>
-        <a href="/dashboard" style={{color:"#111"}}>← Meu painel</a>
+        <a href="/dashboard" style={{color:"#315fe2",fontWeight:800,textDecoration:"none"}}>← Meu painel</a>
         <small style={{display:"block",marginTop:30,letterSpacing:1,color:"#777"}}>BETA CONTROLADO</small>
         <h1 style={{fontSize:42,margin:"8px 0 12px"}}>Feedback do ImportaFácil</h1>
         <p style={{color:"#666",lineHeight:1.6,maxWidth:720}}>
@@ -150,7 +150,7 @@ export default function FeedbackPage() {
             <input value={pagePath} onChange={e=>setPagePath(e.target.value.slice(0,200))} placeholder="/simulacao-v2" style={input}/>
           </label>
           <button disabled={sending} style={button}>{sending?"Enviando...":"Enviar feedback"}</button>
-          {notice&&<div role="status" style={{padding:12,borderRadius:10,background:"#f1f1ec"}}>{notice}</div>}
+          {notice&&<div role="status" style={{padding:12,borderRadius:10,background:"#f8faff"}}>{notice}</div>}
         </form>
 
         <section style={{marginTop:32}}>
