@@ -43,3 +43,29 @@ footer a{color:inherit}
 .productLogout:hover{text-decoration:underline}
 @media(max-width:640px){.productNav{align-items:flex-start;padding-top:14px;padding-bottom:14px}.productNavLinks{gap:10px}.productNavLinks a:not(.navCta){font-size:12px}.productAccount{max-width:220px;white-space:normal}}
 @media print{.productTopbar,.betaBar,.skipLink{display:none!important}}
+
+
+/* Stage 69 — unified account and billing surfaces */
+.accountPage{min-height:100vh;background:#f5f7fb;padding:56px 22px 72px}
+.accountShell{max-width:760px;margin:0 auto}
+.accountCard{width:100%;background:#fff;border:1px solid #e4e7ec;border-radius:22px;padding:38px;box-shadow:0 16px 50px #1018280a}
+.accountBack{display:inline-flex;align-items:center;gap:6px;color:#315fe2;font-weight:850;text-decoration:none}
+.accountBack:hover{text-decoration:underline}
+.accountEyebrow{display:block;margin-top:30px;font-size:10px;letter-spacing:.14em;font-weight:900;color:#667085}
+.accountTitle{font-size:clamp(32px,5vw,46px);line-height:1.04;letter-spacing:-.035em;margin:9px 0 14px}
+.accountIntro{font-size:17px;line-height:1.6;color:#667085;margin:0 0 24px}
+.accountForm{display:grid;gap:14px}
+.accountMessage{margin-top:16px;padding:13px 14px;border:1px solid #dbe5ff;border-radius:11px;background:#f8faff;line-height:1.45;color:#344054}
+.accountLinkButton{margin-top:16px;border:0;background:none;cursor:pointer;color:#475467;padding:0;display:block;font-weight:700}
+.accountLinkButton:hover{color:#315fe2;text-decoration:underline}
+.upgradeBenefits{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:28px 0}
+.upgradeBenefit{padding:14px 15px;border:1px solid #e4e7ec;border-radius:12px;background:#fbfcfe;font-size:14px;font-weight:700;color:#344054}
+.billingStatus{padding:14px 15px;border-radius:11px;background:#eef8ef;border:1px solid #cce7cf;margin-bottom:18px;color:#276738}
+.productNoticeInfo{padding:14px;border-radius:11px;background:#eef6ff;border:1px solid #cfe3ff;margin:20px 0;color:#174a7e}
+.productError{color:#b42318;margin-top:14px;padding:12px 14px;border-radius:10px;background:#fff1f0;border:1px solid #ffd2cf}
+.productPrimaryWide{width:100%;padding:15px 18px;border:0;border-radius:11px;background:#2b65f7;color:#fff;font-size:16px;font-weight:850;cursor:pointer}
+.productPrimaryWide:disabled{opacity:.55;cursor:not-allowed}
+.productSecondaryWide{display:block;text-align:center;width:100%;box-sizing:border-box;padding:14px;border-radius:11px;border:1px solid #c8d7ff;color:#2443a8;background:#eef2ff;font-weight:800;text-decoration:none}
+.billingFine{font-size:12px;color:#7b8494;margin-top:18px;line-height:1.5}
+.priceLine{display:flex;align-items:baseline;gap:8px;margin-bottom:20px}.priceLine strong{font-size:36px}.priceLine span{color:#667085}
+@media(max-width:640px){.accountPage{padding:28px 16px 48px}.accountCard{padding:24px 20px;border-radius:18px}.upgradeBenefits{grid-template-columns:1fr}}
