@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: "17 5 * * *"
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/sync-mdic-defesa-comercial.py"
+      - "scripts/test-mdic-parser.py"
+      - ".github/workflows/sync-mdic-defesa-comercial.yml"
   pull_request:
     paths:
       - "scripts/sync-mdic-defesa-comercial.py"
