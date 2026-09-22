@@ -1,0 +1,59 @@
+import { calculateUnifiedImportSimulation, type UnifiedImportExpenseInput, type UnifiedImportItemInput, type UnifiedImportSimulationInput } from "./unified-import-simulation.ts";
+
+function itemFromUnknown(value: Record<string, unknown>, index: number): UnifiedImportItemInput {
+  const rawTtd = String(value.ttd ?? "none");
+  const rawDestination = String(value.destination ?? "commercial_resale");
+  return {
+    itemId: String(value.itemId ?? value.id ?? `ITEM-${index + 1}`),
+    name: typeof value.name === "string" ? value.name : undefined,
+    ncm: String(value.ncm ?? ""),
+    origin: String(value.origin ?? ""),
+    quantity: Number(value.quantity),
+    weightKg: Number(value.weightKg ?? 0),
+    volumeM3: Number(value.volumeM3 ?? 0),
+    fobUnit: Number(value.fobUnit ?? value.unitFobUsd),
+    icms: Number(value.icms ?? value.icmsRate),
+    exporter: typeof value.exporter === "string" ? value.exporter : undefined,
+    iiExCode: typeof value.iiExCode === "string" ? value.iiExCode : undefined,
+    iiQuotaConfirmed: typeof value.iiQuotaConfirmed === "boolean" ? value.iiQuotaConfirmed : undefined,
+    ipiExCode: typeof value.ipiExCode === "string" ? value.ipiExCode : undefined,
+    aeronauticalEligible: typeof value.aeronauticalEligible === "boolean" ? value.aeronauticalEligible : undefined,
+    ttd: (["77", "409", "410"].includes(rawTtd) ? rawTtd : "none") as UnifiedImportItemInput["ttd"],
+    destination: rawDestination === "industrialization" ? "industrialization" : "commercial_resale",
+    validConcession: value.validConcession === true,
+    importEntryInSC: value.importEntryInSC !== false,
+    industrializationInSC: value.industrializationInSC === true,
+    sameNcmPositionAfterFractionation: value.sameNcmPositionAfterFractionation !== false,
+    decree2128Prohibited: value.decree2128Prohibited === true,
+    specialRegimeIds: Array.isArray(value.specialRegimeIds) ? value.specialRegimeIds.filter((entry): entry is string => typeof entry === "string") : [],
+    specialRegimeContext: value.specialRegimeContext && typeof value.specialRegimeContext === "object" ? value.specialRegimeContext as Record<string, unknown> : {},
+  };
+}
+
+export function normalizeSCRequest(body: Record<string, unknown>): UnifiedImportSimulationInput {
+  const rawItems = Array.isArray(body.items) && body.items.length > 0
+    ? body.items.filter((value): value is Record<string, unknown> => Boolean(value) && typeof value === "object")
+    : [{ itemId: "ITEM-001", name: body.name, ncm: body.ncm, origin: body.origin, quantity: body.quantity, weightKg: body.weightKg, volumeM3: body.volumeM3, fobUnit: body.fobUnit, icms: body.icms, exporter: body.exporter, iiExCode: body.iiExCode, iiQuotaConfirmed: body.iiQuotaConfirmed, ipiExCode: body.ipiExCode, aeronauticalEligible: body.aeronauticalEligible, ttd: body.ttd, destination: body.destination, validConcession: body.validConcession, importEntryInSC: body.importEntryInSC, industrializationInSC: body.industrializationInSC, sameNcmPositionAfterFractionation: body.sameNcmPositionAfterFractionation, decree2128Prohibited: body.decree2128Prohibited, specialRegimeIds: body.specialRegimeIds, specialRegimeContext: body.specialRegimeContext }];
+
+  const expenses: UnifiedImportExpenseInput[] = Array.isArray(body.expenses)
+    ? body.expenses.filter((value): value is Record<string, unknown> => Boolean(value) && typeof value === "object").map((value) => ({ id: String(value.id ?? "EXP"), description: String(value.description ?? "Despesa adicional"), amount: Number(value.amount ?? 0), treatment: String(value.treatment ?? "operational_cost") as UnifiedImportExpenseInput["treatment"], allocation: typeof value.allocation === "string" ? value.allocation as UnifiedImportExpenseInput["allocation"] : undefined, itemId: typeof value.itemId === "string" ? value.itemId : undefined, note: typeof value.note === "string" ? value.note : undefined }))
+    : [];
+
+  return {
+    date: String(body.date ?? body.importDate ?? ""),
+    destinationUf: String(body.destinationUf ?? body.uf ?? "SC"),
+    exchange: Number(body.exchange ?? body.exchangeRate),
+    freight: Number(body.freight ?? body.freightUsd ?? 0),
+    insurance: Number(body.insurance ?? body.insuranceUsd ?? 0),
+    storage: Number(body.storage ?? 0),
+    otherBrl: Number(body.otherBrl ?? 0),
+    storageAllocation: typeof body.storageAllocation === "string" ? body.storageAllocation as UnifiedImportSimulationInput["storageAllocation"] : undefined,
+    otherAllocation: typeof body.otherAllocation === "string" ? body.otherAllocation as UnifiedImportSimulationInput["otherAllocation"] : undefined,
+    transportMode: typeof body.transportMode === "string" ? body.transportMode as UnifiedImportSimulationInput["transportMode"] : "not_informed",
+    declarationType: body.declarationType === "duimp" ? "duimp" : "di",
+    additions: body.additions == null ? undefined : Number(body.additions),
+    items: rawItems.map(itemFromUnknown),
+    expenses,
+  };
+}
+

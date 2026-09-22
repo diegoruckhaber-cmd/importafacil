@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { executeOfficialSimulationV2 } from "../../../lib/server-simulation-v2";
+import { persistOfficialSimulation } from "../../../lib/server-simulation-persistence";
+import { calculateUnifiedImportSimulation } from "../../../lib/unified-import-simulation";
+import { normalizeSCRequest } from "../../../lib/sc-request";
 import { calculate, SimulationInput } from "../../../lib/calculator";
 
 function clientForToken(accessToken: string) {
@@ -31,39 +35,31 @@ type Authenticated = {
 };
 
 async function persistCalculatedRecord(auth: Authenticated, name: string, input: unknown, result: unknown): Promise<NextResponse> {
-  const { data, error } = await auth.supabase.from("simulations").insert({
-    user_id: auth.user.id,
-    name,
-    input,
-    result,
-  }).select("id, name, created_at").single();
-  if (error || !data) {
-    console.error("simulation persistence error", error);
-    return NextResponse.json({ error: "Não foi possível salvar a simulação." }, { status: 500 });
-  }
-  return NextResponse.json({ id: data.id, createdAt: data.created_at, persistence: "saved" });
+  const saved = await persistOfficialSimulation(auth.user.id, name, input, result);
+  if (saved.limited) return NextResponse.json({ error: "Você atingiu o limite de 3 simulações do plano FREE." }, { status: 403 });
+  return NextResponse.json({ ...saved, persistence: "saved", result });
 }
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const name = typeof body.name === "string" && body.name.trim() ? body.name.trim() : "Nova simulação";
+    const name = typeof body.name === "string" && body.name.trim() ? body.name.trim().slice(0, 200) : "Nova simulação";
     const auth = await authenticatedClient(req);
     if ("error" in auth) return auth.error;
     const authenticated: Authenticated = { supabase: auth.supabase, user: { id: auth.user.id } };
 
     if (body.mode === "v2") {
-      if (!body.input || !body.result || body.result.contract !== "importafacil-simulation-v2") {
-        return NextResponse.json({ error: "Contrato da Simulation V2 inválido." }, { status: 400 });
+      if (!body.input || !Array.isArray(body.input.items)) {
+        return NextResponse.json({ error: "Contrato importafacil-simulation-v2 inválido." }, { status: 400 });
       }
-      return persistCalculatedRecord(authenticated, name, body.input, body.result);
+      return await persistCalculatedRecord(authenticated, name, body.input, executeOfficialSimulationV2(body.input));
     }
 
     if (body.mode === "sc") {
-      if (!body.input || !body.result) {
+      if (!body.input) {
         return NextResponse.json({ error: "Dados da operação SC inválidos." }, { status: 400 });
       }
-      return persistCalculatedRecord(authenticated, name, body.input, body.result);
+      return await persistCalculatedRecord(authenticated, name, body.input, calculateUnifiedImportSimulation(normalizeSCRequest(body.input)));
     }
 
     const input: SimulationInput = body.input;
@@ -86,9 +82,15 @@ export async function GET(req: Request) {
     const auth = await authenticatedClient(req);
     if ("error" in auth) return NextResponse.json({ error: "Faça login para consultar suas simulações." }, { status: 401 });
 
-    const { data, error } = await auth.supabase.from("simulations").select("id, name, input, result, created_at").eq("user_id", auth.user.id).order("created_at", { ascending: false });
+    const parameters = new URL(req.url).searchParams;
+    const offset = Number(parameters.get("offset") || 0);
+    const limit = Number(parameters.get("limit") || 50);
+    if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(limit) || limit < 1 || limit > 100) {
+      return NextResponse.json({ error: "Paginação inválida." }, { status: 400 });
+    }
+    const { data, error } = await auth.supabase.from("simulations").select("id, name, input, result, created_at, server_execution").eq("user_id", auth.user.id).order("created_at", { ascending: false }).order("id", { ascending: false }).range(offset, offset + limit);
     if (error) return NextResponse.json({ error: "Não foi possível consultar as simulações." }, { status: 500 });
-    return NextResponse.json({ simulations: data ?? [] });
+    return NextResponse.json({ simulations: (data ?? []).slice(0, limit), hasMore: (data ?? []).length > limit, nextOffset: offset + limit }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return NextResponse.json({ error: "Não foi possível consultar as simulações." }, { status: 400 });
   }

@@ -4,6 +4,7 @@ export type SavedSimulationRecord = {
   input: Record<string, any>;
   result: Record<string, any>;
   created_at: string;
+  server_execution?: { id: string; source: string; executedAt: string; deploymentCommit: string } | null;
 };
 
 export type SavedSimulationKind = "v2" | "sc" | "legacy";
@@ -66,4 +67,14 @@ export function compareSavedSimulationV2(records: SavedSimulationRecord[]) {
     targetRevenueBrl: savedSimulationTargetRevenue(record),
     estimatedProfitBrl: savedSimulationProfit(record),
   })).sort((a, b) => a.landedCostBrl - b.landedCostBrl);
+}
+
+export function simulationStatusLabel(status: unknown) {
+  const labels: Record<string,string> = { calculated:"Calculado", alert:"Com alerta", requires_input:"Requer validação", blocked:"Bloqueado", unsupported:"Não suportado", conditional:"Condicionado" };
+  return labels[String(status)] || "Status não identificado";
+}
+export function simulationProvenanceLabel(record: Pick<SavedSimulationRecord,"server_execution">) {
+  return record.server_execution?.source === "official_server"
+    ? "Resultado gerado e salvo pelo servidor"
+    : "Registro anterior à verificação de execução";
 }

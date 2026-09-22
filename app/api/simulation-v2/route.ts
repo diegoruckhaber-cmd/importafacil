@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { runImportSimulationV2, type SimulationV2Input } from "../../../lib/simulation-v2";
-import { buildSimulationV2LegalTrace, formatSimulationV2LegalTrace } from "../../../lib/simulation-v2-legal-provenance";
+import { type SimulationV2Input } from "../../../lib/simulation-v2";
+import { executeOfficialSimulationV2 } from "../../../lib/server-simulation-v2";
 import { buildSimulationV2Telemetry, emitSimulationV2Telemetry } from "../../../lib/simulation-v2-observability";
 
 export async function POST(request: Request) {
@@ -8,15 +8,10 @@ export async function POST(request: Request) {
   let body: SimulationV2Input | undefined;
   try {
     body = await request.json() as SimulationV2Input;
-    const result = runImportSimulationV2(body);
-    const legalTrace = buildSimulationV2LegalTrace(result);
-    const attentionPoints = [
-      ...(Array.isArray(result.attentionPoints) ? result.attentionPoints : []),
-      ...legalTrace.map(formatSimulationV2LegalTrace),
-    ];
+    const result = executeOfficialSimulationV2(body);
     emitSimulationV2Telemetry(buildSimulationV2Telemetry({ result, input: body, startedAtMs }));
     return NextResponse.json(
-      { ...result, legalTrace, attentionPoints: [...new Set(attentionPoints)] },
+      result,
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {

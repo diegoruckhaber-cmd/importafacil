@@ -102,7 +102,7 @@ assert.throws(() => runImportSimulationV2({
 }), /Margem alvo/);
 
 const service = fs.readFileSync("lib/simulation-v2.ts", "utf8");
-const route = fs.readFileSync("app/api/simulation-v2/route.ts", "utf8");
+const route = fs.readFileSync("app/api/simulation-v2/route.ts", "utf8") + fs.readFileSync("lib/server-simulation-v2.ts", "utf8");
 const persistenceRoute = fs.readFileSync("app/api/simulations/route.ts", "utf8");
 const page = fs.readFileSync("app/simulacao-v2/page.tsx", "utf8");
 assert.match(service, /calculateUnifiedImportSimulation/);
@@ -114,6 +114,7 @@ assert.match(page, /\/api\/simulations/);
 assert.match(page, /mode\s*:\s*"v2"/);
 assert.doesNotMatch(page, /lib\/calculator/);
 assert.match(persistenceRoute, /body\.mode === "v2"/);
-assert.match(persistenceRoute, /body\.result\.contract !== "importafacil-simulation-v2"/);
+assert.doesNotMatch(persistenceRoute, /body\.result/);
+assert.match(persistenceRoute, /executeOfficialSimulationV2\(body.input\)/);
 
 console.log("Simulation V2 acceptance: OK — multi-item, explicit status, commercial layer, canonical engine and snapshot persistence locked");
