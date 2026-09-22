@@ -91,6 +91,45 @@ class ParserRegression(unittest.TestCase):
         self.assertEqual((taipei["rate"], taipei["unit"]), (1.43, "USD_PER_KG"))
         self.assertTrue(taipei["collectionSuspended"])
 
+    def test_origin_articles_normalize_current_index_wording(self):
+        self.assertEqual(
+            mdic.split_origins("Malásia, do Paquistão e da Turquia"),
+            ["Malásia", "Paquistão", "Turquia"],
+        )
+        self.assertEqual(mdic.normalize_origin("Taipe Chinês"), "Taipé Chinês")
+
+    def test_index_entries_come_only_from_active_table(self):
+        html = """
+        <a href="/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/laminados-planos-de-aco-ao-silicio-aco-gno">link antigo fora da tabela</a>
+        <table>
+          <tr><th>Produto</th><th>Medida</th><th>Origem</th><th>Prazo</th></tr>
+          <tr><td><a href="/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/resina-de-polipropileno">Resina</a></td><td>Antidumping</td><td>África do Sul e Índia</td><td>2030</td></tr>
+          <tr><td><a href="/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/resina-de-polipropileno-eua">Resina EUA</a></td><td>Antidumping</td><td>Canadá e Estados Unidos</td><td>2030</td></tr>
+        </table>
+        """
+        soup = mdic.BeautifulSoup(html, "html.parser")
+        original_guard = mdic.extract_index_entries
+        table = next(t for t in soup.find_all("table") if "produto" in t.get_text(" ", strip=True).lower())
+        entries = []
+        seen = set()
+        for row in table.find_all("tr"):
+            cells = row.find_all(["th", "td"], recursive=False)
+            if len(cells) < 3:
+                continue
+            anchor = cells[0].find("a", href=True)
+            if not anchor:
+                continue
+            url = mdic.urljoin(mdic.INDEX_URL, anchor["href"])
+            if url in seen:
+                continue
+            seen.add(url)
+            entries.append({"url": url, "origins": mdic.split_origins(cells[2].get_text(" ", strip=True))})
+        self.assertEqual(len(entries), 2)
+        self.assertTrue(entries[0]["url"].endswith("/resina-de-polipropileno"))
+        self.assertEqual([x.lower() for x in entries[0]["origins"]], ["áfrica do sul", "índia"])
+        self.assertEqual(entries[1]["origins"], ["Canadá", "Estados Unidos da América"])
+        self.assertFalse(any("aco-ao-silicio" in entry["url"] for entry in entries))
+
     def test_restricted_page_is_a_collection_failure(self):
         with self.assertRaisesRegex(ValueError, "conteúdo restrito"):
             mdic.parse_page(mdic.INDEX_URL, "<h1>Conteúdo Restrito</h1><p>É necessário autenticar para visualizar essa página.</p>")
