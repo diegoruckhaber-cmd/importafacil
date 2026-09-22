@@ -102,7 +102,7 @@ class ParserRegression(unittest.TestCase):
         html = """
         <a href="/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/laminados-planos-de-aco-ao-silicio-aco-gno">link antigo fora da tabela</a>
         <table>
-          <tr><th>Produto</th><th>Medida</th><th>Origem</th><th>Prazo</th></tr>
+          <tr><td>Produto</td><td>Medida</td><td>Origem</td><td>Prazo</td></tr>
           <tr><td><a href="/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/resina-de-polipropileno">Resina</a></td><td>Antidumping</td><td>África do Sul e Índia</td><td>2030</td></tr>
           <tr><td><a href="/mdic/pt-br/assuntos/comercio-exterior/defesa-comercial-e-interesse-publico/medidas-em-vigor/medidas-em-vigor/resina-de-polipropileno-eua">Resina EUA</a></td><td>Antidumping</td><td>Canadá e Estados Unidos</td><td>2030</td></tr>
         </table>
