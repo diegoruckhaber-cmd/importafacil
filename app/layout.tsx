@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import TemporaryIIAlertEnhancer from "./TemporaryIIAlertEnhancer";
+import GlobalProductNav from "./components/GlobalProductNav";
 import { getReleaseScope } from "../lib/release-scope";
 
 const PUBLIC_SITE_URL = "https://importafacil-gamma.vercel.app";
@@ -46,6 +47,7 @@ export default function RootLayout({children}:{children:React.ReactNode}) {
           <a href="/regras">Entenda o escopo</a>
           <span className="srOnly">{release.controlledBeta.label} · {release.controlledBeta.notice}</span>
         </aside>
+        <GlobalProductNav />
         <div id="conteudo-principal">{children}</div>
       </body>
     </html>
