@@ -243,7 +243,7 @@ export default function AuthPage() {
           </button>
         )}
       </section>
-    </main>
+    </div></main>
   );
 }
 
