@@ -55,8 +55,8 @@ export default function Upgrade(){
  const isPro=plan==="PRO";
  const periodLabel=currentPeriodEnd?new Date(currentPeriodEnd).toLocaleDateString("pt-BR"):null;
 
- return <main style={{minHeight:"100vh",background:"#f5f7fb",padding:"70px 24px"}}>
-   <div style={{maxWidth:720,margin:"auto",background:"white",border:"1px solid #e4e7ec",borderRadius:22,padding:42}}>
+ return <main className="accountPage"><div className="accountShell">
+   <div className="accountCard">
      <a href="/dashboard" className="accountBack">← Voltar ao painel</a>
      <small className="accountEyebrow">IMPORTAFÁCIL PRO</small>
      <h1 className="accountTitle">{isPro?"Seu PRO está ativo.":"Mais decisões. Menos planilhas."}</h1>
@@ -85,5 +85,5 @@ export default function Upgrade(){
      </>}
      {error&&<p className="productError">{error}</p>}
    </div>
- </main>
+ </div></main>
 }
