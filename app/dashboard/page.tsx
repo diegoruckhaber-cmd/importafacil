@@ -124,12 +124,15 @@ export default function Dashboard() {
 
   return (
     <main style={{ minHeight: "100vh", background: "#f5f7fb" }}>
-      <header style={{ background: "#0b1530", borderBottom: "1px solid #ffffff14" }}>
-        <div style={{ maxWidth: 1180, margin: "auto", padding: "18px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
-          <a href="/" style={{ fontWeight: 900, color: "#fff", textDecoration: "none", fontSize: 20 }}>ImportaFácil</a>
-          <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
-            <span style={{ fontSize: 13, color: "#bcd0ff" }}>{accountLabel}</span>
-            <button onClick={logout} style={{ border: 0, background: "transparent", cursor: "pointer", color: "#fff", fontWeight: 700 }}>Sair</button>
+      <header className="productTopbar" data-product-nav="dashboard">
+        <div className="wrap productNav">
+          <a className="logo" href="/">ImportaFácil</a>
+          <div className="productNavLinks">
+            <a href="/simulacao-v2">Nova simulação</a>
+            <a href="/comparar">Comparar</a>
+            <a className="navCta" href="/upgrade">PRO</a>
+            <span className="productAccount">{accountLabel}</span>
+            <button className="productLogout" onClick={logout}>Sair</button>
           </div>
         </div>
       </header>
