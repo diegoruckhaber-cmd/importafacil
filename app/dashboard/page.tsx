@@ -151,6 +151,7 @@ export default function Dashboard() {
             {!isFree && insights.latestV2Id && <a href={"/relatorio?id=" + insights.latestV2Id} style={secondary}>Relatório mais recente</a>}
             {isFree && <a href="/upgrade" style={primary}>Assinar PRO</a>}
             {!isFree && <a href="/upgrade" style={secondary}>Minha assinatura</a>}
+            <a href="/pilot" style={secondary}>Avaliar piloto</a>
             <a href="/feedback?from=/dashboard" style={secondary}>Enviar feedback</a>
             <a href="/simulacao-v2" style={primary}>Nova simulação</a>
           </div>
