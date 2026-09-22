@@ -354,8 +354,6 @@ def extract_index_entries(soup):
         seen_urls.add(url)
         entries.append({"url": url, "origins": origins})
 
-    if len(entries) < 40:
-        raise RuntimeError(f"Tabela oficial incompleta: apenas {len(entries)} medidas encontradas.")
     return entries
 
 
@@ -369,6 +367,8 @@ def main():
     index.raise_for_status()
     soup = BeautifulSoup(index.text, "html.parser")
     entries = extract_index_entries(soup)
+    if len(entries) < 40:
+        raise RuntimeError(f"Tabela oficial incompleta: apenas {len(entries)} medidas encontradas.")
 
     measures, failures = [], []
     for entry in entries:
