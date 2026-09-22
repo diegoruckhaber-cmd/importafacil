@@ -13,6 +13,11 @@ INDEX_URL = "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/defesa-com
 OUTPUT = "data/defesa-comercial-mdic.json"
 BASE_HOST = "www.gov.br"
 HEADERS = {"User-Agent": "ImportaFacil/1.0 (official MDIC catalog synchronizer)"}
+OFFICIAL_URL_ALIASES = {
+    # The current MDIC master table still emits this legacy restricted href,
+    # while the same active GNO measure is publicly available at /aco-gno.
+    "/laminados-planos-de-aco-ao-silicio-aco-gno": "/aco-gno",
+}
 
 UNIT_PATTERNS = [
     ("USD_PER_THOUSAND_UNITS", re.compile(r"(?:US\$|USD)\s*([\d.,]+)\s*/\s*(?:mil\s*unidades|milheiro|milheiros)", re.I)),
@@ -342,6 +347,11 @@ def extract_index_entries(soup):
             continue
         url = urljoin(INDEX_URL, anchor["href"])
         parsed = urlparse(url)
+        for legacy_suffix, canonical_suffix in OFFICIAL_URL_ALIASES.items():
+            if parsed.path.rstrip("/").endswith(legacy_suffix):
+                url = urljoin(INDEX_URL.rstrip("/") + "/", canonical_suffix.lstrip("/"))
+                parsed = urlparse(url)
+                break
         if (
             parsed.netloc != BASE_HOST
             or "/medidas-em-vigor/medidas-em-vigor/" not in parsed.path
