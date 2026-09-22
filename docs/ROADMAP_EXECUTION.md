@@ -24,28 +24,31 @@ Este documento é o checklist oficial de execução do projeto. A regra operacio
   - [ ] Confirmar entitlement PRO na interface.
   - Critério de saída: uma assinatura real comprovada ponta a ponta.
 
-- [ ] 2. Consistência visual e UX
-  - [ ] Home.
-  - [ ] Autenticação.
-  - [ ] Simulador.
-  - [ ] Resultado e alertas.
-  - [ ] Histórico.
-  - [ ] Comparador.
-  - [ ] Upgrade/assinatura.
-  - [ ] Relatório/PDF.
-  - [ ] Responsividade mobile.
+- [x] 2. Consistência visual e UX
+  - [x] Home.
+  - [x] Autenticação.
+  - [x] Simulador.
+  - [x] Resultado e alertas.
+  - [x] Histórico.
+  - [x] Comparador.
+  - [x] Upgrade/assinatura.
+  - [x] Relatório/PDF.
+  - [x] Responsividade mobile.
+  - Evidência: Stage 69, CI verde, preview READY e produção READY no commit 8c6f6c53c81920520c27d00412fde3ab652ef382.
   - Critério de saída: fluxo principal consistente e sem bloqueadores visuais.
 
-- [ ] 3. Prontidão operacional e fontes
-  - [ ] Revalidar status das fontes MDIC/federais.
-  - [ ] Confirmar freshness e fail-closed.
-  - [ ] Garantir que falhas recentes de auditoria reduzam readiness.
-  - [ ] Revisar sinais operacionais no dashboard/readiness.
+- [x] 3. Prontidão operacional e fontes
+  - [x] Revalidar status das fontes MDIC/federais.
+  - [x] Confirmar freshness e fail-closed.
+  - [x] Garantir que falhas recentes de auditoria reduzam readiness.
+  - [x] Revisar sinais operacionais no dashboard/readiness.
+  - Evidência: Stage 70, produção retornando HTTP 200, operations.status=ready, sem blockers; auditorias MDIC/federal passaram no commit 473911993c681da84aff2921b0cd765326b4fb85.
   - Critério de saída: sistema não declara prontidão quando evidência crítica está ausente, vencida ou falhou.
 
 - [ ] 4. Teste E2E completo
-  - [ ] Criar/usar conta de teste.
-  - [ ] Fazer primeira simulação.
+  - [ ] Criar/usar conta de teste autenticada em produção.
+  - [x] Contrato do simulador e superfícies públicas validados; falta sessão real para a jornada autenticada.
+  - [ ] Fazer primeira simulação autenticada em produção.
   - [ ] Calcular.
   - [ ] Salvar.
   - [ ] Reabrir pelo histórico.
@@ -54,7 +57,8 @@ Este documento é o checklist oficial de execução do projeto. A regra operacio
   - [ ] Validar limites FREE.
   - [ ] Validar benefícios PRO.
   - [ ] Validar erros e casos de borda.
-  - Critério de saída: jornada principal reproduzível sem intervenção técnica.
+  - Evidência atual: todas as superfícies principais respondem 200 em produção; 6 registros históricos existem, porém 0 são V2 e 0 possuem server_execution, portanto não contam como prova pós-cutover.
+  - Critério de saída: jornada principal autenticada reproduzível sem intervenção técnica.
 
 - [ ] 5. Piloto acompanhado
   - [ ] Definir grupo pequeno de usuários reais.
