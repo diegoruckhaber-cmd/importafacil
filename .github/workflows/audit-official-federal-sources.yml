@@ -1,6 +1,16 @@
 name: Audit official federal fiscal sources
 
 on:
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/audit-official-federal-sources.yml"
+      - "lib/operational-readiness.ts"
+      - "lib/federal-source-freshness-gate-2026.ts"
+      - "lib/federal-tariff-source-manifest-2026.ts"
+      - "scripts/ingest-official-fiscal-data.py"
+      - "scripts/inspect-federal-tariff-workbook.py"
+      - "data/federal/**"
   schedule:
     - cron: "23 6 * * 1"
   workflow_dispatch:
