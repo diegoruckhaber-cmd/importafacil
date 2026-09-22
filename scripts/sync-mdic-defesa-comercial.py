@@ -65,13 +65,18 @@ def normalize_origin(value):
         "coreia": "Coreia do Sul", "coreia do sul": "Coreia do Sul", "coréia do sul": "Coreia do Sul",
         "japao": "Japão", "japão": "Japão",
         "tailândia": "Tailândia", "tailandia": "Tailândia", "reino da tailândia": "Tailândia", "do reino da tailândia": "Tailândia",
-        "taipé chinês": "Taipé Chinês", "taipe chines": "Taipé Chinês",
+        "taipé chinês": "Taipé Chinês", "taipe chines": "Taipé Chinês", "taipe chinês": "Taipé Chinês",
         "eua": "Estados Unidos da América", "estados unidos": "Estados Unidos da América", "estados unidos da américa": "Estados Unidos da América", "united states": "Estados Unidos da América",
         "união europeia": "União Europeia", "uniao europeia": "União Europeia",
         "holanda": "Países Baixos", "países baixos": "Países Baixos",
         "república popular da china": "China", "republica popular da china": "China", "da china": "China", "china": "China",
         "da malásia": "Malásia", "malásia": "Malásia", "malasia": "Malásia",
         "da ucrânia": "Ucrânia", "ucrânia": "Ucrânia", "ucrania": "Ucrânia",
+        "do paquistão": "Paquistão", "paquistão": "Paquistão", "paquistao": "Paquistão",
+        "da turquia": "Turquia", "turquia": "Turquia",
+        "do egito": "Egito", "egito": "Egito",
+        "dos emirados árabes unidos": "Emirados Árabes Unidos", "emirados árabes unidos": "Emirados Árabes Unidos",
+        "do méxico": "México", "méxico": "México", "mexico": "México",
     }
     return replacements.get(value, value.title())
 
@@ -314,6 +319,46 @@ def parse_page(url, html, active_origins=None):
     }
 
 
+def extract_index_entries(soup):
+    active_table = None
+    for table in soup.find_all("table"):
+        header_cells = table.find_all("th")
+        header = clean_text(" | ".join(cell.get_text(" ", strip=True) for cell in header_cells)).lower()
+        if all(term in header for term in ("produto", "medida", "origem")):
+            active_table = table
+            break
+    if active_table is None:
+        raise RuntimeError("Tabela oficial de medidas em vigor não encontrada no índice MDIC.")
+
+    entries = []
+    seen_urls = set()
+    for row in active_table.find_all("tr"):
+        cells = row.find_all(["th", "td"], recursive=False)
+        if len(cells) < 3:
+            continue
+        anchor = cells[0].find("a", href=True)
+        if not anchor:
+            continue
+        url = urljoin(INDEX_URL, anchor["href"])
+        parsed = urlparse(url)
+        if (
+            parsed.netloc != BASE_HOST
+            or "/medidas-em-vigor/medidas-em-vigor/" not in parsed.path
+            or url.rstrip("/") == INDEX_URL.rstrip("/")
+            or url in seen_urls
+        ):
+            continue
+        origins = split_origins(clean_text(cells[2].get_text(" ", strip=True)))
+        if not origins:
+            raise RuntimeError(f"Origem ativa ausente na tabela oficial para {url}.")
+        seen_urls.add(url)
+        entries.append({"url": url, "origins": origins})
+
+    if len(entries) < 40:
+        raise RuntimeError(f"Tabela oficial incompleta: apenas {len(entries)} medidas encontradas.")
+    return entries
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", default=OUTPUT)
@@ -323,25 +368,7 @@ def main():
     index = session.get(INDEX_URL, timeout=60)
     index.raise_for_status()
     soup = BeautifulSoup(index.text, "html.parser")
-    entries = []
-    seen_urls = set()
-    for anchor in soup.find_all("a", href=True):
-        url = urljoin(INDEX_URL, anchor["href"])
-        parsed = urlparse(url)
-        if parsed.netloc != BASE_HOST or "/medidas-em-vigor/medidas-em-vigor/" not in parsed.path or url.rstrip("/") == INDEX_URL.rstrip("/"):
-            continue
-        if url in seen_urls:
-            continue
-
-        index_origins = []
-        row = anchor.find_parent("tr")
-        if row:
-            cells = [clean_text(cell.get_text(" ", strip=True)) for cell in row.find_all(["th", "td"])]
-            if len(cells) >= 3:
-                index_origins = split_origins(cells[2])
-
-        seen_urls.add(url)
-        entries.append({"url": url, "origins": index_origins})
+    entries = extract_index_entries(soup)
 
     measures, failures = [], []
     for entry in entries:
