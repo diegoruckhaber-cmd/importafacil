@@ -52,6 +52,11 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const requestedMode = new URLSearchParams(window.location.search).get("mode");
+    if (requestedMode === "login" || requestedMode === "signup" || requestedMode === "forgot") {
+      setMode(requestedMode);
+    }
+
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
     const error = hash.get("error_description") || hash.get("error");
     const recoveryFromHash = hash.get("type") === "recovery";
@@ -159,7 +164,7 @@ export default function AuthPage() {
   return (
     <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, background: "#f5f7fb" }}>
       <section style={{ width: "100%", maxWidth: 460, background: "white", border: "1px solid #e4e7ec", borderRadius: 20, padding: 32, boxShadow: "0 16px 50px rgba(0,0,0,.06)" }}>
-        <a href="/" style={{ fontWeight: 800, color: "#111", textDecoration: "none" }}>← ImportaFácil</a>
+        <a href="/" style={{ fontWeight: 800, color: "#315fe2", textDecoration: "none" }}>← ImportaFácil</a>
         <h1 style={{ fontSize: 32, margin: "28px 0 8px" }}>
           {mode === "signup" ? "Crie sua conta" : mode === "login" ? "Entrar no ImportaFácil" : mode === "forgot" ? "Recuperar acesso" : "Criar nova senha"}
         </h1>
