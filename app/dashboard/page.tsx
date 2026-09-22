@@ -61,9 +61,10 @@ export default function Dashboard() {
         }),
         supabase
           .from("simulations")
-          .select("id,name,input,result,created_at")
+          .select("id,name,input,result,created_at,server_execution")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false })
+          .order("id", { ascending: false })
           .limit(100),
       ]);
 
@@ -80,7 +81,7 @@ export default function Dashboard() {
       setItems((simulationsResponse.data || []) as SavedSimulationRecord[]);
       const params = new URLSearchParams(window.location.search);
       if (params.get("checkout") === "success") {
-        setNotice("Pagamento recebido pelo checkout. Seu plano será atualizado após a confirmação da Stripe.");
+        setNotice("Retorno do checkout recebido. O acesso PRO depende da confirmação do pagamento pela Stripe.");
       }
       if (params.get("checkout") === "cancelled") {
         setNotice("Checkout cancelado. Nenhuma alteração foi feita na sua conta.");
@@ -88,6 +89,20 @@ export default function Dashboard() {
       setLoading(false);
     })();
   }, []);
+
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  async function loadMore() {
+    setLoadingMore(true);
+    try {
+      const { data, error } = await supabase.from("simulations").select("id,name,input,result,created_at,server_execution")
+        .order("created_at", { ascending: false }).order("id", { ascending: false }).range(items.length, items.length + 99);
+      if (error) throw error;
+      setItems(current => [...current, ...(data || [])].filter((x, i, all) => all.findIndex(y => y.id === x.id) === i));
+      setHasMore((data || []).length === 100);
+    } catch { setNotice("Não foi possível carregar mais simulações. Tente novamente."); }
+    finally { setLoadingMore(false); }
+  }
 
   async function logout() {
     await supabase.auth.signOut();
@@ -140,7 +155,7 @@ export default function Dashboard() {
 
         {!loading && (
           <div style={metricGrid}>
-            <Metric label="Simulações visíveis" value={String(insights.totalSaved)} detail={isFree ? "limite FREE: 3" : "histórico PRO"} />
+            <Metric label="Simulações visíveis" value={String(insights.totalSaved)} detail={isFree ? "limite FREE: 3" : "simulações carregadas"} />
             <Metric label="Simulation V2" value={String(insights.v2Count)} detail="snapshots do motor canônico" />
             <Metric label="Pontos de atenção" value={String(insights.attentionCount)} detail="alerta, validação ou bloqueio" />
             <Metric label="Último custo salvo" value={insights.latestId ? br(insights.latestCostBrl) : "—"} detail="sem recalcular o snapshot" />
@@ -150,7 +165,7 @@ export default function Dashboard() {
         <div style={{ background: "white", border: "1px solid #e5e5df", borderRadius: 18, padding: 18, margin: "22px 0" }}>
           <div style={{ display: "grid", gridTemplateColumns: "minmax(220px,1fr) minmax(220px,320px)", gap: 12 }}>
             <label style={label}>
-              Buscar no histórico
+              Buscar nas simulações carregadas
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
@@ -220,6 +235,7 @@ export default function Dashboard() {
             Você atingiu o limite de 3 simulações salvas no plano FREE. <a href="/upgrade" style={{ fontWeight: 800, color: "#111" }}>Assinar PRO</a> libera o histórico completo, comparação e relatórios.
           </div>
         )}
+        {!isFree && hasMore && <button disabled={loadingMore} onClick={loadMore}>{loadingMore ? "Carregando..." : "Carregar mais simulações"}</button>}
       </section>
     </main>
   );

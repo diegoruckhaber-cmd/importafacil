@@ -76,7 +76,7 @@ assert(state);
 assert.match(state.legalFoundation ?? "", /fundamento jurídico estadual/);
 assert.match(state.reason ?? "", /valid_concession_required/);
 
-const route = fs.readFileSync("app/api/simulation-v2/route.ts", "utf8");
+const route = fs.readFileSync("app/api/simulation-v2/route.ts", "utf8") + fs.readFileSync("lib/server-simulation-v2.ts", "utf8");
 assert.match(route, /buildSimulationV2LegalTrace/);
 assert.match(route, /legalTrace/);
 assert.match(route, /attentionPoints/);

@@ -40,5 +40,30 @@ class ParserRegression(unittest.TestCase):
         item = page("China e Malásia", "<p>Empresa: US$ 475,15/t</p>")
         self.assertTrue(all(not options for options in item["exportersByOrigin"].values()))
 
+    def test_table_origin_does_not_leak_into_unlabelled_paragraphs(self):
+        item = page("China e Malásia", """<p>Empresa chinesa: US$ 475,15/t</p>
+        <table><tr><th>Origem</th><th>Produtor/Exportador</th><th>Direito US$/t</th></tr>
+        <tr><td>Malásia</td><td>Empresa malaia</td><td>2.281,39</td></tr></table>""")
+        self.assertEqual(item["exportersByOrigin"]["china"], [])
+        self.assertFalse(any(o["rate"] == 475.15 for o in item["exportersByOrigin"]["malásia"]))
+
+    def test_origin_does_not_leak_between_tables(self):
+        item = page("China e Malásia", """<table>
+        <tr><th>Origem</th><th>Exportador</th><th>Direito US$/t</th></tr>
+        <tr><td>Malásia</td><td>A</td><td>100,00</td></tr></table>
+        <table><tr><th>Exportador</th><th>Direito US$/t</th></tr>
+        <tr><td>Origem não identificada</td><td>200,00</td></tr></table>""")
+        self.assertFalse(any(o["rate"] == 200 for o in item["exportersByOrigin"]["malásia"]))
+
+    def test_restricted_page_is_a_collection_failure(self):
+        with self.assertRaisesRegex(ValueError, "conteúdo restrito"):
+            mdic.parse_page(mdic.INDEX_URL, "<h1>Conteúdo Restrito</h1><p>É necessário autenticar para visualizar essa página.</p>")
+
+    def test_second_header_row_unit(self):
+        item = page("China", """<table><tr><th>Produtor/Exportador</th><th>Direito antidumping</th></tr>
+        <tr><td></td><td>alíquota ad valorem</td></tr>
+        <tr><td>Empresa A</td><td>78,0</td></tr></table>""")
+        self.assertEqual(item["exportersByOrigin"]["china"], [{"exporter":"Empresa A", "rate":78, "unit":"AD_VALOREM", "collectionSuspended":False}])
+
 if __name__ == "__main__":
     unittest.main()

@@ -135,6 +135,8 @@ def parse_options(soup, text, origins):
 
     # 1) Prefer real HTML tables. This covers the most structured MDIC pages.
     for table in soup.find_all("table"):
+        # A preceding table cannot establish the origin of an unrelated table.
+        current_origin = origins[0] if len(origins) == 1 else None
         rows = []
         for tr in table.find_all("tr"):
             cells = [clean_text(c.get_text(" ", strip=True)) for c in tr.find_all(["th", "td"])]
@@ -145,9 +147,15 @@ def parse_options(soup, text, origins):
         header = " | ".join(rows[0]).lower()
         if "direito" not in header or not any(k in header for k in ("produtor", "exportador", "origem")):
             continue
+        table["data-mdic-parsed"] = "true"
         header_unit = detect_header_unit(header)
         for cells in rows[1:]:
             row_text = " | ".join(cells)
+            # MDIC also uses a second header row containing only the unit.
+            if not header_unit and len([cell for cell in cells if cell]) == 1:
+                header_unit = detect_header_unit(row_text)
+                if header_unit:
+                    continue
             if re.search(r"prazo\s+da\s+vig[eê]ncia|prazo\s+de\s+vig[eê]ncia", row_text, re.I):
                 continue
             detected = detect_rate(cells, header_unit)
@@ -168,7 +176,15 @@ def parse_options(soup, text, origins):
 
     # 2) Parse the rendered "Direito Aplicado" section. MDIC has pages where the
     # data is rendered as plain text rather than an HTML table.
-    lines = [clean_text(x) for x in text.splitlines() if clean_text(x)]
+    paragraphs = BeautifulSoup(str(soup), "html.parser")
+    for table in paragraphs.find_all("table", attrs={"data-mdic-parsed": "true"}):
+        table.replace_with(paragraphs.new_tag("hr", attrs={"data-origin-boundary": "true"}))
+    for boundary in paragraphs.find_all("hr", attrs={"data-origin-boundary": "true"}):
+        boundary.replace_with("\n__MDIC_TABLE_BOUNDARY__\n")
+    lines = [clean_text(x) for x in paragraphs.get_text("\n", strip=True).splitlines() if clean_text(x)]
+    # The table pass may end on another country (e.g. Malaysia for automotive
+    # glass). Never attach unlabelled paragraphs to that last country.
+    current_origin = origins[0] if len(origins) == 1 else None
     start = next((i for i, line in enumerate(lines) if re.match(r"^Direito\s+Aplicado\s*:?$", line, re.I)), None)
     if start is not None:
         section_lines = []
@@ -179,6 +195,9 @@ def parse_options(soup, text, origins):
         section_text = " | ".join(section_lines[:4])
         section_unit = detect_header_unit(section_text)
         for line in section_lines:
+            if line == "__MDIC_TABLE_BOUNDARY__":
+                current_origin = origins[0] if len(origins) == 1 else None
+                continue
             if re.search(r"^(Fonte|Prazo|Resumo do Caso|Processos relacionados)\b", line, re.I):
                 continue
             cells = [clean_text(x) for x in re.split(r"\s*\|\s*", line) if clean_text(x)]
@@ -221,6 +240,8 @@ def parse_options(soup, text, origins):
 
 def parse_page(url, html):
     soup = BeautifulSoup(html, "html.parser")
+    if soup.find(string=re.compile(r"É necessário autenticar para visualizar essa página")):
+        raise ValueError("Fonte oficial retornou conteúdo restrito, não uma medida pública.")
     h1 = soup.find("h1")
     title = clean_text(h1.get_text(" ", strip=True)) if h1 else ""
     # Inline formatting must not split a currency, rate or exporter into
@@ -304,8 +325,8 @@ def main():
         for item in measures if any(not opts for opts in item["exportersByOrigin"].values())
     ]
     print(json.dumps({"indexPages": len(urls), "antidumpingMeasures": len(measures), "missingExporterOptions": missing_options[:50], "missingExporterOptionCount": len(missing_options), "failures": failures}, ensure_ascii=False, indent=2))
-    if failures:
-        raise RuntimeError(f"Crawl incompleto: {len(failures)} páginas oficiais não puderam ser coletadas.")
+    if failures or missing_options:
+        raise RuntimeError(f"Candidato não reconciliado: {len(failures)} falhas de coleta e {len(missing_options)} medidas com origens sem direito resolvido.")
 
 
 if __name__ == "__main__":

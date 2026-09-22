@@ -16,7 +16,7 @@ assert.match(lab, /redirect\("\/simulacao-v2"\)/);
 assert.doesNotMatch(lab, /federal-tax-resolution/);
 assert.doesNotMatch(lab, /resolveFederalTaxes\s*\(/);
 
-const v2Route = read("app/api/simulation-v2/route.ts");
+const v2Route = read("app/api/simulation-v2/route.ts") + read("lib/server-simulation-v2.ts");
 assert.match(v2Route, /runImportSimulationV2/);
 
 const unified = read("lib/unified-import-simulation.ts");

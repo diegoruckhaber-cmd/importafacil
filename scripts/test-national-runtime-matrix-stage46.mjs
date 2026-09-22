@@ -41,7 +41,7 @@ function callSimulation(destinationUf, itemOverrides = {}) {
   });
 }
 
-const routeSource = fs.readFileSync("app/api/simulation-v2/route.ts", "utf8");
+const routeSource = fs.readFileSync("app/api/simulation-v2/route.ts", "utf8") + fs.readFileSync("lib/server-simulation-v2.ts", "utf8");
 assert.match(routeSource, /runImportSimulationV2/);
 assert.match(routeSource, /const result = runImportSimulationV2\(body\)/);
 assert.match(routeSource, /buildSimulationV2LegalTrace\(result\)/);
