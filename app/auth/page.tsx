@@ -162,13 +162,13 @@ export default function AuthPage() {
   const isForgot = mode === "forgot";
 
   return (
-    <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, background: "#f5f7fb" }}>
-      <section style={{ width: "100%", maxWidth: 460, background: "white", border: "1px solid #e4e7ec", borderRadius: 20, padding: 32, boxShadow: "0 16px 50px rgba(0,0,0,.06)" }}>
-        <a href="/" style={{ fontWeight: 800, color: "#315fe2", textDecoration: "none" }}>← ImportaFácil</a>
-        <h1 style={{ fontSize: 32, margin: "28px 0 8px" }}>
+    <main className="accountPage"><div className="accountShell">
+      <section className="accountCard">
+        <a href="/" className="accountBack">← ImportaFácil</a>
+        <h1 className="accountTitle">
           {mode === "signup" ? "Crie sua conta" : mode === "login" ? "Entrar no ImportaFácil" : mode === "forgot" ? "Recuperar acesso" : "Criar nova senha"}
         </h1>
-        <p style={{ color: "#666", marginBottom: 24 }}>
+        <p className="accountIntro">
           {mode === "signup"
             ? "Salve suas simulações e acompanhe sua evolução."
             : mode === "login"
@@ -178,7 +178,7 @@ export default function AuthPage() {
                 : "Use uma senha nova e forte para proteger sua conta."}
         </p>
 
-        <form onSubmit={submit} style={{ display: "grid", gap: 14 }}>
+        <form onSubmit={submit} className="accountForm">
           {mode === "signup" && <input required aria-label="Nome" autoComplete="name" placeholder="Seu nome" value={name} onChange={e => setName(e.target.value)} style={input} />}
           {!isRecovery && <input required aria-label="E-mail" type="email" autoComplete="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} style={input} />}
           {!isForgot && (
@@ -225,20 +225,20 @@ export default function AuthPage() {
           </button>
         </form>
 
-        {message && <p style={{ marginTop: 16, padding: 12, borderRadius: 10, background: "#f8faff", lineHeight: 1.45 }}>{message}</p>}
+        {message && <p className="accountMessage">{message}</p>}
 
         {mode === "login" && (
-          <button onClick={() => switchMode("forgot")} style={linkButton}>
+          <button onClick={() => switchMode("forgot")} className="accountLinkButton">
             Esqueci minha senha
           </button>
         )}
         {!isRecovery && (
-          <button onClick={() => switchMode(mode === "signup" ? "login" : "signup")} style={linkButton}>
+          <button onClick={() => switchMode(mode === "signup" ? "login" : "signup")} className="accountLinkButton">
             {mode === "signup" ? "Já tenho uma conta → Entrar" : "Ainda não tenho conta → Criar conta"}
           </button>
         )}
         {mode === "forgot" && (
-          <button onClick={() => switchMode("login")} style={linkButton}>
+          <button onClick={() => switchMode("login")} className="accountLinkButton">
             ← Voltar para entrar
           </button>
         )}
