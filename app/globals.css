@@ -69,3 +69,26 @@ footer a{color:inherit}
 .billingFine{font-size:12px;color:#7b8494;margin-top:18px;line-height:1.5}
 .priceLine{display:flex;align-items:baseline;gap:8px;margin-bottom:20px}.priceLine strong{font-size:36px}.priceLine span{color:#667085}
 @media(max-width:640px){.accountPage{padding:28px 16px 48px}.accountCard{padding:24px 20px;border-radius:18px}.upgradeBenefits{grid-template-columns:1fr}}
+
+
+/* Stage 69 — saved results, reports and comparison */
+.productContentPage{min-height:100vh;background:#f5f7fb;padding:40px 22px 70px}
+.productContentShell{max-width:1100px;margin:0 auto}
+.productContentShell.wide{max-width:1200px}
+.productPageTop{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;gap:12px;flex-wrap:wrap}
+.productPageActions{display:flex;gap:8px;flex-wrap:wrap}
+.productArticle{background:#fff;padding:36px;border-radius:18px;border:1px solid #e4e7ec;box-shadow:0 14px 38px #10182808}
+.productEyebrow{font-size:10px;letter-spacing:.14em;font-weight:900;color:#667085}
+.productPageTitle{font-size:clamp(32px,5vw,42px);line-height:1.05;letter-spacing:-.03em;margin:8px 0}
+.productMeta{color:#7b8494;font-size:13px}
+.productLead{color:#667085;max-width:820px;line-height:1.6}
+.productLocked{max-width:760px;margin:30px auto;background:#fff;border-radius:22px;padding:38px;border:1px solid #e4e7ec;box-shadow:0 14px 38px #10182808}
+.productChoiceList{display:grid;gap:10px;margin:24px 0}
+.productChoice{display:flex;gap:12px;align-items:center;padding:16px;border:1px solid #e4e7ec;border-radius:14px;background:#fff;cursor:pointer}
+.productChoice:hover{border-color:#c8d7ff;background:#fbfcff}
+.productChoice strong:last-child{margin-left:auto}
+.productComparison{background:#fff;border:1px solid #e4e7ec;border-radius:18px;padding:22px;overflow-x:auto}
+.productComparisonHighlight{margin-bottom:18px;padding:16px;border-radius:12px;background:#eef8f0;border:1px solid #cce7cf}
+.productLoading{min-height:45vh;display:grid;place-items:center;background:#f5f7fb;color:#667085}
+@media(max-width:640px){.productContentPage{padding:26px 16px 48px}.productArticle,.productLocked{padding:22px 18px}.productChoice{align-items:flex-start;flex-wrap:wrap}.productChoice strong:last-child{width:100%;margin-left:28px}}
+@media print{.productPageTop{display:none!important}.productContentPage{padding:0;background:#fff}.productArticle{border:0;box-shadow:none;padding:0}}
