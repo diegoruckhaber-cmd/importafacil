@@ -174,13 +174,14 @@ export default function AuthPage() {
         </p>
 
         <form onSubmit={submit} style={{ display: "grid", gap: 14 }}>
-          {mode === "signup" && <input required autoComplete="name" placeholder="Seu nome" value={name} onChange={e => setName(e.target.value)} style={input} />}
-          {!isRecovery && <input required type="email" autoComplete="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} style={input} />}
+          {mode === "signup" && <input required aria-label="Nome" autoComplete="name" placeholder="Seu nome" value={name} onChange={e => setName(e.target.value)} style={input} />}
+          {!isRecovery && <input required aria-label="E-mail" type="email" autoComplete="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} style={input} />}
           {!isForgot && (
             <input
               required
               minLength={mode === "signup" || isRecovery ? 10 : 6}
               type="password"
+              aria-label={mode === "login" ? "Senha" : "Nova senha"}
               autoComplete={mode === "login" ? "current-password" : "new-password"}
               placeholder={mode === "login" ? "Sua senha" : "Senha forte (mínimo 10 caracteres)"}
               value={password}
@@ -193,6 +194,7 @@ export default function AuthPage() {
               required
               minLength={10}
               type="password"
+              aria-label="Confirmar nova senha"
               autoComplete="new-password"
               placeholder="Confirme a nova senha"
               value={passwordConfirmation}
