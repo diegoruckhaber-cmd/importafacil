@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "17 5 * * *"
   workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/sync-mdic-defesa-comercial.py"
+      - "scripts/test-mdic-parser.py"
+      - ".github/workflows/sync-mdic-defesa-comercial.yml"
 
 # This workflow intentionally has no contents:write permission and never pushes
 # fiscal data. It collects and validates a candidate catalog only. Publication
