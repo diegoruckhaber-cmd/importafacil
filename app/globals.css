@@ -92,3 +92,21 @@ footer a{color:inherit}
 .productLoading{min-height:45vh;display:grid;place-items:center;background:#f5f7fb;color:#667085}
 @media(max-width:640px){.productContentPage{padding:26px 16px 48px}.productArticle,.productLocked{padding:22px 18px}.productChoice{align-items:flex-start;flex-wrap:wrap}.productChoice strong:last-child{width:100%;margin-left:28px}}
 @media print{.productPageTop{display:none!important}.productContentPage{padding:0;background:#fff}.productArticle{border:0;box-shadow:none;padding:0}}
+
+
+/* Stage 73 — controlled pilot pulse */
+.pilotForm{display:grid;gap:20px;margin-top:28px}
+.pilotFieldset{border:1px solid #e4e7ec;border-radius:14px;padding:16px;margin:0}
+.pilotFieldset legend{padding:0 7px;font-size:13px;font-weight:850;color:#344054}
+.pilotScores{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.pilotScores label{cursor:pointer}
+.pilotScores input{position:absolute;opacity:0;pointer-events:none}
+.pilotScores span{min-height:62px;border:1px solid #d0d5dd;border-radius:10px;display:grid;place-items:center;text-align:center;font-weight:900;background:#fff}
+.pilotScores small{display:block;font-size:9px;color:#667085;font-weight:600;margin-top:2px}
+.pilotScores input:checked+span{border-color:#2b65f7;background:#eef4ff;color:#2443a8}
+.pilotScores input:focus-visible+span{outline:3px solid #315fe2;outline-offset:2px}
+.pilotFieldset>label{display:inline-flex;align-items:center;gap:8px;margin:6px 18px 0 0;font-size:14px;color:#344054}
+.pilotLabel{display:grid;gap:7px;font-size:13px;font-weight:850;color:#344054}
+.pilotLabel span{font-weight:500;color:#7b8494}
+.pilotLabel textarea{min-height:110px;resize:vertical;border:1px solid #d0d5dd;border-radius:10px;padding:12px 13px;font:inherit}
+@media(max-width:640px){.pilotScores{grid-template-columns:1fr}.pilotScores span{min-height:48px;grid-template-columns:auto 1fr;gap:8px;justify-content:start;padding:0 14px;text-align:left}.pilotScores small{display:inline;margin:0}}
