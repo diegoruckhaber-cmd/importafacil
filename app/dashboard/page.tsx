@@ -163,7 +163,7 @@ export default function Dashboard() {
         )}
 
         <div style={{ background: "white", border: "1px solid #e4e7ec", borderRadius: 18, padding: 18, margin: "22px 0" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(220px,1fr) minmax(220px,320px)", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 12 }}>
             <label style={label}>
               Buscar nas simulações carregadas
               <input
@@ -181,7 +181,7 @@ export default function Dashboard() {
             </label>
           </div>
           <small style={{ display: "block", color: "#777", marginTop: 10 }}>
-            Os filtros atuam apenas sobre os snapshots salvos. Nenhum tributo é recalculado no painel.
+            Os filtros atuam apenas sobre os resultados salvos. Nenhum tributo é recalculado no painel.
           </small>
         </div>
 
