@@ -322,7 +322,8 @@ def parse_page(url, html, active_origins=None):
 def extract_index_entries(soup):
     active_table = None
     for table in soup.find_all("table"):
-        header_cells = table.find_all("th")
+        first_row = table.find("tr")
+        header_cells = first_row.find_all(["th", "td"], recursive=False) if first_row else []
         header = clean_text(" | ".join(cell.get_text(" ", strip=True) for cell in header_cells)).lower()
         if all(term in header for term in ("produto", "medida", "origem")):
             active_table = table
