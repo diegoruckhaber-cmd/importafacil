@@ -157,8 +157,8 @@ export default function AuthPage() {
   const isForgot = mode === "forgot";
 
   return (
-    <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, background: "#f7f7f4" }}>
-      <section style={{ width: "100%", maxWidth: 460, background: "white", border: "1px solid #e6e6df", borderRadius: 20, padding: 32, boxShadow: "0 16px 50px rgba(0,0,0,.06)" }}>
+    <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, background: "#f5f7fb" }}>
+      <section style={{ width: "100%", maxWidth: 460, background: "white", border: "1px solid #e4e7ec", borderRadius: 20, padding: 32, boxShadow: "0 16px 50px rgba(0,0,0,.06)" }}>
         <a href="/" style={{ fontWeight: 800, color: "#111", textDecoration: "none" }}>← ImportaFácil</a>
         <h1 style={{ fontSize: 32, margin: "28px 0 8px" }}>
           {mode === "signup" ? "Crie sua conta" : mode === "login" ? "Entrar no ImportaFácil" : mode === "forgot" ? "Recuperar acesso" : "Criar nova senha"}
@@ -174,13 +174,14 @@ export default function AuthPage() {
         </p>
 
         <form onSubmit={submit} style={{ display: "grid", gap: 14 }}>
-          {mode === "signup" && <input required autoComplete="name" placeholder="Seu nome" value={name} onChange={e => setName(e.target.value)} style={input} />}
-          {!isRecovery && <input required type="email" autoComplete="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} style={input} />}
+          {mode === "signup" && <input required aria-label="Nome" autoComplete="name" placeholder="Seu nome" value={name} onChange={e => setName(e.target.value)} style={input} />}
+          {!isRecovery && <input required aria-label="E-mail" type="email" autoComplete="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} style={input} />}
           {!isForgot && (
             <input
               required
               minLength={mode === "signup" || isRecovery ? 10 : 6}
               type="password"
+              aria-label={mode === "login" ? "Senha" : "Nova senha"}
               autoComplete={mode === "login" ? "current-password" : "new-password"}
               placeholder={mode === "login" ? "Sua senha" : "Senha forte (mínimo 10 caracteres)"}
               value={password}
@@ -193,6 +194,7 @@ export default function AuthPage() {
               required
               minLength={10}
               type="password"
+              aria-label="Confirmar nova senha"
               autoComplete="new-password"
               placeholder="Confirme a nova senha"
               value={passwordConfirmation}
@@ -218,7 +220,7 @@ export default function AuthPage() {
           </button>
         </form>
 
-        {message && <p style={{ marginTop: 16, padding: 12, borderRadius: 10, background: "#f1f1ec", lineHeight: 1.45 }}>{message}</p>}
+        {message && <p style={{ marginTop: 16, padding: 12, borderRadius: 10, background: "#f8faff", lineHeight: 1.45 }}>{message}</p>}
 
         {mode === "login" && (
           <button onClick={() => switchMode("forgot")} style={linkButton}>
@@ -240,6 +242,6 @@ export default function AuthPage() {
   );
 }
 
-const input: React.CSSProperties = { width: "100%", boxSizing: "border-box", padding: "13px 14px", border: "1px solid #ddd", borderRadius: 10, fontSize: 16 };
-const button: React.CSSProperties = { padding: "14px 16px", border: 0, borderRadius: 10, background: "#111", color: "white", fontSize: 16, fontWeight: 700, cursor: "pointer" };
+const input: React.CSSProperties = { width: "100%", boxSizing: "border-box", padding: "13px 14px", border: "1px solid #d0d5dd", borderRadius: 10, fontSize: 16 };
+const button: React.CSSProperties = { padding: "14px 16px", border: 0, borderRadius: 10, background: "#2b65f7", color: "white", fontSize: 16, fontWeight: 700, cursor: "pointer" };
 const linkButton: React.CSSProperties = { marginTop: 16, border: 0, background: "none", cursor: "pointer", color: "#555", padding: 0, display: "block" };

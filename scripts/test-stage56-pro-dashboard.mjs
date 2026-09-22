@@ -24,7 +24,7 @@ const page=fs.readFileSync("app/dashboard/page.tsx","utf8");
 assert.match(page,/Painel de simulações/);
 assert.match(page,/Pontos de atenção/);
 assert.match(page,/Último custo salvo/);
-assert.match(page,/Status V2/);
+assert.match(page,/Status da simulação/);
 assert.match(page,/Relatório mais recente/);
 assert.match(page,/Nenhum tributo é recalculado/);
 assert.match(page,/items\.slice\(0, 3\)/);
