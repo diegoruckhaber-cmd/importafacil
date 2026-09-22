@@ -7,7 +7,7 @@ export default function HomePage() {
           <nav aria-label="Navegação principal" className="marketingNav">
             <a href="#como-funciona">Como funciona</a>
             <a href="#pro">Planos</a>
-            <a href="/auth">Entrar</a>
+            <a href="/auth?mode=login">Entrar</a>
             <a className="navCta" href="/simulacao-v2">Simular grátis</a>
           </nav>
         </div>
