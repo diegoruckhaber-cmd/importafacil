@@ -78,6 +78,8 @@ def normalize_origin(value):
 
 def split_origins(value):
     value = re.sub(r"\([^)]*\)", "", value)
+    value = re.sub(r"\be\s+estendid[ao]s?\s+[àa]s?\s+importa[cç][oõ]es\s+d[ae]\s+", " e ", value, flags=re.I)
+    value = re.sub(r"\bextendid[ao]s?\s+[àa]s?\s+importa[cç][oõ]es\s+d[ae]\s+", "", value, flags=re.I)
     parts = re.split(r",|;|\s+e\s+", value)
     return [normalize_origin(x) for x in parts if x.strip()]
 
@@ -110,11 +112,19 @@ def detect_rate(cells, header_unit=None):
         for cell in reversed(cells):
             if re.search(r"prazo|vig[eê]ncia|data", cell, re.I):
                 continue
-            match = re.search(r"(?<![\d.,])([\d]{1,3}(?:\.\d{3})*(?:,\d+)?|[\d]+(?:,\d+)?)\s*%?\s*$", cell)
+            match = re.search(r"(?<![\d.,])([\d]{1,3}(?:\.\d{3})*(?:,\d+)?|[\d]+(?:,\d+)?)\s*\*?\s*%?\s*$", cell)
             if match:
                 rate = number(match.group(1))
                 if rate is not None:
                     return header_unit, rate
+    return None
+
+
+def source_backed_unit_hint(url, text):
+    # Resolução GECEX 452/2023, art. 1º: specific duty in US$/t.
+    # The current MDIC summary omits the unit next to the amounts.
+    if url.rstrip("/").endswith("/pneus-agricolas") and re.search(r"452\s*/\s*2023|N[ºo]\s*452", text, re.I):
+        return "USD_PER_TON"
     return None
 
 
@@ -129,9 +139,15 @@ def add_option(options, origin, exporter, rate, unit, suspended=False):
     options.setdefault(key, []).append({"exporter": exporter, "rate": rate, "unit": unit, "collectionSuspended": bool(suspended)})
 
 
-def parse_options(soup, text, origins):
+def parse_options(soup, text, origins, url=""):
     options = {origin.lower(): [] for origin in origins}
     current_origin = origins[0] if len(origins) == 1 else None
+    explicit_table_origins = set()
+    suspension_footnote = any(
+        line.strip().startswith("*") and "suspens" in line.lower()
+        for line in text.splitlines()
+    )
+    source_unit_hint = source_backed_unit_hint(url, text)
 
     # 1) Prefer real HTML tables. This covers the most structured MDIC pages.
     for table in soup.find_all("table"):
@@ -158,7 +174,7 @@ def parse_options(soup, text, origins):
                     continue
             if re.search(r"prazo\s+da\s+vig[eê]ncia|prazo\s+de\s+vig[eê]ncia", row_text, re.I):
                 continue
-            detected = detect_rate(cells, header_unit)
+            detected = detect_rate(cells, header_unit or source_unit_hint)
             if not detected or detected[1] is None:
                 continue
             unit, rate = detected
@@ -168,11 +184,19 @@ def parse_options(soup, text, origins):
                     origin = current_origin
                 else:
                     current_origin = origin
+                    explicit_table_origins.add(origin.lower())
                 exporter = cells[1]
             else:
                 origin = current_origin
                 exporter = cells[0]
-            add_option(options, origin, exporter, rate, unit, "suspens" in row_text.lower())
+            add_option(
+                options,
+                origin,
+                exporter,
+                rate,
+                unit,
+                "suspens" in row_text.lower() or ("*" in row_text and suspension_footnote),
+            )
 
     # 2) Parse the rendered "Direito Aplicado" section. MDIC has pages where the
     # data is rendered as plain text rather than an HTML table.
@@ -201,7 +225,7 @@ def parse_options(soup, text, origins):
             if re.search(r"^(Fonte|Prazo|Resumo do Caso|Processos relacionados)\b", line, re.I):
                 continue
             cells = [clean_text(x) for x in re.split(r"\s*\|\s*", line) if clean_text(x)]
-            detected = detect_rate(cells or [line], section_unit)
+            detected = detect_rate(cells or [line], section_unit or source_unit_hint)
             if not detected or detected[1] is None:
                 origin_heading = next((candidate for candidate in origins if normalize_origin(line) == candidate), None)
                 if origin_heading:
@@ -209,6 +233,10 @@ def parse_options(soup, text, origins):
                 continue
             unit, rate = detected
             origin = current_origin
+            if origin is None and len(origins) > 1:
+                remaining = [candidate for candidate in origins if candidate.lower() not in explicit_table_origins]
+                if len(remaining) == 1:
+                    origin = remaining[0]
             if len(cells) >= 3:
                 candidate = normalize_origin(cells[0])
                 if candidate.lower() in options:
@@ -238,7 +266,7 @@ def parse_options(soup, text, origins):
     return options
 
 
-def parse_page(url, html):
+def parse_page(url, html, active_origins=None):
     soup = BeautifulSoup(html, "html.parser")
     if soup.find(string=re.compile(r"É necessário autenticar para visualizar essa página")):
         raise ValueError("Fonte oficial retornou conteúdo restrito, não uma medida pública.")
@@ -262,13 +290,13 @@ def parse_page(url, html):
     origin_match = re.search(r"Pa[ií]s(?:es)? de [Oo]rigem:\s*([^\n]+)", text, re.I)
     if not origin_match:
         return None
-    origins = split_origins(origin_match.group(1))
+    origins = list(active_origins or split_origins(origin_match.group(1)))
     validity_match = re.search(r"Prazo (?:de|da) [Vv]ig[eê]ncia:?\s*([0-9]{2}/[0-9]{2}/[0-9]{4})", text)
     validity = validity_match.group(1) if validity_match else None
     if re.search(r"prazo\s+(?:da|de)\s+vig[eê]ncia\s*:\s*encerrada|\(medida encerrada\)", text, re.I):
         return None
     suspended = "cobrança suspensa" in text.lower() or "medida suspensa" in text.lower()
-    options = parse_options(soup, text, origins)
+    options = parse_options(soup, text, origins, url)
     legal = []
     for line in text.splitlines():
         if re.search(r"RESOLU[ÇC][AÃ]O\s+(?:GECEX|CAMEX)|CIRCULAR\s+SECEX", line, re.I):
@@ -295,27 +323,40 @@ def main():
     index = session.get(INDEX_URL, timeout=60)
     index.raise_for_status()
     soup = BeautifulSoup(index.text, "html.parser")
-    urls = []
+    entries = []
+    seen_urls = set()
     for anchor in soup.find_all("a", href=True):
         url = urljoin(INDEX_URL, anchor["href"])
         parsed = urlparse(url)
         if parsed.netloc != BASE_HOST or "/medidas-em-vigor/medidas-em-vigor/" not in parsed.path or url.rstrip("/") == INDEX_URL.rstrip("/"):
             continue
-        if url not in urls:
-            urls.append(url)
+        if url in seen_urls:
+            continue
+
+        index_origins = []
+        row = anchor.find_parent("tr")
+        if row:
+            cells = [clean_text(cell.get_text(" ", strip=True)) for cell in row.find_all(["th", "td"])]
+            if len(cells) >= 3:
+                index_origins = split_origins(cells[2])
+
+        seen_urls.add(url)
+        entries.append({"url": url, "origins": index_origins})
+
     measures, failures = [], []
-    for url in urls:
+    for entry in entries:
+        url = entry["url"]
         try:
             response = session.get(url, timeout=60)
             response.raise_for_status()
-            item = parse_page(url, response.text)
+            item = parse_page(url, response.text, entry["origins"] or None)
             if item:
                 measures.append(item)
         except Exception as exc:
             failures.append({"url": url, "error": str(exc)})
         time.sleep(0.12)
     if len(measures) < 40:
-        raise RuntimeError(f"Crawl incompleto: {len(measures)} medidas extraídas de {len(urls)} páginas.")
+        raise RuntimeError(f"Crawl incompleto: {len(measures)} medidas extraídas de {len(entries)} páginas.")
     measures.sort(key=lambda x: (x["ncm"], x["product"], x["sourceUrl"]))
     with open(args.output, "w", encoding="utf-8") as fh:
         json.dump(measures, fh, ensure_ascii=False, indent=2)
@@ -324,7 +365,7 @@ def main():
         {"ncm": item["ncm"], "product": item["product"], "origins": [o for o, opts in item["exportersByOrigin"].items() if not opts], "sourceUrl": item["sourceUrl"]}
         for item in measures if any(not opts for opts in item["exportersByOrigin"].values())
     ]
-    print(json.dumps({"indexPages": len(urls), "antidumpingMeasures": len(measures), "missingExporterOptions": missing_options[:50], "missingExporterOptionCount": len(missing_options), "failures": failures}, ensure_ascii=False, indent=2))
+    print(json.dumps({"indexPages": len(entries), "antidumpingMeasures": len(measures), "missingExporterOptions": missing_options[:50], "missingExporterOptionCount": len(missing_options), "failures": failures}, ensure_ascii=False, indent=2))
     if failures or missing_options:
         raise RuntimeError(f"Candidato não reconciliado: {len(failures)} falhas de coleta e {len(missing_options)} medidas com origens sem direito resolvido.")
 
