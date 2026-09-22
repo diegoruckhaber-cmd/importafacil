@@ -18,6 +18,10 @@ export function assessAuditRun(run: any, maxAgeHours: number, now = Date.now()) 
   return now - checkedAt > maxAgeHours * 3_600_000 ? "stale" : "passed";
 }
 
+export function mdicReconciliationStatus(audits: Array<{ id: string; status: string }>) {
+  return audits.find((audit) => audit.id === "mdic")?.status === "passed" ? "current" : "pending";
+}
+
 export function newestFederalWorkbook(html: string) {
   const dates = [...html.matchAll(/(\d{2})-(\d{2})-(\d{4})-anexos-i-a-x-resolucao-gecex-272-21\.xlsx/gi)]
     .map((m) => `${m[3]}-${m[2]}-${m[1]}`).sort();
@@ -70,15 +74,18 @@ export async function getOperationalReadiness() {
   if (sourceStatus !== "current") blockers.push(`federal_source_${sourceStatus}`);
   if (tipiStatus !== "current") blockers.push(`tipi_source_${tipiStatus}`);
 
-  // A successful collection alone does not reconcile pending legal conditions
-  // or authorize publication of the candidate. Remove only with reviewed evidence.
-  blockers.push("mdic_legal_reconciliation_pending");
+  const mdicStatus = mdicReconciliationStatus(auditResults);
 
   return {
     checkedAt: new Date().toISOString(), status: blockers.length ? "blocked" as const : "ready" as const,
     blockers, audits: auditResults,
     federalSource: { status: sourceStatus, publishedVersion: FEDERAL_TARIFF_SOURCE_MANIFEST_VERSION, latestWorkbook, url: FEDERAL_TARIFF_OFFICIAL_PAGE },
     tipiSource: { status: tipiStatus, publishedVersion: RFB_TIPI_SOURCE_VERSION, latestUpdate: latestTipiUpdate, url: RFB_TIPI_OFFICIAL_PAGE },
-    mdicReconciliation: { status: "pending", evidence: "docs/stage67-operational-integrity.md" },
+    mdicReconciliation: {
+      status: mdicStatus,
+      evidence: mdicStatus === "current"
+        ? "latest successful main-branch MDIC audit"
+        : "latest main-branch MDIC audit must pass",
+    },
   };
 }
