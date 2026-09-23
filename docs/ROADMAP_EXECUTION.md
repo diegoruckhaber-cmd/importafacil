@@ -47,7 +47,7 @@ Este documento é o checklist oficial de execução do projeto. A regra operacio
 
 - [ ] 4. Teste E2E completo
   - [ ] Criar/usar conta de teste autenticada em produção.
-  - [x] Contrato do simulador e superfícies públicas validados; falta sessão real para a jornada autenticada.
+  - [x] Contrato do simulador e superfícies públicas validados; falta sessão real para a jornada autenticada.\n  - [x] Regressão da jornada cobre login, recomputação oficial no save, limite FREE, proveniência do histórico e gates PRO.
   - [ ] Fazer primeira simulação autenticada em produção.
   - [ ] Calcular.
   - [ ] Salvar.
@@ -57,7 +57,7 @@ Este documento é o checklist oficial de execução do projeto. A regra operacio
   - [ ] Validar limites FREE.
   - [ ] Validar benefícios PRO.
   - [ ] Validar erros e casos de borda.
-  - Evidência atual: todas as superfícies principais respondem 200 em produção; 6 registros históricos existem, porém 0 são V2 e 0 possuem server_execution, portanto não contam como prova pós-cutover.
+  - Evidência atual: Stage 72 em produção no commit 7a354247d15c4352c569131ffaab213f6c79a28d, com 142/142 regressões; todas as superfícies principais respondem 200. Existem 6 registros históricos, porém 0 são V2 e 0 possuem server_execution, portanto não contam como prova pós-cutover.
   - Critério de saída: jornada principal autenticada reproduzível sem intervenção técnica.
 
 - [ ] 5. Piloto acompanhado
@@ -66,7 +66,7 @@ Este documento é o checklist oficial de execução do projeto. A regra operacio
   - [ ] Registrar divergências e dúvidas.
   - [ ] Identificar abandono/atrito.
   - [ ] Medir valor percebido e intenção de pagar.
-  - Critério de saída: feedback suficiente para separar defeitos, lacunas de UX e pedidos de produto.
+  - Evidência de instrumentação: Stage 73 em produção no commit cea8d0da901d5b1249d8d2243afdb5565972fc08; `/pilot` responde 200 e launch-readiness permanece ready.\n  - Critério de saída: feedback suficiente para separar defeitos, lacunas de UX e pedidos de produto.
 
 - [ ] 6. Beta ampliado
   - [ ] Incorporar correções do piloto.
