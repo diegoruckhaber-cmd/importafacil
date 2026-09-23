@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { summarizeHumanValidation } from "../lib/human-validation-readiness.ts";
+import { summarizeHumanValidation } from "../lib/human-validation-status.ts";
 
 const complete = summarizeHumanValidation([
   { id: "server_verified_v2", satisfied: true },
