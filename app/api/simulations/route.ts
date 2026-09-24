@@ -36,7 +36,7 @@ type Authenticated = {
 
 async function persistCalculatedRecord(auth: Authenticated, name: string, input: unknown, result: unknown): Promise<NextResponse> {
   const saved = await persistOfficialSimulation(auth.user.id, name, input, result);
-  if (saved.limited) return NextResponse.json({ error: "Você atingiu o limite de 3 simulações do plano FREE." }, { status: 403 });
+  if (saved.limited) return NextResponse.json({ error: "Você atingiu o limite de 3 simulações salvas do plano FREE. Exclua uma simulação do histórico ou conheça o PRO." }, { status: 403 });
   return NextResponse.json({ ...saved, persistence: "saved", result });
 }
 
