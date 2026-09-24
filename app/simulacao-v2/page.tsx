@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { useMemo, useRef, useState } from "react";
 import DefenseCommercialExporterSelector from "../components/DefenseCommercialExporterSelector";
+import NcmAutocomplete from "../components/NcmAutocomplete";
 import { supabase } from "../../lib/supabase";
 import { BRAZILIAN_UFS } from "../../lib/state-jurisdiction-registry";
 import { SIMULATOR_FIELD_GUIDANCE as HELP } from "../../lib/simulator-field-guidance";
@@ -440,7 +441,7 @@ export default function SimulationV2Page() {
 
               <div className="fields four" style={{ marginTop: 14 }}>
                 <Text label="Descrição" value={item.name} set={(value) => update(item.id, "name", value)} />
-                <Text label="NCM (8 dígitos)" hint={HELP.ncm} value={item.ncm} set={(value) => update(item.id, "ncm", value.replace(/\D/g, "").slice(0, 8))} />
+                <NcmAutocomplete hint={HELP.ncm} value={item.ncm} onChange={(value) => update(item.id, "ncm", value)} />
                 <Text label="País de origem" hint={HELP.origin} value={item.origin} set={(value) => update(item.id, "origin", value)} />
                 <ItemNum label="Quantidade" value={item.quantity} set={(value) => update(item.id, "quantity", value)} />
                 <ItemNum label="FOB unitário US$" hint={HELP.fobUnit} value={item.fobUnit} set={(value) => update(item.id, "fobUnit", value)} />

@@ -99,9 +99,11 @@ export async function GET(request: Request) {
     const normalizedText = normalizeDescription(query);
 
     const normalized = rows
+      .filter((row) => row.normalizedCode.length === 8)
       .filter((row) => {
-        const codeMatch = normalizedQuery.length >= 2 && row.normalizedCode.includes(normalizedQuery);
-        const descriptionMatch = row.normalizedDescription.includes(normalizedText);
+        const codeMatch = normalizedQuery.length >= 2 && row.normalizedCode.startsWith(normalizedQuery);
+        const descriptionMatch = normalizedQuery.length === 0 && normalizedText.length >= 2
+          && row.normalizedDescription.includes(normalizedText);
         return codeMatch || descriptionMatch;
       })
       .slice(0, 30)
