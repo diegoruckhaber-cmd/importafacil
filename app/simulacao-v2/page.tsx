@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { useMemo, useRef, useState } from "react";
 import DefenseCommercialExporterSelector from "../components/DefenseCommercialExporterSelector";
 import NcmAutocomplete from "../components/NcmAutocomplete";
+import CountryAutocomplete from "../components/CountryAutocomplete";
 import { supabase } from "../../lib/supabase";
 import { BRAZILIAN_UFS } from "../../lib/state-jurisdiction-registry";
 import { SIMULATOR_FIELD_GUIDANCE as HELP } from "../../lib/simulator-field-guidance";
@@ -442,7 +443,7 @@ export default function SimulationV2Page() {
               <div className="fields four" style={{ marginTop: 14 }}>
                 <Text label="Descrição" value={item.name} set={(value) => update(item.id, "name", value)} />
                 <NcmAutocomplete hint={HELP.ncm} value={item.ncm} onChange={(value) => update(item.id, "ncm", value)} />
-                <Text label="País de origem" hint={HELP.origin} value={item.origin} set={(value) => update(item.id, "origin", value)} />
+                <CountryAutocomplete hint={HELP.origin} value={item.origin} onChange={(value) => update(item.id, "origin", value)} />
                 <ItemNum label="Quantidade" value={item.quantity} set={(value) => update(item.id, "quantity", value)} />
                 <ItemNum label="FOB unitário US$" hint={HELP.fobUnit} value={item.fobUnit} set={(value) => update(item.id, "fobUnit", value)} />
                 <ItemNum label="Peso líquido kg" hint={HELP.weight} value={item.weightKg} set={(value) => update(item.id, "weightKg", value)} />
@@ -511,89 +512,145 @@ export default function SimulationV2Page() {
       </section>
 
       {result && (
-        <section className="card" ref={resultRef}>
+        <section className="card simulationResult" ref={resultRef}>
           <div
+            className="resultStatusBanner"
             data-simulation-status={status}
-            style={{ background: resultStyle.background, border: `1px solid ${resultStyle.border}`, color: resultStyle.color, borderRadius: 14, padding: 16, marginBottom: 22 }}
+            style={{ background: resultStyle.background, borderColor: resultStyle.border, color: resultStyle.color }}
           >
-            <b style={{ fontSize: 18 }}>{statusLabel[status]}</b>
-            <div style={{ marginTop: 6, lineHeight: 1.5 }}>{statusHelp[status]}</div>
+            <div className="resultStatusIcon" aria-hidden="true">✓</div>
+            <div>
+              <b>{statusLabel[status]}</b>
+              <p>{statusHelp[status]}</p>
+            </div>
           </div>
 
-          <div className="resultTop">
+          <div className="resultHeader">
             <div>
               <div className="eyebrow dark">3. RESULTADO</div>
               <h2>{name}</h2>
-              <p>
-                Destino: <b>{result.operation?.destinationUf || destinationUf}</b> ·
-                Tratamento estadual: <b>{isSC ? "regras específicas de SC" : "regra geral de ICMS"}</b>
+              <p className="resultContext">
+                Destino <strong>{result.operation?.destinationUf || destinationUf}</strong>
+                <span>•</span>
+                {isSC ? "Regras específicas de Santa Catarina" : "Regra geral de ICMS"}
               </p>
-              <details className="technicalDetails">
-                <summary>Detalhes técnicos do cálculo</summary>
-                <p>Escopo interno: {result.jurisdiction?.scope || (isSC ? "full" : "general_rate_only")} · Motor: {result.engine}</p>
-              </details>
             </div>
             {result.summary && (
-              <div style={{ textAlign: "right" }}>
-                <small>Capital estimado</small>
-                <div style={{ fontWeight: 900, fontSize: 28 }}>{money(result.summary.capitalRequiredBrl)}</div>
+              <div className="capitalCard">
+                <small>Capital necessário</small>
+                <strong>{money(result.summary.capitalRequiredBrl)}</strong>
+                <span>estimativa para nacionalizar a operação</span>
               </div>
             )}
           </div>
 
           {result.summary && (
             <>
-              <div className="resultGrid">
-                {[
-                  ["Mercadorias", result.summary.merchandiseBrl],
-                  ["Tributos", result.summary.importTaxesBrl],
-                  ["Defesa comercial", result.summary.defenseCommercialBrl],
-                  ["Custo nacionalizado", result.summary.landedCostBrl],
-                  ["Receita alvo", result.summary.targetRevenueBrl],
-                  ["Lucro estimado", result.summary.estimatedProfitBrl],
-                ].map(([label, value]) => (
-                  <div className="miniCard" key={String(label)}>
-                    <small>{label}</small>
-                    <b>{money(Number(value))}</b>
-                  </div>
-                ))}
+              <div className="financialHighlights">
+                <div className="financialHighlight">
+                  <small>Custo nacionalizado</small>
+                  <strong>{money(result.summary.landedCostBrl)}</strong>
+                </div>
+                <div className="financialHighlight">
+                  <small>Receita alvo</small>
+                  <strong>{money(result.summary.targetRevenueBrl)}</strong>
+                </div>
+                <div className="financialHighlight positive">
+                  <small>Lucro estimado</small>
+                  <strong>{money(result.summary.estimatedProfitBrl)}</strong>
+                </div>
               </div>
 
-              <div style={{ overflowX: "auto", marginTop: 24 }}>
-                <table className="importTable">
-                  <thead>
-                    <tr>
-                      <th>Item</th><th>Status</th><th>NCM</th><th>II</th><th>IPI</th><th>ICMS</th><th>Custo/un.</th><th>Margem</th><th>Preço alvo/un.</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {result.items.map((row: any) => (
-                      <tr key={row.itemId}>
-                        <td>{row.name}</td>
-                        <td>{statusLabel[row.status as Status] || row.status}</td>
-                        <td>{row.ncm}</td>
-                        <td>{pct(row.federal?.ii?.rate)}</td>
-                        <td>{pct(row.federal?.ipi?.rate)}</td>
-                        <td>{pct(row.state?.icmsGeneralRate ?? row.calculation?.icmsNormalRate)}</td>
-                        <td>{money(row.commercial?.breakEvenPricePerUnitBrl)}</td>
-                        <td>{pct(row.commercial?.targetMarginPercent)}</td>
-                        <td>{money(row.commercial?.targetSalePricePerUnitBrl)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="costBreakdown">
+                <div>
+                  <span>Mercadorias</span>
+                  <strong>{money(result.summary.merchandiseBrl)}</strong>
+                </div>
+                <div>
+                  <span>Tributos de importação</span>
+                  <strong>{money(result.summary.importTaxesBrl)}</strong>
+                </div>
+                <div>
+                  <span>Defesa comercial</span>
+                  <strong>{money(result.summary.defenseCommercialBrl)}</strong>
+                </div>
               </div>
+
+              <section className="resultSection">
+                <div className="resultSectionHead">
+                  <div>
+                    <small>POR ITEM</small>
+                    <h3>Tributos e preço alvo</h3>
+                  </div>
+                  <span>{result.items.length} {result.items.length === 1 ? "item" : "itens"}</span>
+                </div>
+
+                <div className="resultTableWrap">
+                  <table className="importTable resultTable">
+                    <thead>
+                      <tr>
+                        <th>Item</th>
+                        <th>NCM</th>
+                        <th>II</th>
+                        <th>IPI</th>
+                        <th>ICMS</th>
+                        <th>Custo/un.</th>
+                        <th>Margem</th>
+                        <th>Preço alvo/un.</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {result.items.map((row: any) => (
+                        <tr key={row.itemId}>
+                          <td>
+                            <strong>{row.name}</strong>
+                            <small className="itemStatus">{statusLabel[row.status as Status] || row.status}</small>
+                          </td>
+                          <td><span className="ncmPill">{row.ncm}</span></td>
+                          <td>{pct(row.federal?.ii?.rate)}</td>
+                          <td>{pct(row.federal?.ipi?.rate)}</td>
+                          <td>{pct(row.state?.icmsGeneralRate ?? row.calculation?.icmsNormalRate)}</td>
+                          <td>{money(row.commercial?.breakEvenPricePerUnitBrl)}</td>
+                          <td>{pct(row.commercial?.targetMarginPercent)}</td>
+                          <td><strong>{money(row.commercial?.targetSalePricePerUnitBrl)}</strong></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
             </>
           )}
 
           {result.attentionPoints?.length > 0 && (
-            <div className="infoNote" style={{ marginTop: 18 }}>
-              <b>Pontos de atenção</b>
-              <ul>{result.attentionPoints.map((point: string, index: number) => <li key={index}>{point}</li>)}</ul>
-            </div>
+            <section className="resultSection attentionSection">
+              <div className="resultSectionHead">
+                <div>
+                  <small>VALIDAÇÕES</small>
+                  <h3>Pontos de atenção</h3>
+                </div>
+                <span>{result.attentionPoints.length}</span>
+              </div>
+              <div className="attentionList">
+                {result.attentionPoints.map((point: string, index: number) => (
+                  <div className="attentionItem" key={index}>
+                    <div className="attentionNumber">{index + 1}</div>
+                    <div>{renderAttentionPoint(point)}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
           )}
 
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 20 }}>
+          <details className="technicalDetails resultTechnicalDetails">
+            <summary>Detalhes técnicos do cálculo</summary>
+            <p>
+              Escopo interno: {result.jurisdiction?.scope || (isSC ? "full" : "general_rate_only")}
+              {" · "}Motor: {result.engine}
+            </p>
+          </details>
+
+          <div className="resultActions">
             <button className="primary" onClick={save} disabled={saving}>
               {saving ? "Salvando..." : status === "calculated" || status === "alert" ? "Salvar no histórico" : "Salvar pré-estudo"}
             </button>
@@ -611,6 +668,17 @@ export default function SimulationV2Page() {
       </footer>
     </main>
   );
+}
+
+
+function renderAttentionPoint(point: string) {
+  const parts = point.split(/(https?:\/\/[^\s]+)/g);
+  return parts.map((part, index) => {
+    if (/^https?:\/\//.test(part)) {
+      return <a key={index} href={part} target="_blank" rel="noreferrer">Abrir fonte oficial</a>;
+    }
+    return <span key={index}>{part}</span>;
+  });
 }
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
