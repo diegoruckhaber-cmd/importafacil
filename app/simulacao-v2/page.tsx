@@ -119,6 +119,7 @@ export default function SimulationV2Page() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [saveMessage, setSaveMessage] = useState("");
   const [validationIssues, setValidationIssues] = useState<string[]>([]);
 
   const isSC = destinationUf === "SC";
@@ -130,6 +131,7 @@ export default function SimulationV2Page() {
   const invalidate = () => {
     setResult(null);
     setMessage("");
+    setSaveMessage("");
     setValidationIssues([]);
   };
 
@@ -243,7 +245,7 @@ export default function SimulationV2Page() {
   async function save() {
     if (!result) return;
     setSaving(true);
-    setMessage("");
+    setSaveMessage("");
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -259,7 +261,7 @@ export default function SimulationV2Page() {
       if (!response.ok) throw new Error(data.error || "Não foi possível salvar.");
       location.href = `/simulacao/${data.id}`;
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Não foi possível salvar.");
+      setSaveMessage(error instanceof Error ? error.message : "Não foi possível salvar.");
     } finally {
       setSaving(false);
     }
@@ -649,6 +651,16 @@ export default function SimulationV2Page() {
               {" · "}Motor: {result.engine}
             </p>
           </details>
+
+          {saveMessage && (
+            <div className="saveError" role="alert">
+              <div>
+                <strong>Não foi possível salvar esta simulação.</strong>
+                <span>{saveMessage}</span>
+              </div>
+              {saveMessage.includes("limite") && <a href="/upgrade">Conhecer o PRO</a>}
+            </div>
+          )}
 
           <div className="resultActions">
             <button className="primary" onClick={save} disabled={saving}>
