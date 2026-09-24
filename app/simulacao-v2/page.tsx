@@ -534,7 +534,7 @@ export default function SimulationV2Page() {
               <p className="resultContext">
                 Destino <strong>{result.operation?.destinationUf || destinationUf}</strong>
                 <span>•</span>
-                {isSC ? "Regras específicas de Santa Catarina" : "Regra geral de ICMS"}
+                Tratamento estadual: <strong>{isSC ? "regras específicas de SC" : "regra geral de ICMS"}</strong>
               </p>
             </div>
             {result.summary && (
