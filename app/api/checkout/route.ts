@@ -80,8 +80,21 @@ export async function POST(req: Request) {
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || typeof data?.url !== "string") {
+      const stripeError = data?.error || {};
+      console.error(JSON.stringify({
+        source: "importafacil",
+        event: "billing.checkout.stripe_error",
+        status: response.status,
+        type: stripeError.type || null,
+        code: stripeError.code || null,
+        param: stripeError.param || null,
+        message: stripeError.message || null,
+      }));
       emit("failed", "stripe_checkout_create");
-      return NextResponse.json({ error: "Não foi possível iniciar o checkout agora." }, { status: 502 });
+      return NextResponse.json({
+        error: "Não foi possível iniciar o checkout agora.",
+        code: stripeError.code || "stripe_checkout_create",
+      }, { status: 502 });
     }
 
     emit("success");
