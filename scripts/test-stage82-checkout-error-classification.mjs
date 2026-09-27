@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+const route=fs.readFileSync("app/api/checkout/route.ts","utf8");
+assert.match(route,/messageClass/);
+assert.match(route,/restricted key/);
+assert.match(route,/permission/);
+assert.match(route,/price/);
+assert.match(route,/customer/);
+assert.doesNotMatch(route,/console\.error\(/);
+console.log("Stage 82 checkout error classification regression passed.");
