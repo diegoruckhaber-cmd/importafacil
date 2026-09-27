@@ -83,11 +83,18 @@ export async function POST(req: Request) {
       const stripeError = data?.error || {};
       const safePart = (value: unknown) =>
         String(value || "unknown").replace(/[^a-zA-Z0-9_.:-]/g, "_").slice(0, 24);
+      const message = String(stripeError.message || "").toLowerCase();
+      const messageClass =
+        /permission|required permission|restricted key/.test(message) ? "permission" :
+        /price|line item/.test(message) ? "price" :
+        /customer/.test(message) ? "customer" :
+        /success_url|cancel_url/.test(message) ? "url" :
+        "unknown";
       const diagnosticCode = [
         "stripe",
         String(response.status),
         safePart(stripeError.type),
-        safePart(stripeError.code || stripeError.param),
+        safePart(stripeError.code || stripeError.param || messageClass),
       ].join("_");
       emit("failed", diagnosticCode);
       return NextResponse.json({
