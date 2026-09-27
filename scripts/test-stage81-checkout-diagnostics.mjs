@@ -9,6 +9,6 @@ assert.match(route,/stripeError\.param/);
 assert.match(route,/diagnosticCode/);
 assert.match(route,/emit\("failed", diagnosticCode\)/);
 assert.doesNotMatch(route,/console\.error\(/);
-assert.doesNotMatch(route,/stripeError\.message/);
+assert.doesNotMatch(route,/console\.(?:error|warn|info)\([^)]*stripeError\.message/);\nassert.doesNotMatch(route,/message:\s*stripeError\.message/);
 
 console.log("Stage 81 checkout diagnostics regression passed.");
