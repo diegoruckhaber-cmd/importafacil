@@ -80,8 +80,20 @@ export async function POST(req: Request) {
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || typeof data?.url !== "string") {
-      emit("failed", "stripe_checkout_create");
-      return NextResponse.json({ error: "Não foi possível iniciar o checkout agora." }, { status: 502 });
+      const stripeError = data?.error || {};
+      const safePart = (value: unknown) =>
+        String(value || "unknown").replace(/[^a-zA-Z0-9_.:-]/g, "_").slice(0, 24);
+      const diagnosticCode = [
+        "stripe",
+        String(response.status),
+        safePart(stripeError.type),
+        safePart(stripeError.code || stripeError.param),
+      ].join("_");
+      emit("failed", diagnosticCode);
+      return NextResponse.json({
+        error: "Não foi possível iniciar o checkout agora.",
+        code: stripeError.code || "stripe_checkout_create",
+      }, { status: 502 });
     }
 
     emit("success");
