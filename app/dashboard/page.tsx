@@ -118,7 +118,7 @@ export default function Dashboard() {
     [planVisible, query, statusFilter],
   );
   const periodLabel = currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString("pt-BR") : null;
-  const accountLabel = email + " · " + plan + (!isFree && subscriptionStatus ? " · " + subscriptionStatus : "");
+  const accountLabel = email;
   const historyText = isFree
     ? "Seu plano gratuito inclui até 3 simulações salvas."
     : "Histórico completo das suas simulações." + (periodLabel ? " Período atual até " + periodLabel + "." : "");
