@@ -277,8 +277,9 @@ export default function SimulationV2Page() {
         <div className="wrap simulatorNav">
           <a className="logo" href="/">ImportaFácil</a>
           <div className="simulatorNavLinks">
-            <a href="/">Início</a>
-            <a href="/dashboard">Meu painel</a>
+            <a href="/simulacao-v2">Nova simulação</a>
+            <a href="/comparar">Comparar</a>
+            <a href="/dashboard">Minhas simulações</a>
             <a className="navCta" href="/upgrade">PRO</a>
           </div>
         </div>
