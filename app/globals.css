@@ -438,3 +438,71 @@ footer a{color:inherit}
   .simulatorPage,.productContentPage,.dashboardPage{padding-bottom:70px}
   .simulatorFooter{margin-bottom:68px}
 }
+
+
+/* Comparison refinements */
+.comparisonTitleRow{display:flex;align-items:flex-end;justify-content:space-between;gap:28px;margin-bottom:20px}
+.comparisonTitleRow>div{max-width:850px}
+.comparisonTitleRow .productPageTitle{margin-top:10px}
+.comparisonNewAction{margin-top:0;white-space:nowrap}
+.productChoiceList{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.productChoice{min-height:76px}
+.productComparisonHighlight{padding:18px}
+.productComparison table{border-spacing:0}
+.productComparison table th,.productComparison table td{padding:13px 14px!important}
+.productComparison table tbody tr:hover{background:#fbfdff}
+
+/* Saved result — executive layout */
+.savedResultStatus{
+  margin-top:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:15px 16px;border:1px solid #bbf7d0;border-radius:13px;background:var(--if-success-soft)
+}
+.savedResultStatus[data-status="alert"],.savedResultStatus[data-status="requires_input"]{background:var(--if-warning-soft);border-color:#fde68a}
+.savedResultStatus[data-status="blocked"],.savedResultStatus[data-status="unsupported"]{background:var(--if-danger-soft);border-color:#fecaca}
+.savedResultStatus small{display:block;font-size:9px;letter-spacing:.12em;color:#64748b;font-weight:900}
+.savedResultStatus b{display:block;margin-top:3px;color:var(--if-text)}
+.savedResultStatus span{font-size:12px;color:#64748b}
+.savedResultHighlights{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0 24px}
+.savedResultHighlights>div{
+  border:1px solid var(--if-border)!important;border-radius:14px!important;background:#fff;
+  min-height:104px;display:flex;flex-direction:column;justify-content:center;box-shadow:0 8px 24px rgba(15,23,42,.025)
+}
+.savedResultHighlights>div:first-child{border-color:#bfdbfe!important;background:linear-gradient(135deg,#eff6ff 0%,#fff 100%)}
+.savedResultLayout{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(280px,.7fr);gap:22px;align-items:start}
+.savedResultSection,.savedAttention{padding-top:4px}
+.savedResultSectionHead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:12px}
+.savedResultSectionHead small{display:block;color:#64748b;font-size:9px;letter-spacing:.13em;font-weight:900}
+.savedResultSectionHead h2{margin:3px 0 0!important;font-size:20px!important}
+.savedResultSectionHead>span{font-size:11px;color:#64748b;background:#f1f5f9;padding:5px 8px;border-radius:999px}
+.savedResultAside{position:sticky;top:90px;display:grid;gap:12px}
+.savedExecutiveCard{
+  border:1px solid #bfdbfe;border-radius:15px;padding:18px;background:linear-gradient(145deg,#eff6ff 0%,#fff 68%);
+  box-shadow:0 10px 28px rgba(37,99,235,.055)
+}
+.savedExecutiveCard>small{color:var(--if-primary);font-size:9px;letter-spacing:.12em;font-weight:900}
+.savedExecutiveCard h3{margin:5px 0 8px;font-size:20px}
+.savedExecutiveCard p{color:#475569;font-size:13px;line-height:1.6;margin:0 0 15px}
+.savedExecutiveCard>div{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid #dbeafe}
+.savedExecutiveCard>div span{color:#64748b;font-size:11px}
+.savedExecutiveCard>div b{color:var(--if-text);font-size:12px;text-align:right}
+.savedPremises{border:1px solid var(--if-border);border-radius:13px;background:#fff;padding:0 14px}
+.savedPremises>summary{cursor:pointer;padding:13px 0;color:#1e40af;font-size:12px;font-weight:800}
+.savedPremises>div{grid-template-columns:1fr!important;margin:0 0 14px!important}
+.savedPremises>div>div{padding:10px!important}
+.savedAttention{margin-top:22px}
+.productArticle>.fine,.productArticle>div:last-child{border-radius:12px}
+
+@media(max-width:980px){
+  .savedResultLayout{grid-template-columns:1fr}
+  .savedResultAside{position:static;grid-template-columns:1fr 1fr}
+  .savedResultHighlights{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:720px){
+  .comparisonTitleRow{align-items:flex-start;flex-direction:column}
+  .comparisonNewAction{width:100%;text-align:center}
+  .productChoiceList{grid-template-columns:1fr}
+  .savedResultStatus{align-items:flex-start;flex-direction:column}
+  .savedResultHighlights{grid-template-columns:1fr}
+  .savedResultAside{grid-template-columns:1fr}
+  .savedExecutiveCard{padding:16px}
+}
