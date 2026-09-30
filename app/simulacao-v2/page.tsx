@@ -8,6 +8,7 @@ import CountryAutocomplete from "../components/CountryAutocomplete";
 import { supabase } from "../../lib/supabase";
 import { BRAZILIAN_UFS } from "../../lib/state-jurisdiction-registry";
 import { SIMULATOR_FIELD_GUIDANCE as HELP } from "../../lib/simulator-field-guidance";
+import MobileBottomNav from "../components/MobileBottomNav";
 
 type TTD = "409" | "410" | "77" | "none";
 type Destination = "commercial_resale" | "industrialization";
@@ -672,6 +673,7 @@ export default function SimulationV2Page() {
       )}
 
       </div>
+      <MobileBottomNav active="simulate" />
       <footer className="simulatorFooter">
         <div className="wrap">
           <span>ImportaFácil · beta controlado</span>
