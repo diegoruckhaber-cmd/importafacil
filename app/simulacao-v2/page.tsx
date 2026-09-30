@@ -285,22 +285,22 @@ export default function SimulationV2Page() {
 
       <section className="simulatorHero" aria-labelledby="simulator-title">
         <div className="wrap simulatorHeroInner">
-          <div>
-            <div className="eyebrow">SIMULADOR DE IMPORTAÇÃO</div>
-            <h1 id="simulator-title">Simule sua importação antes de fechar a compra.</h1>
-            <p>
-              Informe a operação e veja tributos, despesas, custo nacionalizado,
-              custo por unidade e preço alvo em uma visão única.
-            </p>
-            <div className="proof">
-              <span>✓ 27 UFs cobertas</span>
-              <span>✓ Tributos federais automáticos</span>
-              <span>✓ Resultado auditável</span>
+          <div className="simulatorHeroCopy">
+            <div className="eyebrow dark">NOVA SIMULAÇÃO</div>
+            <h1 id="simulator-title">Nova simulação de importação</h1>
+            <p>Preencha os dados da operação para estimar custos, tributos e o custo nacionalizado da sua importação.</p>
+            <div className="simulatorProgress" aria-label="Etapas da simulação">
+              <div className="simulatorProgressStep active"><span>1</span><b>Operação</b></div>
+              <div className="simulatorProgressStep"><span>2</span><b>Mercadoria</b></div>
+              <div className="simulatorProgressStep"><span>3</span><b>Custos</b></div>
+              <div className="simulatorProgressStep"><span>4</span><b>Revisão</b></div>
             </div>
           </div>
           <div className="simulatorHeroCard">
-            <small>RESUMO DA OPERAÇÃO</small>
-            <b>{name || "Nova simulação"}</b>
+            <div className="simulatorHeroCardTitle">
+              <span className="simulatorHeroIcon" aria-hidden="true">▦</span>
+              <div><small>RESUMO ESTIMADO</small><b>{name || "Nova simulação"}</b></div>
+            </div>
             <div className="simHeroMetric"><span>Mercadorias</span><strong>{money(merchandise)}</strong></div>
             <div className="simHeroMetric"><span>Destino</span><strong>{destinationUf} · {UF_NAMES[destinationUf]}</strong></div>
             <div className="simHeroMetric"><span>Itens</span><strong>{items.length}</strong></div>
