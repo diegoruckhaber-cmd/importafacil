@@ -19,9 +19,9 @@ assert.match(home,/priceCard featured/);
 assert.match(home,/href="\/upgrade"/);
 assert.match(home,/href="\/simulacao-v2"/);
 
-assert.match(simulator,/SIMULADOR DE IMPORTAÇÃO/);
-assert.match(simulator,/Simule sua importação antes de fechar a compra/);
-assert.match(simulator,/RESUMO DA OPERAÇÃO/);
+assert.match(simulator,/NOVA SIMULAÇÃO/);
+assert.match(simulator,/Nova simulação de importação/);
+assert.match(simulator,/RESUMO ESTIMADO/);
 assert.match(simulator,/Comece pelas premissas principais/);
 assert.match(simulator,/O que você vai importar\?/);
 assert.match(simulator,/Opções avançadas e tratamentos específicos/);

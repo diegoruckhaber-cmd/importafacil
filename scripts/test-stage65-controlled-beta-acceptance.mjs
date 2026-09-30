@@ -19,7 +19,7 @@ const simulator=fs.readFileSync("app/simulacao-v2/page.tsx","utf8");
 assert.match(home,/Antes de importar, descubra se a conta fecha\./);
 assert.match(home,/Simular gratuitamente/);
 assert.match(home,/NÃO É SÓ UMA CALCULADORA/);
-assert.match(simulator,/SIMULADOR DE IMPORTAÇÃO/);
+assert.match(simulator,/NOVA SIMULAÇÃO/);
 assert.match(simulator,/Calcular importação/);
 assert.match(simulator,/Opções avançadas e tratamentos específicos/);
 assert.doesNotMatch(simulator,/IMPORTAFÁCIL · SIMULATION V2/);

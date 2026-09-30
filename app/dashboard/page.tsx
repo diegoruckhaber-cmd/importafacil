@@ -14,6 +14,7 @@ import {
   type SavedSimulationRecord,
 } from "../../lib/simulation-record";
 import { supabase } from "../../lib/supabase";
+import MobileBottomNav from "../components/MobileBottomNav";
 
 const br = (n: number) => Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const kindLabel = { v2: "Simulação", sc: "Operação SC", legacy: "Legado" };
@@ -81,7 +82,7 @@ export default function Dashboard() {
       setItems((simulationsResponse.data || []) as SavedSimulationRecord[]);
       const params = new URLSearchParams(window.location.search);
       if (params.get("checkout") === "success") {
-        setNotice("Retorno do checkout recebido. O acesso PRO depende da confirmação do pagamento pela Stripe.");
+        setNotice("Pagamento recebido com sucesso. O status da assinatura é atualizado automaticamente pela Stripe.");
       }
       if (params.get("checkout") === "cancelled") {
         setNotice("Checkout cancelado. Nenhuma alteração foi feita na sua conta.");
@@ -117,13 +118,13 @@ export default function Dashboard() {
     [planVisible, query, statusFilter],
   );
   const periodLabel = currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString("pt-BR") : null;
-  const accountLabel = email + " · " + plan + (!isFree && subscriptionStatus ? " · " + subscriptionStatus : "");
+  const accountLabel = email;
   const historyText = isFree
     ? "Seu plano gratuito inclui até 3 simulações salvas."
     : "Histórico completo das suas simulações." + (periodLabel ? " Período atual até " + periodLabel + "." : "");
 
   return (
-    <main style={{ minHeight: "100vh", background: "#f5f7fb" }}>
+    <main className="dashboardPage">
       <header className="productTopbar" data-product-nav="dashboard">
         <div className="wrap productNav">
           <a className="logo" href="/">ImportaFácil</a>
@@ -137,16 +138,16 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <section style={{ maxWidth: 1180, margin: "auto", padding: "46px 24px 70px" }}>
+      <section className="dashboardShell">
         {notice && <div style={noticeStyle}>{notice}</div>}
 
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 20, alignItems: "end", marginBottom: 28, flexWrap: "wrap" }}>
+        <div className="dashboardHero">
           <div>
             <small style={{ letterSpacing: 1, color: "#777" }}>MINHA CONTA</small>
             <h1 style={{ fontSize: 42, margin: "8px 0" }}>Painel de simulações</h1>
             <p style={{ color: "#666", marginBottom: 0 }}>{historyText}</p>
           </div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <div className="dashboardActions">
             {!isFree && <a href="/comparar" style={secondary}>Comparar cenários</a>}
             {!isFree && insights.latestV2Id && <a href={"/relatorio?id=" + insights.latestV2Id} style={secondary}>Relatório mais recente</a>}
             {isFree && <a href="/upgrade" style={primary}>Assinar PRO</a>}
@@ -166,7 +167,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div style={{ background: "white", border: "1px solid #e4e7ec", borderRadius: 18, padding: 18, margin: "22px 0" }}>
+        <div className="dashboardFilters">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 12 }}>
             <label style={label}>
               Buscar nas simulações carregadas
@@ -210,7 +211,7 @@ export default function Dashboard() {
               const status = savedSimulationStatus(record);
               const destinationUf = String(record.input?.destinationUf || record.result?.operation?.destinationUf || "").toUpperCase();
               return (
-                <article key={record.id} style={row}>
+                <article key={record.id} className="dashboardRow" style={row}>
                   <a href={"/simulacao/" + record.id} style={{ textDecoration: "none", color: "inherit", flex: 1, minWidth: 240 }}>
                     <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                       <b>{record.name || "Simulação de importação"}</b>
@@ -241,13 +242,14 @@ export default function Dashboard() {
         )}
         {!isFree && hasMore && <button disabled={loadingMore} onClick={loadMore}>{loadingMore ? "Carregando..." : "Carregar mais simulações"}</button>}
       </section>
+      <MobileBottomNav active="history" />
     </main>
   );
 }
 
 function Metric({ label: metricLabel, value, detail }: { label: string; value: string; detail: string }) {
   return (
-    <div style={metric}>
+    <div className="dashboardMetric" style={metric}>
       <small style={{ color: "#777" }}>{metricLabel}</small>
       <div style={{ fontSize: 25, fontWeight: 900, margin: "6px 0" }}>{value}</div>
       <small style={{ color: "#888" }}>{detail}</small>
