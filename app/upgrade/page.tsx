@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
+import MobileBottomNav from "../components/MobileBottomNav";
 
 export default function Upgrade(){
  const[ready,setReady]=useState(false);
@@ -54,6 +55,18 @@ export default function Upgrade(){
 
  const isPro=plan==="PRO";
  const periodLabel=currentPeriodEnd?new Date(currentPeriodEnd).toLocaleDateString("pt-BR"):null;
+ const statusLabel:Record<string,string>={
+   active:"Assinatura ativa",
+   trialing:"Período de teste ativo",
+   past_due:"Pagamento pendente",
+   unpaid:"Pagamento não confirmado",
+   canceled:"Assinatura cancelada",
+   incomplete:"Ativação pendente",
+   incomplete_expired:"Ativação expirada",
+   paused:"Assinatura pausada",
+   none:"Sem assinatura ativa",
+ };
+ const friendlyStatus=statusLabel[status]||"Status em atualização";
 
  return <main className="accountPage"><div className="accountShell">
    <div className="accountCard">
@@ -63,13 +76,14 @@ export default function Upgrade(){
      <p className="accountIntro">
        {isPro?"Gerencie sua assinatura, cobrança e documentos sem sair do fluxo do ImportaFácil.":"Tenha as ferramentas que transformam uma simulação em uma decisão de importação."}
      </p>
-     {notice&&<div className="productNoticeInfo">{notice}</div>}
+     {notice&&<div className="productNoticeInfo" role="status" aria-live="polite">{notice}</div>}
      <div className="upgradeBenefits">
        {["Comparação de cenários","Histórico completo de simulações","Relatórios profissionais","Recursos avançados do ImportaFácil"].map(x=><div key={x} className="upgradeBenefit">✓ {x}</div>)}
      </div>
      {isPro?<>
-       <div style={{padding:14,borderRadius:11,background:"#eef8ef",border:"1px solid #cce7cf",marginBottom:18}}>
-         <b>Plano PRO</b> · status {status}{periodLabel?" · período atual até "+periodLabel:""}
+       <div className="billingStatus" role="status">
+         <div><b>Plano PRO</b><span>{friendlyStatus}</span></div>
+         {periodLabel&&<small>Período atual até {periodLabel}</small>}
        </div>
        <div style={{display:"grid",gap:10}}>
          <button onClick={manageBilling} disabled={portalLoading||!ready} className="productPrimaryWide">
@@ -83,7 +97,7 @@ export default function Upgrade(){
        <button onClick={checkout} disabled={loading||!ready} className="productPrimaryWide">{loading?"Abrindo checkout...":"Assinar PRO"}</button>
        <p className="billingFine">O pagamento é processado com segurança pela Stripe. O plano PRO só é liberado após confirmação da assinatura.</p>
      </>}
-     {error&&<p className="productError">{error}</p>}
+     {error&&<p className="productError" role="alert">{error}</p>}
    </div>
- </div></main>
+ </div><MobileBottomNav active="account" /></main>
 }
