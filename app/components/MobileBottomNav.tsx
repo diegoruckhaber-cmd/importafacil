@@ -13,7 +13,7 @@ export default function MobileBottomNav({ active }: MobileBottomNavProps) {
   return (
     <nav className="mobileBottomNav" aria-label="Navegação principal mobile">
       {items.map((item) => (
-        <a key={item.key} href={item.href} className={active === item.key ? "active" : ""}>
+        <a key={item.key} href={item.href} className={active === item.key ? "active" : ""} aria-current={active === item.key ? "page" : undefined}>
           <span aria-hidden="true">{item.icon}</span>
           <b>{item.label}</b>
         </a>
