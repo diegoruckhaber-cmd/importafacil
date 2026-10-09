@@ -40,7 +40,12 @@ type Item = {
   targetMarginPercent: number;
 };
 
-const today = new Date().toISOString().slice(0, 10);
+const localDate = () => {
+  const now = new Date();
+  const offset = now.getTimezoneOffset() * 60_000;
+  return new Date(now.getTime() - offset).toISOString().slice(0, 10);
+};
+const today = localDate();
 const money = (value: number) => Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const pct = (value: number) => `${Number(value || 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
 const statusLabel: Record<Status, string> = {
