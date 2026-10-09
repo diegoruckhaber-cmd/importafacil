@@ -506,3 +506,31 @@ footer a{color:inherit}
   .savedResultAside{grid-template-columns:1fr}
   .savedExecutiveCard{padding:16px}
 }
+
+
+/* Post-redesign QA polish */
+.billingStatus{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.billingStatus>div{display:grid;gap:2px}
+.billingStatus span{font-size:12px;color:#3f7650;font-weight:650}
+.billingStatus small{color:#5d8068;font-size:11px;text-align:right}
+.dashboardLoading{
+  min-height:160px;display:flex;align-items:center;justify-content:center;gap:10px;
+  color:#64748b;font-size:13px;font-weight:700
+}
+.dashboardLoading span{
+  width:18px;height:18px;border-radius:999px;border:2px solid #dbeafe;border-top-color:#2563eb;
+  animation:ifSpin .8s linear infinite
+}
+@keyframes ifSpin{to{transform:rotate(360deg)}}
+.productPrimaryWide:hover:not(:disabled){background:#1d4ed8}
+.productSecondaryWide:hover{border-color:#93c5fd;background:#f8fbff}
+.accountForm input:focus{
+  outline:none;border-color:#2563eb!important;box-shadow:0 0 0 3px rgba(37,99,235,.12)
+}
+@media(prefers-reduced-motion:reduce){.dashboardLoading span{animation:none}}
+@media(max-width:720px){
+  .accountPage{padding-bottom:92px}
+  .billingStatus{align-items:flex-start;flex-direction:column}
+  .billingStatus small{text-align:left}
+  .mobileBottomNav{height:calc(68px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom)}
+}
