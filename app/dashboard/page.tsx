@@ -69,20 +69,30 @@ export default function Dashboard() {
           .limit(100),
       ]);
 
+      let resolvedPlan = "FREE";
+      let resolvedStatus = "none";
       if (subscriptionResponse.ok) {
         const subscription = await subscriptionResponse.json();
-        setPlan(String(subscription.plan || "FREE").toUpperCase());
-        setSubscriptionStatus(String(subscription.status || "none"));
+        resolvedPlan = String(subscription.plan || "FREE").toUpperCase();
+        resolvedStatus = String(subscription.status || "none");
+        setPlan(resolvedPlan);
+        setSubscriptionStatus(resolvedStatus);
         setCurrentPeriodEnd(subscription.currentPeriodEnd || null);
       } else {
         const { data: profile } = await supabase.from("profiles").select("plan").eq("id", user.id).maybeSingle();
-        if (profile?.plan) setPlan(profile.plan);
+        if (profile?.plan) {
+          resolvedPlan = String(profile.plan).toUpperCase();
+          setPlan(resolvedPlan);
+        }
       }
 
       setItems((simulationsResponse.data || []) as SavedSimulationRecord[]);
       const params = new URLSearchParams(window.location.search);
       if (params.get("checkout") === "success") {
-        setNotice("Pagamento recebido com sucesso. O status da assinatura é atualizado automaticamente pela Stripe.");
+        const confirmed = resolvedPlan === "PRO" && ["active", "trialing"].includes(resolvedStatus);
+        setNotice(confirmed
+          ? "Assinatura PRO ativada com sucesso. Seu acesso já está liberado."
+          : "Pagamento recebido. Estamos concluindo a confirmação da assinatura com a Stripe.");
       }
       if (params.get("checkout") === "cancelled") {
         setNotice("Checkout cancelado. Nenhuma alteração foi feita na sua conta.");
@@ -139,7 +149,7 @@ export default function Dashboard() {
       </header>
 
       <section className="dashboardShell">
-        {notice && <div style={noticeStyle}>{notice}</div>}
+        {notice && <div style={noticeStyle} role="status" aria-live="polite">{notice}</div>}
 
         <div className="dashboardHero">
           <div>
@@ -191,7 +201,7 @@ export default function Dashboard() {
         </div>
 
         {loading ? (
-          <p>Carregando...</p>
+          <div className="dashboardLoading" role="status" aria-live="polite"><span aria-hidden="true" />Carregando suas simulações...</div>
         ) : planVisible.length === 0 ? (
           <div style={empty}>
             <h2>Seu histórico está vazio.</h2>
