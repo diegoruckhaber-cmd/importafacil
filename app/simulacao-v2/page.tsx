@@ -9,6 +9,7 @@ import { supabase } from "../../lib/supabase";
 import { BRAZILIAN_UFS } from "../../lib/state-jurisdiction-registry";
 import { SIMULATOR_FIELD_GUIDANCE as HELP } from "../../lib/simulator-field-guidance";
 import MobileBottomNav from "../components/MobileBottomNav";
+import { isEuropeanUnionOrigin } from "../../lib/mercosur-eu-import-preference";
 
 type TTD = "409" | "410" | "77" | "none";
 type Destination = "commercial_resale" | "industrialization";
@@ -30,6 +31,11 @@ type Item = {
   ipiExCode: string;
   iiQuotaConfirmed: TriState;
   aeronauticalEligible: TriState;
+  mercosurEuPreferenceRequested: TriState;
+  mercosurEuOriginProofConfirmed: TriState;
+  mercosurEuPreferentialIiRate: number;
+  mercosurEuQuotaRequired: TriState;
+  mercosurEuQuotaAvailable: TriState;
   ttd: TTD;
   destination: Destination;
   validConcession: boolean;
@@ -94,6 +100,11 @@ const makeItem = (n: number, margin = 20): Item => ({
   ipiExCode: "",
   iiQuotaConfirmed: "",
   aeronauticalEligible: "",
+  mercosurEuPreferenceRequested: "",
+  mercosurEuOriginProofConfirmed: "",
+  mercosurEuPreferentialIiRate: 0,
+  mercosurEuQuotaRequired: "",
+  mercosurEuQuotaAvailable: "",
   ttd: "none",
   destination: "commercial_resale",
   validConcession: false,
@@ -174,6 +185,11 @@ export default function SimulationV2Page() {
       ipiExCode: item.ipiExCode || undefined,
       iiQuotaConfirmed: tri(item.iiQuotaConfirmed),
       aeronauticalEligible: tri(item.aeronauticalEligible),
+      mercosurEuPreferenceRequested: tri(item.mercosurEuPreferenceRequested),
+      mercosurEuOriginProofConfirmed: tri(item.mercosurEuOriginProofConfirmed),
+      mercosurEuPreferentialIiRate: item.mercosurEuPreferentialIiRate,
+      mercosurEuQuotaRequired: tri(item.mercosurEuQuotaRequired),
+      mercosurEuQuotaAvailable: tri(item.mercosurEuQuotaAvailable),
       ttd: isSC ? item.ttd : "none",
       destination: item.destination,
       validConcession: isSC ? item.validConcession : false,
@@ -488,6 +504,45 @@ export default function SimulationV2Page() {
                       <option value="no">Não elegível</option>
                     </select>
                   </Field>
+                  {date >= "2026-05-01" && isEuropeanUnionOrigin(item.origin) && (
+                    <>
+                      <Field label="Preferência Mercosul-UE">
+                        <select value={item.mercosurEuPreferenceRequested} onChange={(e) => update(item.id, "mercosurEuPreferenceRequested", e.target.value as TriState)}>
+                          <option value="">Não confirmado — manter TEC</option>
+                          <option value="yes">Simular preferência</option>
+                          <option value="no">Não aplicar preferência</option>
+                        </select>
+                      </Field>
+                      <Field label="Prova de origem preferencial">
+                        <select value={item.mercosurEuOriginProofConfirmed} onChange={(e) => update(item.id, "mercosurEuOriginProofConfirmed", e.target.value as TriState)}>
+                          <option value="">Não confirmado</option>
+                          <option value="yes">Confirmada</option>
+                          <option value="no">Não disponível</option>
+                        </select>
+                      </Field>
+                      <ItemNum label="II preferencial final %" value={item.mercosurEuPreferentialIiRate} set={(value) => update(item.id, "mercosurEuPreferentialIiRate", value)} />
+                      <Field label="Cota tarifária aplicável?">
+                        <select value={item.mercosurEuQuotaRequired} onChange={(e) => update(item.id, "mercosurEuQuotaRequired", e.target.value as TriState)}>
+                          <option value="">Não informado</option>
+                          <option value="no">Não</option>
+                          <option value="yes">Sim</option>
+                        </select>
+                      </Field>
+                      {item.mercosurEuQuotaRequired === "yes" && (
+                        <Field label="Cota disponível/confirmada?">
+                          <select value={item.mercosurEuQuotaAvailable} onChange={(e) => update(item.id, "mercosurEuQuotaAvailable", e.target.value as TriState)}>
+                            <option value="">Não confirmado</option>
+                            <option value="yes">Sim</option>
+                            <option value="no">Não</option>
+                          </select>
+                        </Field>
+                      )}
+                      <div className="euPreferenceNote">
+                        Origem UE detectada. O ImportaFácil só reduz o II quando a preferência, a prova de origem e a alíquota final aplicável estiverem confirmadas. Caso contrário, mantém a TEC vigente.
+                        <a href="https://www.gov.br/siscomex/pt-br/acordos-comerciais/preferencias-tarifarias" target="_blank" rel="noreferrer">Consultar preferência oficial ↗</a>
+                      </div>
+                    </>
+                  )}
                   {isSC && (
                     <Field label="Regime tributário SC">
                       <select value={item.ttd} onChange={(e) => update(item.id, "ttd", e.target.value as TTD)}>
