@@ -8,6 +8,7 @@ import { calculateItemTributaryOperation, type ItemImportExpense } from "./item-
 import type { CostAllocationMethod } from "./import-cost-allocation.ts";
 import { getStateJurisdictionRegistry, resolveStateJurisdiction } from "./state-jurisdiction-registry.ts";
 import { resolveGeneralStateIcmsRule } from "./state-general-icms-rules.ts";
+import { resolveMercosurEuImportPreference } from "./mercosur-eu-import-preference.ts";
 
 export type UnifiedImportItemInput = {
   itemId: string;
@@ -24,6 +25,11 @@ export type UnifiedImportItemInput = {
   iiQuotaConfirmed?: boolean;
   ipiExCode?: string;
   aeronauticalEligible?: boolean;
+  mercosurEuPreferenceRequested?: boolean;
+  mercosurEuOriginProofConfirmed?: boolean;
+  mercosurEuPreferentialIiRate?: number;
+  mercosurEuQuotaRequired?: boolean;
+  mercosurEuQuotaAvailable?: boolean;
   ttd?: "none" | "77" | "409" | "410";
   destination?: "commercial_resale" | "industrialization";
   validConcession?: boolean;
@@ -138,6 +144,20 @@ export function calculateUnifiedImportSimulation(input: UnifiedImportSimulationI
   const itemResolutions = normalizedItems.map((item, index) => {
     const federal = resolveFederalTaxes({ ncm: item.ncm, date: input.date, iiExCode: item.iiExCode, iiQuotaConfirmed: item.iiQuotaConfirmed, ipiExCode: item.ipiExCode, aeronauticalEligible: item.aeronauticalEligible });
     assertFederalResolved(item.itemId, federal);
+    const mercosurEuPreference = resolveMercosurEuImportPreference({
+      date: input.date,
+      ncm: item.ncm,
+      originCountry: item.origin,
+      standardIiRate: federal.iiRate!,
+      preferenceRequested: item.mercosurEuPreferenceRequested,
+      originProofConfirmed: item.mercosurEuOriginProofConfirmed,
+      preferentialIiRate: item.mercosurEuPreferentialIiRate,
+      quotaRequired: item.mercosurEuQuotaRequired,
+      quotaAvailable: item.mercosurEuQuotaAvailable,
+    });
+    const effectiveFederal = mercosurEuPreference.appliedPreference
+      ? { ...federal, iiRate: mercosurEuPreference.effectiveIiRate, warnings: [...federal.warnings, ...mercosurEuPreference.warnings] }
+      : { ...federal, warnings: [...federal.warnings, ...mercosurEuPreference.warnings] };
 
     const merchandiseValueBrl = merchandiseValues[index];
     const freightShare = freightBrl > 0 ? item.weightKg / totalWeightKg : 0;
@@ -162,8 +182,8 @@ export function calculateUnifiedImportSimulation(input: UnifiedImportSimulationI
     }
 
     const generalReason = generalStateRule ? [generalStateRule.warning] : [];
-    const decisionReasons = [...(stateDecision?.reasons ?? (jurisdiction.stateEngine === "SC" ? ["Nenhum TTD/regime especial informado; tributação normal preservada."] : generalReason)), ...federal.warnings, ...additionalCharges.warnings, ...((defense.status === "requires_input" || defense.status === "identified") ? defense.warnings : [])];
-    return { itemId: item.itemId, name: item.name ?? item.itemId, ncm: item.ncm, origin: item.origin, quantity: item.quantity, fobUnit: item.fobUnit, merchandiseValueBrl, allocatedFreightBrl, allocatedInsuranceBrl, federal: { ...federal, origin: item.origin, defenseCommercial: defense }, state: { uf: destinationUf, scope: jurisdiction.scope, icmsGeneralRate: generalStateRule?.ratePercent ?? item.icms, legalBasis: generalStateRule?.legalBasis ?? [], decision: stateDecision?.decision ?? "normal", decisionReasons, ruleIds: stateDecision?.ruleIds ?? [], benefitDecision: benefitsByItem[item.itemId]?.decision ?? "normal", benefitReasons: benefitsByItem[item.itemId]?.reasons ?? [], blockingIssues: [...new Set([...(stateDecision?.blockingIssues ?? []), ...(benefitsByItem[item.itemId]?.blockingIssues ?? [])])] }, sc: { ttd: item.ttd, specialRegimeIds: item.specialRegimeIds, decision: stateDecision?.decision ?? "normal", decisionReasons, ruleIds: stateDecision?.ruleIds ?? [], benefitDecision: benefitsByItem[item.itemId]?.decision ?? "normal", benefitReasons: benefitsByItem[item.itemId]?.reasons ?? [], blockingIssues: [...new Set([...(stateDecision?.blockingIssues ?? []), ...(benefitsByItem[item.itemId]?.blockingIssues ?? [])])] }, defenseCommercialBrl: defense.amountBrl ?? 0 };
+    const decisionReasons = [...(stateDecision?.reasons ?? (jurisdiction.stateEngine === "SC" ? ["Nenhum TTD/regime especial informado; tributação normal preservada."] : generalReason)), ...effectiveFederal.warnings, ...additionalCharges.warnings, ...((defense.status === "requires_input" || defense.status === "identified") ? defense.warnings : [])];
+    return { itemId: item.itemId, name: item.name ?? item.itemId, ncm: item.ncm, origin: item.origin, quantity: item.quantity, fobUnit: item.fobUnit, merchandiseValueBrl, allocatedFreightBrl, allocatedInsuranceBrl, federal: { ...effectiveFederal, origin: item.origin, defenseCommercial: defense, mercosurEuPreference }, state: { uf: destinationUf, scope: jurisdiction.scope, icmsGeneralRate: generalStateRule?.ratePercent ?? item.icms, legalBasis: generalStateRule?.legalBasis ?? [], decision: stateDecision?.decision ?? "normal", decisionReasons, ruleIds: stateDecision?.ruleIds ?? [], benefitDecision: benefitsByItem[item.itemId]?.decision ?? "normal", benefitReasons: benefitsByItem[item.itemId]?.reasons ?? [], blockingIssues: [...new Set([...(stateDecision?.blockingIssues ?? []), ...(benefitsByItem[item.itemId]?.blockingIssues ?? [])])] }, sc: { ttd: item.ttd, specialRegimeIds: item.specialRegimeIds, decision: stateDecision?.decision ?? "normal", decisionReasons, ruleIds: stateDecision?.ruleIds ?? [], benefitDecision: benefitsByItem[item.itemId]?.decision ?? "normal", benefitReasons: benefitsByItem[item.itemId]?.reasons ?? [], blockingIssues: [...new Set([...(stateDecision?.blockingIssues ?? []), ...(benefitsByItem[item.itemId]?.blockingIssues ?? [])])] }, defenseCommercialBrl: defense.amountBrl ?? 0 };
   });
 
   const expenses: ItemImportExpense[] = [];
