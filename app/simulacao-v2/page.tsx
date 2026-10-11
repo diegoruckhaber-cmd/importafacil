@@ -635,6 +635,14 @@ export default function SimulationV2Page() {
                   <strong>{money(result.summary.importTaxesBrl)}</strong>
                 </div>
                 <div>
+                  <span>AFRMM</span>
+                  <strong>{money(result.summary.afrmmBrl)}</strong>
+                </div>
+                <div>
+                  <span>Taxa Siscomex</span>
+                  <strong>{money(result.summary.siscomexBrl)}</strong>
+                </div>
+                <div>
                   <span>Defesa comercial</span>
                   <strong>{money(result.summary.defenseCommercialBrl)}</strong>
                 </div>
