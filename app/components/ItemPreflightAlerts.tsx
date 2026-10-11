@@ -27,7 +27,7 @@ export default function ItemPreflightAlerts({ ncm, origin, date }: { ncm: string
       setChecking(true);
       try {
         const response = await fetch(
-          \`/api/item-preflight?ncm=\${encodeURIComponent(normalizedNcm)}&origin=\${encodeURIComponent(origin)}&date=\${encodeURIComponent(date)}\`,
+          `/api/item-preflight?ncm=${encodeURIComponent(normalizedNcm)}&origin=${encodeURIComponent(origin)}&date=${encodeURIComponent(date)}`,
           { signal: controller.signal, cache: "no-store" },
         );
         if (!response.ok) throw new Error("preflight_failed");
@@ -53,12 +53,12 @@ export default function ItemPreflightAlerts({ ncm, origin, date }: { ncm: string
       <div className="itemPreflightHeader">
         <div>
           <small>ANÁLISE AUTOMÁTICA</small>
-          <b>{checking ? "Verificando tratamentos..." : \`\${alerts.length} tratamento(s) identificado(s) durante o preenchimento\`}</b>
+          <b>{checking ? "Verificando tratamentos..." : `${alerts.length} tratamento(s) identificado(s) durante o preenchimento`}</b>
         </div>
         {checking && <span className="itemPreflightSpinner" aria-hidden="true" />}
       </div>
       {!checking && alerts.map((alert, index) => (
-        <div key={\`\${alert.code}-\${index}\`} className={\`itemPreflightAlert \${alert.level}\`}>
+        <div key={`${alert.code}-${index}`} className={`itemPreflightAlert ${alert.level}`}>
           <span className="itemPreflightIcon" aria-hidden="true">{alert.level === "critical" ? "!" : alert.level === "warning" ? "△" : "i"}</span>
           <div>
             <b>{alert.title}</b>
