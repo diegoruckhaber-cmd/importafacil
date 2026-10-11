@@ -4,7 +4,7 @@ import { resolveScTtd } from "./sc-ttd-rule-catalog-2026.ts";
 
 export type SCBenefitResolutionInput = {
   ttd: 77 | 409 | 410;
-  destination: "commercial_resale" | "industrialization" | "same_holder_transfer";
+  destination: "commercial_resale" | "industrialization" | "use_consumption" | "same_holder_transfer";
   /** Optional NCM used to activate the 2026 TTD guardrails. */
   ncm?: string;
   /** Known exclusion from Decreto SC nº 2.128/2009 / applicable act. */
@@ -33,6 +33,19 @@ export type SCBenefitResolution = {
 export function resolveSCBenefit(input: SCBenefitResolutionInput): SCBenefitResolution {
   if (!Number.isFinite(input.normalOutputICMS) || input.normalOutputICMS < 0) {
     throw new Error("normalOutputICMS inválido");
+  }
+
+  if (input.destination === "use_consumption") {
+    return {
+      decision: "deny",
+      importDeferred: false,
+      outputPresumedCredit: false,
+      benefitICMS: null,
+      estimatedSavings: null,
+      reasons: ["Benefício de importação não aplicado automaticamente a mercadoria destinada a uso e consumo."],
+      blockingIssues: ["use_consumption_special_regime_not_supported"],
+      source: "SC benefit catalog",
+    };
   }
 
   const catalog = getSCBenefitCatalogRule(input.ttd);
