@@ -625,27 +625,21 @@ export default function SimulationV2Page() {
                 </div>
               </div>
 
-              <div className="costBreakdown">
-                <div>
-                  <span>Mercadorias</span>
-                  <strong>{money(result.summary.merchandiseBrl)}</strong>
-                </div>
-                <div>
-                  <span>Tributos de importação</span>
-                  <strong>{money(result.summary.importTaxesBrl)}</strong>
-                </div>
-                <div>
-                  <span>AFRMM</span>
-                  <strong>{money(result.summary.afrmmBrl)}</strong>
-                </div>
-                <div>
-                  <span>Taxa Siscomex</span>
-                  <strong>{money(result.summary.siscomexBrl)}</strong>
-                </div>
-                <div>
-                  <span>Defesa comercial</span>
-                  <strong>{money(result.summary.defenseCommercialBrl)}</strong>
-                </div>
+              <div className="costBreakdown detailed">
+                <div><span>Mercadorias</span><strong>{money(result.summary.merchandiseBrl)}</strong></div>
+                <div><span>Frete internacional</span><strong>{money(result.summary.freightBrl)}</strong></div>
+                <div><span>Seguro internacional</span><strong>{money(result.summary.insuranceBrl)}</strong></div>
+                <div><span>II</span><strong>{money(result.summary.iiBrl)}</strong></div>
+                <div><span>IPI</span><strong>{money(result.summary.ipiBrl)}</strong></div>
+                <div><span>PIS-Importação</span><strong>{money(result.summary.pisImportBrl)}</strong></div>
+                <div><span>Cofins-Importação</span><strong>{money(result.summary.cofinsImportBrl)}</strong></div>
+                <div><span>ICMS-Importação</span><strong>{money(result.summary.icmsImportBrl)}</strong></div>
+                <div><span>AFRMM</span><strong>{money(result.summary.afrmmBrl)}</strong></div>
+                <div><span>Taxa Siscomex</span><strong>{money(result.summary.siscomexBrl)}</strong></div>
+                <div><span>Armazenagem</span><strong>{money(result.summary.storageBrl)}</strong></div>
+                <div><span>Outras despesas</span><strong>{money(result.summary.otherExpensesBrl)}</strong></div>
+                <div><span>Defesa comercial</span><strong>{money(result.summary.defenseCommercialBrl)}</strong></div>
+                <div className="costBreakdownTotal"><span>Total estimado</span><strong>{money(result.summary.grossDisbursementBrl)}</strong></div>
               </div>
 
               <section className="resultSection">
