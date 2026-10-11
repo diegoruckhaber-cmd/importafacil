@@ -534,3 +534,49 @@ footer a{color:inherit}
   .billingStatus small{text-align:left}
   .mobileBottomNav{height:calc(68px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom)}
 }
+
+
+/* First user-test corrections */
+.euPreferenceNote{
+  grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:12px 14px;border:1px solid #bfdbfe;border-radius:11px;background:#eff6ff;
+  color:#475569;font-size:11px;line-height:1.5
+}
+.euPreferenceNote a{color:#1d4ed8;font-weight:800;text-decoration:none;white-space:nowrap}
+.euPreferenceNote a:hover{text-decoration:underline}
+.costBreakdown.detailed{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;
+  border:1px solid var(--if-border);border-radius:14px;overflow:hidden;background:#fff
+}
+.costBreakdown.detailed>div{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:11px 13px;border-bottom:1px solid #edf2f7
+}
+.costBreakdown.detailed>div:nth-child(odd){border-right:1px solid #edf2f7}
+.costBreakdown.detailed span{color:#64748b;font-size:11px}
+.costBreakdown.detailed strong{color:#0f172a;font-size:12px;text-align:right}
+.costBreakdown.detailed .costBreakdownTotal{
+  grid-column:1/-1;border-right:0;background:#f8fbff;border-bottom:0;padding:14px 13px
+}
+.costBreakdown.detailed .costBreakdownTotal span,
+.costBreakdown.detailed .costBreakdownTotal strong{font-size:14px;font-weight:850;color:#0f172a}
+.pendingMetric{color:#64748b!important;font-size:19px!important}
+.financialHighlight>span{margin-top:4px;color:#64748b;font-size:10px;line-height:1.35}
+.economicCostNotice{
+  margin:14px 0 18px;padding:15px 16px;border:1px solid #dbeafe;border-radius:13px;
+  background:linear-gradient(135deg,#f8fbff 0%,#fff 100%);
+  display:flex;align-items:center;justify-content:space-between;gap:20px
+}
+.economicCostNotice b{display:block;color:#1e3a8a;font-size:12px}
+.economicCostNotice p{margin:4px 0 0;color:#64748b;font-size:11px;line-height:1.5;max-width:760px}
+.economicCostNotice>span{
+  flex:0 0 auto;padding:7px 9px;border-radius:999px;background:#eef2ff;color:#475569;
+  font-size:10px;font-weight:800
+}
+@media(max-width:720px){
+  .euPreferenceNote{align-items:flex-start;flex-direction:column}
+  .costBreakdown.detailed{grid-template-columns:1fr}
+  .costBreakdown.detailed>div:nth-child(odd){border-right:0}
+  .costBreakdown.detailed .costBreakdownTotal{grid-column:auto}
+  .economicCostNotice{align-items:flex-start;flex-direction:column}
+}
