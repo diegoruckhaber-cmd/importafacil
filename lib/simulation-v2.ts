@@ -250,34 +250,42 @@ export function runImportSimulationV2(input: SimulationV2Input) {
 
     const landedCostBrl = Number(calculation?.landedCostIncludingDefense ?? 0);
     const quantity = Number(row.quantity ?? source?.quantity ?? 0);
-    const landedCostPerUnitBrl = quantity > 0 ? landedCostBrl / quantity : landedCostBrl;
+    const creditAnalysis = analyzeImportTaxCredits2026({
+      date: input.date,
+      regime: input.companyTaxRegime ?? "nao-informado",
+      application: (source?.destination ?? "commercial_resale") as GoodsApplication,
+      icmsTaxpayer: input.icmsTaxpayer,
+      taxes: {
+        icms: Number(calculation?.taxLines?.icms?.payable ?? calculation?.taxLines?.icms?.value ?? 0),
+        ipi: Number(calculation?.taxLines?.ipi?.payable ?? calculation?.taxLines?.ipi?.value ?? 0),
+        pisImport: Number(calculation?.taxLines?.pisImport?.payable ?? calculation?.taxLines?.pisImport?.value ?? 0),
+        cofinsImport: Number(calculation?.taxLines?.cofinsImport?.payable ?? calculation?.taxLines?.cofinsImport?.value ?? 0),
+      },
+    });
+    const economicCostBrl = creditAnalysis.totalRecoverableCredits == null
+      ? landedCostBrl
+      : Math.max(0, landedCostBrl - creditAnalysis.totalRecoverableCredits);
+    const economicCostPerUnitBrl = quantity > 0 ? economicCostBrl / quantity : economicCostBrl;
     const margin = normalizeMargin(source?.targetMarginPercent, defaultMargin);
-    const targetSalePricePerUnitBrl = landedCostPerUnitBrl / (1 - margin / 100);
+    const targetSalePricePerUnitBrl = economicCostPerUnitBrl / (1 - margin / 100);
     const targetRevenueBrl = targetSalePricePerUnitBrl * quantity;
-    const estimatedProfitBrl = targetRevenueBrl - landedCostBrl;
+    const estimatedProfitBrl = targetRevenueBrl - economicCostBrl;
 
     return {
       ...row,
       status: statusFromIssues(normalizedItemIssues),
-      creditAnalysis: analyzeImportTaxCredits2026({
-        date: input.date,
-        regime: input.companyTaxRegime ?? "nao-informado",
-        application: (source?.destination ?? "commercial_resale") as GoodsApplication,
-        icmsTaxpayer: input.icmsTaxpayer,
-        taxes: {
-          icms: Number(calculation?.taxLines?.icms?.payable ?? calculation?.taxLines?.icms?.value ?? 0),
-          ipi: Number(calculation?.taxLines?.ipi?.payable ?? calculation?.taxLines?.ipi?.value ?? 0),
-          pisImport: Number(calculation?.taxLines?.pisImport?.payable ?? calculation?.taxLines?.pisImport?.value ?? 0),
-          cofinsImport: Number(calculation?.taxLines?.cofinsImport?.payable ?? calculation?.taxLines?.cofinsImport?.value ?? 0),
-        },
-      }),
+      creditAnalysis,
       commercial: {
         targetMarginPercent: margin,
-        breakEvenPricePerUnitBrl: landedCostPerUnitBrl,
+        breakEvenPricePerUnitBrl: economicCostPerUnitBrl,
+        grossImportCostPerUnitBrl: quantity > 0 ? landedCostBrl / quantity : landedCostBrl,
+        economicNetCostBrl: creditAnalysis.totalRecoverableCredits == null ? null : economicCostBrl,
         targetSalePricePerUnitBrl,
         targetRevenueBrl,
         estimatedProfitBrl,
-        note: "Preço de equilíbrio e margem calculados sobre o custo nacionalizado da importação, antes dos tributos e efeitos da venda.",
+        note: creditAnalysis.totalRecoverableCredits == null
+          ? "Preço de equilíbrio provisório calculado sobre o desembolso bruto porque os créditos tributários ainda exigem validação."
+          : "Preço de equilíbrio calculado sobre o custo econômico líquido estimado, após créditos recuperáveis da importação e antes dos tributos e efeitos da venda.",
       },
       issues: normalizedItemIssues,
     };
