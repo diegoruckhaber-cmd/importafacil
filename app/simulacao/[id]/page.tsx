@@ -27,9 +27,9 @@ function V2Result({sim}:{sim:SavedSimulationRecord}){
     <span>{attention.length ? `${attention.length} ponto(s) de atenção` : "Sem alertas registrados"}</span>
   </section>
   <section className="savedResultHighlights">
-    <Metric label="Custo nacionalizado" value={br(Number(s.landedCostBrl))}/>
+    <Metric label="Desembolso bruto" value={br(Number(s.landedCostBrl))}/>
     <Metric label="Mercadorias" value={br(Number(s.merchandiseBrl))}/>
-    <Metric label="Tributos de importação" value={br(Number(s.importTaxesBrl))}/>
+    <Metric label="Tributos (II, IPI, PIS, Cofins e ICMS)" value={br(Number(s.importTaxesBrl))}/>
     <Metric label="Economia ICMS-importação" value={br(Number(s.icmsImportSavingsBrl))}/>
   </section>
   <div className="savedResultLayout">
@@ -41,7 +41,7 @@ function V2Result({sim}:{sim:SavedSimulationRecord}){
       {attention.length>0&&<section className="savedAttention"><div className="savedResultSectionHead"><div><small>ATENÇÃO</small><h2>Pontos de atenção</h2></div></div><div className="attentionList">{attention.map((x:string,i:number)=><div className="attentionItem" key={i}><span className="attentionNumber">{i+1}</span><div>{x}</div></div>)}</div></section>}
     </div>
     <aside className="savedResultAside">
-      <div className="savedExecutiveCard"><small>RESUMO EXECUTIVO</small><h3>Visão consolidada</h3><p>O custo nacionalizado estimado desta operação é <b>{br(Number(s.landedCostBrl))}</b>. O resultado preserva exatamente as premissas e o cálculo oficial salvos no momento da simulação.</p><div><span>Valor aduaneiro</span><b>{br(Number(s.customsValueBrl))}</b></div><div><span>Defesa comercial</span><b>{br(Number(s.defenseCommercialBrl))}</b></div><div><span>Receita na margem alvo</span><b>{br(Number(s.targetRevenueBrl))}</b></div><div><span>Lucro estimado</span><b>{br(Number(s.estimatedProfitBrl))}</b></div></div>
+      <div className="savedExecutiveCard"><small>RESUMO EXECUTIVO</small><h3>Visão consolidada</h3><p>O desembolso bruto estimado desta operação é <b>{br(Number(s.landedCostBrl))}</b>. O resultado preserva exatamente as premissas e o cálculo oficial salvos no momento da simulação.</p><div><span>Valor aduaneiro</span><b>{br(Number(s.customsValueBrl))}</b></div><div><span>Defesa comercial</span><b>{br(Number(s.defenseCommercialBrl))}</b></div><div><span>Receita na margem alvo</span><b>{br(Number(s.targetRevenueBrl))}</b></div><div><span>Lucro estimado</span><b>{br(Number(s.estimatedProfitBrl))}</b></div></div>
       <details className="savedPremises"><summary>Premissas da operação</summary><Premises input={sim.input}/></details>
     </aside>
   </div>

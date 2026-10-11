@@ -233,7 +233,7 @@ export default function Dashboard() {
                     <small style={{ display: "block", color: "#3657d6", marginTop: 9, fontWeight: 800 }}>Abrir snapshot →</small>
                   </a>
                   <div style={{ textAlign: "right", minWidth: 170 }}>
-                    <small style={{ color: "#888" }}>Custo nacionalizado</small>
+                    <small style={{ color: "#888" }}>Desembolso bruto estimado</small>
                     <div style={{ fontWeight: 900, fontSize: 20 }}>{br(savedSimulationTotal(record))}</div>
                     {!isFree && kind === "v2" && (
                       <a href={"/relatorio?id=" + record.id} style={{ fontSize: 12, color: "#315fe2", fontWeight: 700 }}>Relatório</a>
