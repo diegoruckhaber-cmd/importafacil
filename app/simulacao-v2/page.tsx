@@ -311,7 +311,7 @@ export default function SimulationV2Page() {
           <div className="simulatorHeroCopy">
             <div className="eyebrow dark">NOVA SIMULAÇÃO</div>
             <h1 id="simulator-title">Nova simulação de importação</h1>
-            <p>Preencha os dados da operação para estimar custos, tributos e o custo nacionalizado da sua importação.</p>
+            <p>Preencha os dados da operação para estimar custos, tributos e o desembolso bruto da sua importação.</p>
             <div className="simulatorProgress" aria-label="Etapas da simulação">
               <div className="simulatorProgressStep active"><span>1</span><b>Operação</b></div>
               <div className="simulatorProgressStep"><span>2</span><b>Mercadoria</b></div>
