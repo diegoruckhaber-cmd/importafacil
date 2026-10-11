@@ -580,3 +580,59 @@ footer a{color:inherit}
   .costBreakdown.detailed .costBreakdownTotal{grid-column:auto}
   .economicCostNotice{align-items:flex-start;flex-direction:column}
 }
+
+
+/* Simulator header resilience — desktop browser zoom and compact widths */
+.simulatorProgressStep b{
+  position:relative;z-index:2;background:#fff;padding-right:7px
+}
+@media(max-width:720px) and (hover:hover) and (pointer:fine){
+  .simulatorPage .wrap{padding-left:22px;padding-right:22px}
+  .simulatorNav{
+    min-height:64px;align-items:center;gap:14px
+  }
+  .simulatorNavLinks{
+    display:flex;flex-wrap:nowrap;gap:4px;overflow-x:auto;scrollbar-width:none
+  }
+  .simulatorNavLinks::-webkit-scrollbar{display:none}
+  .simulatorNavLinks a:not(.navCta){
+    display:inline-flex!important;white-space:nowrap;padding:8px 9px;font-size:11px
+  }
+  .simulatorNavLinks .navCta{
+    display:inline-flex;white-space:nowrap;padding:7px 9px;font-size:11px
+  }
+  .simulatorHeroInner{
+    grid-template-columns:minmax(0,1fr) minmax(230px,290px);
+    gap:24px;padding-top:24px;padding-bottom:24px
+  }
+  .simulatorHero h1{
+    font-size:clamp(28px,4vw,36px)
+  }
+  .simulatorHero p{font-size:13px}
+  .simulatorHeroCard{
+    display:block!important;max-width:none;padding:15px 16px
+  }
+  .simulatorProgress{
+    grid-template-columns:repeat(4,minmax(84px,1fr));
+    max-width:610px;overflow:visible
+  }
+  .simulatorProgressStep{
+    gap:6px;padding-right:10px;font-size:10px
+  }
+  .simulatorProgressStep span{
+    width:26px;height:26px;font-size:11px
+  }
+  .simulatorProgressStep:not(:last-child)::after{
+    left:28px;right:5px;top:13px
+  }
+  .simulatorProgressStep b{
+    display:block!important;font-size:10px!important;background:#fff;padding-right:5px
+  }
+  .mobileBottomNav{display:none!important}
+  .simulatorPage{padding-bottom:0}
+  .simulatorFooter{margin-bottom:0}
+}
+@media(max-width:600px) and (hover:hover) and (pointer:fine){
+  .simulatorHeroInner{grid-template-columns:1fr}
+  .simulatorHeroCard{display:none!important}
+}
