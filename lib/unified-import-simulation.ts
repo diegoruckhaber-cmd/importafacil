@@ -156,7 +156,19 @@ export function calculateUnifiedImportSimulation(input: UnifiedImportSimulationI
       quotaAvailable: item.mercosurEuQuotaAvailable,
     });
     const effectiveFederal = mercosurEuPreference.appliedPreference
-      ? { ...federal, iiRate: mercosurEuPreference.effectiveIiRate, warnings: [...federal.warnings, ...mercosurEuPreference.warnings] }
+      ? {
+          ...federal,
+          iiRate: mercosurEuPreference.effectiveIiRate,
+          ii: {
+            ...federal.ii,
+            rate: mercosurEuPreference.effectiveIiRate,
+            automatic: false,
+            treatment: "MERCOSUR_EU_PREFERENCE",
+            source: mercosurEuPreference.source,
+            warnings: [...federal.ii.warnings, ...mercosurEuPreference.warnings],
+          },
+          warnings: [...federal.warnings, ...mercosurEuPreference.warnings],
+        }
       : { ...federal, warnings: [...federal.warnings, ...mercosurEuPreference.warnings] };
 
     const merchandiseValueBrl = merchandiseValues[index];
