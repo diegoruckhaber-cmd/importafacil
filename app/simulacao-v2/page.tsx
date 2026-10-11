@@ -10,9 +10,11 @@ import { BRAZILIAN_UFS } from "../../lib/state-jurisdiction-registry";
 import { SIMULATOR_FIELD_GUIDANCE as HELP } from "../../lib/simulator-field-guidance";
 import MobileBottomNav from "../components/MobileBottomNav";
 import { isEuropeanUnionOrigin } from "../../lib/mercosur-eu-import-preference";
+import ItemPreflightAlerts from "../components/ItemPreflightAlerts";
 
 type TTD = "409" | "410" | "77" | "none";
-type Destination = "commercial_resale" | "industrialization";
+type Destination = "commercial_resale" | "industrialization" | "use_consumption";
+type CompanyRegime = "" | "lucro-real" | "lucro-presumido" | "simples-nacional";
 type TriState = "" | "yes" | "no";
 type Status = "calculated" | "alert" | "requires_input" | "blocked" | "unsupported";
 
@@ -131,6 +133,8 @@ export default function SimulationV2Page() {
   const [transportMode, setTransportMode] = useState("maritime_long_course");
   const [declarationType, setDeclarationType] = useState("di");
   const [margin, setMargin] = useState(20);
+  const [companyTaxRegime, setCompanyTaxRegime] = useState<CompanyRegime>("");
+  const [icmsTaxpayer, setIcmsTaxpayer] = useState<TriState>("yes");
   const [items, setItems] = useState<Item[]>([makeItem(1)]);
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -170,6 +174,8 @@ export default function SimulationV2Page() {
     declarationType,
     additions: items.length,
     targetMarginPercent: margin,
+    companyTaxRegime: companyTaxRegime || "nao-informado",
+    icmsTaxpayer: tri(icmsTaxpayer),
     items: items.map((item) => ({
       itemId: item.id,
       name: item.name,
@@ -211,6 +217,8 @@ export default function SimulationV2Page() {
     if (!Number.isFinite(storage) || storage < 0) issues.push("A armazenagem não pode ser negativa.");
     if (!Number.isFinite(otherBrl) || otherBrl < 0) issues.push("Outras despesas não podem ser negativas.");
     if (!Number.isFinite(margin) || margin < 0 || margin >= 100) issues.push("A margem padrão deve estar entre 0% e menos de 100%.");
+    if (!companyTaxRegime) issues.push("Selecione o regime tributário da empresa.");
+    if (!icmsTaxpayer) issues.push("Informe se a empresa é contribuinte do ICMS.");
     if (!items.length) issues.push("Inclua pelo menos um item.");
 
     items.forEach((item, index) => {
@@ -401,6 +409,21 @@ export default function SimulationV2Page() {
               }}
             />
           </Field>
+          <Field label="Regime tributário da empresa">
+            <select value={companyTaxRegime} onChange={(e) => { setCompanyTaxRegime(e.target.value as CompanyRegime); invalidate(); }}>
+              <option value="">Selecione...</option>
+              <option value="lucro-real">Lucro Real</option>
+              <option value="lucro-presumido">Lucro Presumido</option>
+              <option value="simples-nacional">Simples Nacional</option>
+            </select>
+          </Field>
+          <Field label="Empresa contribuinte de ICMS?">
+            <select value={icmsTaxpayer} onChange={(e) => { setIcmsTaxpayer(e.target.value as TriState); invalidate(); }}>
+              <option value="">Não informado</option>
+              <option value="yes">Sim</option>
+              <option value="no">Não</option>
+            </select>
+          </Field>
           <Field label="Modal" hint={HELP.transportMode}>
             <select value={transportMode} onChange={(e) => { setTransportMode(e.target.value); invalidate(); }}>
               <option value="maritime_long_course">Marítimo — longo curso</option>
@@ -475,13 +498,22 @@ export default function SimulationV2Page() {
                 <ItemNum label="Volume m³" value={item.volumeM3} set={(value) => update(item.id, "volumeM3", value)} />
                 {isSC && <ItemNum label="Alíquota ICMS normal SC %" value={item.icms} set={(value) => update(item.id, "icms", value)} />}
                 <ItemNum label="Margem alvo %" value={item.targetMarginPercent} set={(value) => update(item.id, "targetMarginPercent", value)} />
-                <Field label="Destinação" hint={HELP.destination}>
-                  <select value={item.destination} onChange={(e) => update(item.id, "destination", e.target.value as Destination)}>
+                <Field label="Aplicação da mercadoria" hint={HELP.destination}>
+                  <select value={item.destination} onChange={(e) => {
+                    const value = e.target.value as Destination;
+                    setItems((rows) => rows.map((row) => row.id === item.id
+                      ? { ...row, destination: value, ...(value === "use_consumption" ? { ttd: "none", industrializationInSC: false } : {}) }
+                      : row));
+                    invalidate();
+                  }}>
                     <option value="commercial_resale">Revenda/comercialização</option>
                     <option value="industrialization">Industrialização</option>
+                    <option value="use_consumption">Uso e consumo</option>
                   </select>
                 </Field>
               </div>
+
+              <ItemPreflightAlerts ncm={item.ncm} origin={item.origin} date={date} />
 
               <details className="advancedPanel">
                 <summary>Opções avançadas e tratamentos específicos</summary>
@@ -617,8 +649,9 @@ export default function SimulationV2Page() {
                 </div>
                 <div className="financialHighlight">
                   <small>Custo econômico líquido</small>
-                  <strong className="pendingMetric">A apurar</strong>
-                  <span>depende dos créditos tributários do importador</span>
+                  {result.summary.economicNetCostBrl == null
+                    ? <><strong className="pendingMetric">A validar</strong><span>faltam condições para concluir os créditos tributários</span></>
+                    : <><strong>{money(result.summary.economicNetCostBrl)}</strong><span>após créditos recuperáveis estimados</span></>}
                 </div>
                 <div className="financialHighlight">
                   <small>Receita alvo</small>
@@ -633,9 +666,9 @@ export default function SimulationV2Page() {
               <div className="economicCostNotice">
                 <div>
                   <b>Desembolso bruto ≠ custo econômico líquido</b>
-                  <p>O total acima representa o desembolso estimado da importação. O ImportaFácil ainda não deduz créditos recuperáveis de ICMS, IPI, PIS ou Cofins, pois isso depende do regime tributário, atividade e direito ao crédito do importador.</p>
+                  <p>O desembolso mostra o caixa necessário para importar. O custo econômico líquido deduz os créditos recuperáveis estimados conforme regime tributário, aplicação da mercadoria e condição de contribuinte do ICMS.</p>
                 </div>
-                <span>Créditos fiscais: não calculados neste cenário</span>
+                <span>{result.summary.recoverableTaxCreditsBrl == null ? "Créditos fiscais: a validar" : `Créditos estimados: ${money(result.summary.recoverableTaxCreditsBrl)}`}</span>
               </div>
 
               <div className="costBreakdown detailed">
@@ -652,7 +685,12 @@ export default function SimulationV2Page() {
                 <div><span>Armazenagem</span><strong>{money(result.summary.storageBrl)}</strong></div>
                 <div><span>Outras despesas</span><strong>{money(result.summary.otherExpensesBrl)}</strong></div>
                 <div><span>Defesa comercial</span><strong>{money(result.summary.defenseCommercialBrl)}</strong></div>
-                <div className="costBreakdownTotal"><span>Total estimado</span><strong>{money(result.summary.grossDisbursementBrl)}</strong></div>
+                <div><span>Crédito ICMS estimado</span><strong>- {money(result.summary.icmsCreditBrl)}</strong></div>
+                <div><span>Crédito IPI estimado</span><strong>- {money(result.summary.ipiCreditBrl)}</strong></div>
+                <div><span>Crédito PIS-Importação estimado</span><strong>- {money(result.summary.pisImportCreditBrl)}</strong></div>
+                <div><span>Crédito Cofins-Importação estimado</span><strong>- {money(result.summary.cofinsImportCreditBrl)}</strong></div>
+                <div className="costBreakdownTotal"><span>Desembolso bruto estimado</span><strong>{money(result.summary.grossDisbursementBrl)}</strong></div>
+                {result.summary.economicNetCostBrl != null && <div className="costBreakdownTotal net"><span>Custo econômico líquido estimado</span><strong>{money(result.summary.economicNetCostBrl)}</strong></div>}
               </div>
 
               <section className="resultSection">
