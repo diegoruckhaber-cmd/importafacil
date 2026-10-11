@@ -291,6 +291,21 @@ export function runImportSimulationV2(input: SimulationV2Input) {
   const landedCostBrl = Number(core.calculation?.totalLandedCostIncludingDefense ?? 0);
   const estimatedProfitBrl = targetRevenueBrl - landedCostBrl;
   const totalMerchandiseBrl = core.items.reduce((sum, item) => sum + Number(item.merchandiseValueBrl ?? 0), 0);
+  const freightBrl = Number(core.operation?.freightUsd ?? input.freight ?? 0) * Number(core.operation?.exchange ?? input.exchange ?? 0);
+  const insuranceBrl = Number(core.operation?.insuranceUsd ?? input.insurance ?? 0) * Number(core.operation?.exchange ?? input.exchange ?? 0);
+  const afrmmBrl = Number(core.operation?.importCharges?.afrmmBrl ?? 0);
+  const siscomexBrl = Number(core.operation?.importCharges?.siscomexBrl ?? 0);
+  const storageBrl = Number(input.storage ?? 0);
+  const otherExpensesBrl = Number(input.otherBrl ?? 0);
+  const taxTotals = resultItems.reduce((acc, item) => {
+    const lines = item.calculation?.taxLines;
+    acc.iiBrl += Number(lines?.ii?.payable ?? lines?.ii?.value ?? 0);
+    acc.ipiBrl += Number(lines?.ipi?.payable ?? lines?.ipi?.value ?? 0);
+    acc.pisImportBrl += Number(lines?.pisImport?.payable ?? lines?.pisImport?.value ?? 0);
+    acc.cofinsImportBrl += Number(lines?.cofinsImport?.payable ?? lines?.cofinsImport?.value ?? 0);
+    acc.icmsImportBrl += Number(lines?.icms?.payable ?? lines?.icms?.value ?? 0);
+    return acc;
+  }, { iiBrl: 0, ipiBrl: 0, pisImportBrl: 0, cofinsImportBrl: 0, icmsImportBrl: 0 });
 
   return {
     contract: "importafacil-simulation-v2" as const,
@@ -310,7 +325,24 @@ export function runImportSimulationV2(input: SimulationV2Input) {
       defenseCommercialBrl: Number(core.calculation?.defenseCommercialBrl ?? 0),
       icmsImportSavingsBrl: Number(core.calculation?.totalImportICMSSavings ?? 0),
       landedCostBrl,
+      grossDisbursementBrl: landedCostBrl,
       capitalRequiredBrl: landedCostBrl,
+      freightBrl,
+      insuranceBrl,
+      afrmmBrl,
+      siscomexBrl,
+      customsChargesBrl: afrmmBrl + siscomexBrl,
+      storageBrl,
+      otherExpensesBrl,
+      logisticsAndExpensesBrl: freightBrl + insuranceBrl + storageBrl + otherExpensesBrl,
+      iiBrl: taxTotals.iiBrl,
+      ipiBrl: taxTotals.ipiBrl,
+      pisImportBrl: taxTotals.pisImportBrl,
+      cofinsImportBrl: taxTotals.cofinsImportBrl,
+      icmsImportBrl: taxTotals.icmsImportBrl,
+      economicNetCostBrl: null,
+      recoverableTaxCreditsBrl: null,
+      economicCostStatus: "not_calculated_without_tax_profile" as const,
       targetRevenueBrl,
       estimatedProfitBrl,
     },
