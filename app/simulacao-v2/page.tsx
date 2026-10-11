@@ -11,6 +11,7 @@ import { SIMULATOR_FIELD_GUIDANCE as HELP } from "../../lib/simulator-field-guid
 import MobileBottomNav from "../components/MobileBottomNav";
 import { isEuropeanUnionOrigin } from "../../lib/mercosur-eu-import-preference";
 import ItemPreflightAlerts from "../components/ItemPreflightAlerts";
+import { downloadSimulationReportPdf } from "../../lib/simulation-report-pdf";
 
 type TTD = "409" | "410" | "77" | "none";
 type Destination = "commercial_resale" | "industrialization" | "use_consumption";
@@ -139,6 +140,7 @@ export default function SimulationV2Page() {
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [pdfGenerating, setPdfGenerating] = useState(false);
   const [message, setMessage] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
   const [validationIssues, setValidationIssues] = useState<string[]>([]);
@@ -294,6 +296,24 @@ export default function SimulationV2Page() {
       setSaveMessage(error instanceof Error ? error.message : "Não foi possível salvar.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function downloadPdf() {
+    if (!result) return;
+    setPdfGenerating(true);
+    setMessage("");
+    try {
+      await downloadSimulationReportPdf({
+        name,
+        input: payload(),
+        result,
+        created_at: new Date().toISOString(),
+      });
+    } catch {
+      setMessage("Não foi possível gerar o PDF personalizado. Tente novamente.");
+    } finally {
+      setPdfGenerating(false);
     }
   }
 
@@ -781,7 +801,7 @@ export default function SimulationV2Page() {
             <button className="primary" onClick={save} disabled={saving}>
               {saving ? "Salvando..." : status === "calculated" || status === "alert" ? "Salvar no histórico" : "Salvar pré-estudo"}
             </button>
-            <button className="secondaryBtn" onClick={() => window.print()}>Imprimir / Salvar PDF</button>
+            <button className="secondaryBtn" onClick={downloadPdf} disabled={pdfGenerating}>{pdfGenerating ? "Gerando PDF..." : "Baixar PDF personalizado"}</button>
           </div>
         </section>
       )}
