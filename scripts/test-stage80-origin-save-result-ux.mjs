@@ -21,7 +21,7 @@ assert.doesNotMatch(migration, /where s\.user_id=p_user_id\) >= 3/);
 assert.match(migration, /simulation_limit_reached/);
 
 assert.match(page, /className="financialHighlights"/);
-assert.match(page, /className="costBreakdown"/);
+assert.match(page, /className="costBreakdown(?: detailed)?"/);
 assert.match(page, /className="resultTableWrap"/);
 assert.match(page, /className="attentionList"/);
 assert.match(page, /renderAttentionPoint/);
