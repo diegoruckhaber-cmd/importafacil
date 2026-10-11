@@ -601,9 +601,9 @@ export default function SimulationV2Page() {
             </div>
             {result.summary && (
               <div className="capitalCard">
-                <small>Capital necessário</small>
+                <small>Desembolso total estimado</small>
                 <strong>{money(result.summary.capitalRequiredBrl)}</strong>
-                <span>estimativa para nacionalizar a operação</span>
+                <span>valor bruto estimado para concluir a importação</span>
               </div>
             )}
           </div>
@@ -612,7 +612,7 @@ export default function SimulationV2Page() {
             <>
               <div className="financialHighlights">
                 <div className="financialHighlight">
-                  <small>Custo nacionalizado</small>
+                  <small>Desembolso bruto da importação</small>
                   <strong>{money(result.summary.landedCostBrl)}</strong>
                 </div>
                 <div className="financialHighlight">
