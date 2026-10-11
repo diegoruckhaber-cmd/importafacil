@@ -613,7 +613,12 @@ export default function SimulationV2Page() {
               <div className="financialHighlights">
                 <div className="financialHighlight">
                   <small>Desembolso bruto da importação</small>
-                  <strong>{money(result.summary.landedCostBrl)}</strong>
+                  <strong>{money(result.summary.grossDisbursementBrl ?? result.summary.landedCostBrl)}</strong>
+                </div>
+                <div className="financialHighlight">
+                  <small>Custo econômico líquido</small>
+                  <strong className="pendingMetric">A apurar</strong>
+                  <span>depende dos créditos tributários do importador</span>
                 </div>
                 <div className="financialHighlight">
                   <small>Receita alvo</small>
@@ -623,6 +628,14 @@ export default function SimulationV2Page() {
                   <small>Lucro estimado</small>
                   <strong>{money(result.summary.estimatedProfitBrl)}</strong>
                 </div>
+              </div>
+
+              <div className="economicCostNotice">
+                <div>
+                  <b>Desembolso bruto ≠ custo econômico líquido</b>
+                  <p>O total acima representa o desembolso estimado da importação. O ImportaFácil ainda não deduz créditos recuperáveis de ICMS, IPI, PIS ou Cofins, pois isso depende do regime tributário, atividade e direito ao crédito do importador.</p>
+                </div>
+                <span>Créditos fiscais: não calculados neste cenário</span>
               </div>
 
               <div className="costBreakdown detailed">
