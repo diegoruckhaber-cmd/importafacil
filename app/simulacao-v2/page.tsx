@@ -912,7 +912,7 @@ export default function SimulationV2Page() {
             <button className="primary" onClick={save} disabled={saving}>
               {saving ? "Salvando..." : status === "calculated" || status === "alert" ? "Salvar no histórico" : "Salvar pré-estudo"}
             </button>
-            <button className="secondaryBtn" onClick={downloadPdf} disabled={pdfGenerating}>{pdfGenerating ? "Gerando PDF..." : status === "calculated" || status === "alert" ? "Baixar PDF personalizado" : "Baixar relatório de pendências"}</button>
+            <button className="secondaryBtn" onClick={downloadPdf} disabled={pdfGenerating || !(status === "calculated" || status === "alert")} title={status === "calculated" || status === "alert" ? "Gerar relatório executivo em PDF" : "Resolva as pendências antes de gerar o PDF executivo"}>{pdfGenerating ? "Gerando PDF..." : status === "calculated" || status === "alert" ? "Baixar PDF personalizado" : "PDF disponível após concluir"}</button>
           </div>
         </section>
       )}
