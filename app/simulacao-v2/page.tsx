@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import DefenseCommercialExporterSelector from "../components/DefenseCommercialExporterSelector";
 import NcmAutocomplete from "../components/NcmAutocomplete";
 import CountryAutocomplete from "../components/CountryAutocomplete";
@@ -410,19 +410,18 @@ export default function SimulationV2Page() {
               {BRAZILIAN_UFS.map((uf) => <option key={uf} value={uf}>{uf} — {UF_NAMES[uf]}</option>)}
             </select>
           </Field>
-          <Num label="Câmbio R$/US$" hint={HELP.exchange} value={exchange} set={setExchange} invalidate={invalidate} />
-          <Num label="Frete internacional US$" hint={HELP.freight} value={freight} set={setFreight} invalidate={invalidate} />
-          <Num label="Seguro internacional US$" hint={HELP.insurance} value={insurance} set={setInsurance} invalidate={invalidate} />
-          <Num label="Armazenagem R$" hint={HELP.storage} value={storage} set={setStorage} invalidate={invalidate} />
-          <Num label="Outras despesas R$" value={otherBrl} set={setOtherBrl} invalidate={invalidate} />
+          <Num label="Câmbio R$/US$" hint={HELP.exchange} value={exchange} set={setExchange} invalidate={invalidate} step={0.01} />
+          <Num label="Frete internacional US$" hint={HELP.freight} value={freight} set={setFreight} invalidate={invalidate} step={100} />
+          <Num label="Seguro internacional US$" hint={HELP.insurance} value={insurance} set={setInsurance} invalidate={invalidate} step={50} />
+          <Num label="Armazenagem R$" hint={HELP.storage} value={storage} set={setStorage} invalidate={invalidate} step={100} />
+          <Num label="Outras despesas R$" value={otherBrl} set={setOtherBrl} invalidate={invalidate} step={100} />
           <Field label="Margem alvo padrão %" hint={HELP.margin}>
-            <input
-              type="number"
-              min="0"
-              max="99.99"
+            <NumericInput
               value={margin}
-              onChange={(e) => {
-                const value = Number(e.target.value);
+              min={0}
+              max={99.99}
+              step={1}
+              onChange={(value) => {
                 setMargin(value);
                 setItems((rows) => rows.map((row) => ({ ...row, targetMarginPercent: value })));
                 invalidate();
@@ -512,12 +511,12 @@ export default function SimulationV2Page() {
                 <Text label="Descrição" value={item.name} set={(value) => update(item.id, "name", value)} />
                 <NcmAutocomplete hint={HELP.ncm} value={item.ncm} onChange={(value) => update(item.id, "ncm", value)} />
                 <CountryAutocomplete hint={HELP.origin} value={item.origin} onChange={(value) => update(item.id, "origin", value)} />
-                <ItemNum label="Quantidade" value={item.quantity} set={(value) => update(item.id, "quantity", value)} />
-                <ItemNum label="FOB unitário US$" hint={HELP.fobUnit} value={item.fobUnit} set={(value) => update(item.id, "fobUnit", value)} />
-                <ItemNum label="Peso líquido kg" hint={HELP.weight} value={item.weightKg} set={(value) => update(item.id, "weightKg", value)} />
-                <ItemNum label="Volume m³" value={item.volumeM3} set={(value) => update(item.id, "volumeM3", value)} />
-                {isSC && <ItemNum label="Alíquota ICMS normal SC %" value={item.icms} set={(value) => update(item.id, "icms", value)} />}
-                <ItemNum label="Margem alvo %" value={item.targetMarginPercent} set={(value) => update(item.id, "targetMarginPercent", value)} />
+                <ItemNum label="Quantidade" step={1} value={item.quantity} set={(value) => update(item.id, "quantity", value)} />
+                <ItemNum label="FOB unitário US$" hint={HELP.fobUnit} step={0.1} value={item.fobUnit} set={(value) => update(item.id, "fobUnit", value)} />
+                <ItemNum label="Peso líquido kg" hint={HELP.weight} step={10} value={item.weightKg} set={(value) => update(item.id, "weightKg", value)} />
+                <ItemNum label="Volume m³" step={0.1} value={item.volumeM3} set={(value) => update(item.id, "volumeM3", value)} />
+                {isSC && <ItemNum label="Alíquota ICMS normal SC %" step={0.1} value={item.icms} set={(value) => update(item.id, "icms", value)} />}
+                <ItemNum label="Margem alvo %" step={1} max={99.99} value={item.targetMarginPercent} set={(value) => update(item.id, "targetMarginPercent", value)} />
                 <Field label="Aplicação da mercadoria" hint={HELP.destination}>
                   <select value={item.destination} onChange={(e) => {
                     const value = e.target.value as Destination;
@@ -572,7 +571,7 @@ export default function SimulationV2Page() {
                           <option value="no">Não disponível</option>
                         </select>
                       </Field>
-                      <ItemNum label="II preferencial final %" value={item.mercosurEuPreferentialIiRate} set={(value) => update(item.id, "mercosurEuPreferentialIiRate", value)} />
+                      <ItemNum label="II preferencial final %" step={0.1} max={100} value={item.mercosurEuPreferentialIiRate} set={(value) => update(item.id, "mercosurEuPreferentialIiRate", value)} />
                       <Field label="Cota tarifária aplicável?">
                         <select value={item.mercosurEuQuotaRequired} onChange={(e) => update(item.id, "mercosurEuQuotaRequired", e.target.value as TriState)}>
                           <option value="">Não informado</option>
@@ -833,16 +832,177 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   return <label>{label}{children}{hint && <small className="fieldHint">{hint}</small>}</label>;
 }
 
-function Num({ label, hint, value, set, invalidate }: { label: string; hint?: string; value: number; set: (value: number) => void; invalidate: () => void }) {
-  return <Field label={label} hint={hint}><input type="number" min="0" step="any" value={value} onChange={(e) => { set(Number(e.target.value)); invalidate(); }} /></Field>;
+function NumericInput({
+  value,
+  onChange,
+  min = 0,
+  max,
+  step = 1,
+}: {
+  value: number;
+  onChange: (value: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+}) {
+  const format = (next: number) => String(Number(next.toFixed(6))).replace(".", ",");
+  const [draft, setDraft] = useState(() => format(value));
+  const editingRef = useRef(false);
+  const valueRef = useRef(value);
+  const delayRef = useRef<number | null>(null);
+  const intervalRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    valueRef.current = value;
+    if (!editingRef.current) setDraft(format(value));
+  }, [value]);
+
+  function clamp(next: number) {
+    let result = Math.max(min, next);
+    if (max != null) result = Math.min(max, result);
+    return Number(result.toFixed(6));
+  }
+
+  function commit(next: number) {
+    const safe = clamp(next);
+    valueRef.current = safe;
+    setDraft(format(safe));
+    onChange(safe);
+  }
+
+  function changeBy(direction: -1 | 1) {
+    commit(valueRef.current + direction * step);
+  }
+
+  function stopRepeat() {
+    if (delayRef.current != null) window.clearTimeout(delayRef.current);
+    if (intervalRef.current != null) window.clearInterval(intervalRef.current);
+    delayRef.current = null;
+    intervalRef.current = null;
+  }
+
+  useEffect(() => stopRepeat, []);
+
+  function startRepeat(direction: -1 | 1) {
+    stopRepeat();
+    changeBy(direction);
+    delayRef.current = window.setTimeout(() => {
+      intervalRef.current = window.setInterval(() => changeBy(direction), 75);
+    }, 360);
+  }
+
+  return (
+    <div className="numericControl">
+      <input
+        type="text"
+        inputMode="decimal"
+        value={draft}
+        onFocus={() => { editingRef.current = true; }}
+        onBlur={() => {
+          editingRef.current = false;
+          const parsed = Number(draft.replace(",", "."));
+          if (Number.isFinite(parsed)) commit(parsed);
+          else setDraft(format(valueRef.current));
+        }}
+        onChange={(e) => {
+          const nextDraft = e.target.value;
+          if (!/^\d*(?:[.,]\d*)?$/.test(nextDraft)) return;
+          setDraft(nextDraft);
+          const parsed = Number(nextDraft.replace(",", "."));
+          if (nextDraft !== "" && Number.isFinite(parsed)) {
+            const safe = clamp(parsed);
+            valueRef.current = safe;
+            onChange(safe);
+          }
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowUp") {
+            e.preventDefault();
+            changeBy(1);
+          } else if (e.key === "ArrowDown") {
+            e.preventDefault();
+            changeBy(-1);
+          }
+        }}
+      />
+      <button
+        type="button"
+        className="numericStep"
+        aria-label={`Diminuir em ${format(step)}`}
+        title={`Diminuir em ${format(step)} · mantenha pressionado para repetir`}
+        disabled={value <= min}
+        onPointerDown={(e) => { e.preventDefault(); startRepeat(-1); }}
+        onPointerUp={stopRepeat}
+        onPointerCancel={stopRepeat}
+        onPointerLeave={stopRepeat}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            changeBy(-1);
+          }
+        }}
+      >−</button>
+      <button
+        type="button"
+        className="numericStep"
+        aria-label={`Aumentar em ${format(step)}`}
+        title={`Aumentar em ${format(step)} · mantenha pressionado para repetir`}
+        disabled={max != null && value >= max}
+        onPointerDown={(e) => { e.preventDefault(); startRepeat(1); }}
+        onPointerUp={stopRepeat}
+        onPointerCancel={stopRepeat}
+        onPointerLeave={stopRepeat}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            changeBy(1);
+          }
+        }}
+      >+</button>
+    </div>
+  );
+}
+
+function Num({
+  label,
+  hint,
+  value,
+  set,
+  invalidate,
+  step = 1,
+  max,
+}: {
+  label: string;
+  hint?: string;
+  value: number;
+  set: (value: number) => void;
+  invalidate: () => void;
+  step?: number;
+  max?: number;
+}) {
+  return <Field label={label} hint={hint}><NumericInput value={value} min={0} max={max} step={step} onChange={(next) => { set(next); invalidate(); }} /></Field>;
 }
 
 function Text({ label, hint, value, set }: { label: string; hint?: string; value: string; set: (value: string) => void }) {
   return <Field label={label} hint={hint}><input value={value} onChange={(e) => set(e.target.value)} /></Field>;
 }
 
-function ItemNum({ label, hint, value, set }: { label: string; hint?: string; value: number; set: (value: number) => void }) {
-  return <Field label={label} hint={hint}><input type="number" min="0" step="any" value={value} onChange={(e) => set(Number(e.target.value))} /></Field>;
+function ItemNum({
+  label,
+  hint,
+  value,
+  set,
+  step = 1,
+  max,
+}: {
+  label: string;
+  hint?: string;
+  value: number;
+  set: (value: number) => void;
+  step?: number;
+  max?: number;
+}) {
+  return <Field label={label} hint={hint}><NumericInput value={value} min={0} max={max} step={step} onChange={set} /></Field>;
 }
 
 function Check({ label, checked, set }: { label: string; checked: boolean; set: (value: boolean) => void }) {
