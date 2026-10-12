@@ -706,7 +706,7 @@ h1,h2,h3,h4{font-family:var(--if-font-ui);letter-spacing:-.025em}
 .simulatorWorkspace .fields label{
   display:block;
   color:#334155;
-  font-size:14px;
+  font-size:13px;
   line-height:1.4;
   font-weight:500;
   text-transform:none;
@@ -714,10 +714,10 @@ h1,h2,h3,h4{font-family:var(--if-font-ui);letter-spacing:-.025em}
 .fields input,.fields select,
 .simulatorWorkspace .fields input,.simulatorWorkspace .fields select{
   margin-top:6px;
-  min-height:44px;
-  padding:10px 12px;
+  min-height:42px;
+  padding:9px 12px;
   border-radius:10px;
-  font-size:16px;
+  font-size:14px;
   line-height:1.4;
   font-weight:400;
   letter-spacing:normal;
@@ -727,7 +727,7 @@ h1,h2,h3,h4{font-family:var(--if-font-ui);letter-spacing:-.025em}
 .simulatorWorkspace .fields .fieldHint{
   margin-top:5px;
   color:#667085;
-  font-size:12px;
+  font-size:11px;
   line-height:1.45;
   font-weight:400;
 }
@@ -736,7 +736,7 @@ h1,h2,h3,h4{font-family:var(--if-font-ui);letter-spacing:-.025em}
 .productContentPage textarea,
 .dashboardPage input:not([type="checkbox"]):not([type="radio"]),
 .dashboardPage select{
-  font-size:15px;
+  font-size:14px;
   font-weight:400;
 }
 .productContentPage label,.dashboardPage label{font-weight:500}
@@ -764,10 +764,10 @@ h1,h2,h3,h4{font-family:var(--if-font-ui);letter-spacing:-.025em}
 }
 @media(max-width:640px){
   .simulatorWorkspace h2{font-size:19px}
-  .simulatorWorkspace .fields label{font-size:14px}
+  .simulatorWorkspace .fields label{font-size:13px}
   .simulatorWorkspace .fields input,.simulatorWorkspace .fields select{
-    font-size:16px;
-    min-height:44px;
+    font-size:14px;
+    min-height:42px;
   }
 }
 @media print{
