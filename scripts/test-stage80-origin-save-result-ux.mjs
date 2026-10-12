@@ -26,7 +26,7 @@ assert.match(page, /className="resultTableWrap"/);
 assert.match(page, /className="attentionList"/);
 assert.match(page, /renderAttentionPoint/);
 assert.match(page, /const \[saveMessage, setSaveMessage\]/);
-assert.match(page, /className="saveError"/);
+assert.match(page, /saveMessage\.startsWith\("Simulação salva"\) \? "saveSuccess" : "saveError"/);
 
 assert.match(css, /\.financialHighlights/);
 assert.match(css, /\.resultTable/);
