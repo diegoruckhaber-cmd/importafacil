@@ -232,6 +232,10 @@ export async function buildSimulationReportPdf(sim: Pick<SavedSimulationRecord, 
 }
 
 export async function downloadSimulationReportPdf(sim: Pick<SavedSimulationRecord, "name" | "input" | "result" | "created_at">) {
+  const status = String(sim.result?.status || "");
+  if (status !== "calculated" && status !== "alert") {
+    throw new Error("O PDF executivo só pode ser gerado após a conclusão da simulação.");
+  }
   const bytes = await buildSimulationReportPdf(sim);
   const blob = new Blob([bytes as BlobPart], { type: "application/pdf" });
   const url = URL.createObjectURL(blob);
