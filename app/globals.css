@@ -774,3 +774,108 @@ h1,h2,h3,h4{font-family:var(--if-font-ui);letter-spacing:-.025em}
   body{font-family:var(--if-font-ui)}
   .productContentPage,.dashboardPage,.simulatorPage{font-variant-numeric:tabular-nums}
 }
+
+
+/* Simulator form typography + fast numeric controls */
+.simulatorWorkspace .fields label{
+  font-size:12px;
+  font-weight:700;
+  color:#334155;
+  letter-spacing:-.005em;
+}
+.simulatorWorkspace .fields input,
+.simulatorWorkspace .fields select{
+  min-height:46px;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  font-size:15px;
+  font-weight:600;
+  letter-spacing:-.01em;
+  line-height:1.2;
+  color:#172033;
+}
+.simulatorWorkspace .fields input::placeholder{
+  color:#94a3b8;
+  font-weight:500;
+  opacity:1;
+}
+.simulatorWorkspace .fields select{
+  padding-left:12px;
+  padding-right:36px;
+}
+.numericControl{
+  width:100%;
+  min-height:46px;
+  margin-top:7px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 42px 42px;
+  align-items:stretch;
+  overflow:hidden;
+  border:1px solid #cbd5e1;
+  border-radius:10px;
+  background:#fff;
+  transition:border-color .18s,box-shadow .18s,background .18s;
+}
+.numericControl:hover{border-color:#94a3b8}
+.numericControl:focus-within{
+  border-color:var(--if-primary);
+  box-shadow:0 0 0 3px rgba(37,99,235,.12);
+}
+.simulatorWorkspace .fields .numericControl input{
+  width:100%;
+  min-width:0;
+  min-height:44px;
+  margin:0;
+  padding:10px 12px;
+  border:0!important;
+  border-radius:0;
+  box-shadow:none!important;
+  outline:none!important;
+  background:transparent;
+  font-size:15px;
+  font-weight:650;
+  font-variant-numeric:tabular-nums;
+}
+.numericStep{
+  min-width:42px;
+  border:0;
+  border-left:1px solid #e2e8f0;
+  background:#f8fafc;
+  color:#334155;
+  font:700 19px/1 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  cursor:pointer;
+  user-select:none;
+  touch-action:none;
+  transition:background .14s,color .14s,transform .08s;
+}
+.numericStep:hover:not(:disabled){
+  background:#eff6ff;
+  color:#1d4ed8;
+}
+.numericStep:active:not(:disabled){
+  background:#dbeafe;
+  transform:scale(.96);
+}
+.numericStep:focus-visible{
+  position:relative;
+  z-index:2;
+  outline:2px solid #2563eb;
+  outline-offset:-2px;
+}
+.numericStep:disabled{
+  color:#cbd5e1;
+  background:#f8fafc;
+  cursor:not-allowed;
+}
+.fieldHint{
+  font-size:10.5px;
+  line-height:1.45;
+}
+@media(max-width:720px){
+  .simulatorWorkspace .fields input,
+  .simulatorWorkspace .fields select,
+  .simulatorWorkspace .fields .numericControl input{
+    font-size:16px;
+  }
+  .numericControl{grid-template-columns:minmax(0,1fr) 44px 44px}
+  .numericStep{min-width:44px}
+}
