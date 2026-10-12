@@ -71,6 +71,7 @@ export type FederalTaxResolutionInput = {
   iiExCode?: string;
   iiQuotaConfirmed?: boolean;
   ipiExCode?: string;
+  ipiBaseConfirmed?: boolean;
   aeronauticalEligible?: boolean;
   statutoryIIRate?: number;
   reducedIIRate?: number;
@@ -187,8 +188,8 @@ function resolveIPI(snapshot: FederalOfficialSnapshot, ncm: string, input: Feder
   }
 
   const materiallyDifferentEx = exRecords.filter((record) => record.rate !== baseRates[0] || record.taxTreatment !== base[0]?.taxTreatment);
-  if (!requestedEx && materiallyDifferentEx.length) return component("requires_input", null, ["A TIPI possui EX com tratamento diferente da alíquota geral desta NCM. Informe o EX aplicável ou confirme o enquadramento antes do cálculo."], records, { source: "RFB TIPI", sourceUrl: snapshot.sources.rfbTipi?.sourceUrl });
-  return component("resolved", baseRates[0], [], base, { treatment: "TIPI_BASE", taxTreatment: base[0]?.taxTreatment, legalBasis: base[0]?.legalBasis ?? undefined, source: "RFB TIPI", sourceUrl: snapshot.sources.rfbTipi?.sourceUrl });
+  if (!requestedEx && materiallyDifferentEx.length && input.ipiBaseConfirmed !== true) return component("requires_input", null, ["A TIPI possui EX com tratamento diferente da alíquota geral desta NCM. Selecione o EX aplicável ou confirme que a mercadoria segue a regra geral da NCM."], records, { source: "RFB TIPI", sourceUrl: snapshot.sources.rfbTipi?.sourceUrl });
+  return component("resolved", baseRates[0], input.ipiBaseConfirmed === true && materiallyDifferentEx.length ? ["Regra geral da NCM confirmada pelo usuário; nenhum EX da TIPI foi aplicado."] : [], base, { automatic: input.ipiBaseConfirmed !== true, treatment: input.ipiBaseConfirmed === true ? "TIPI_BASE_CONFIRMED" : "TIPI_BASE", taxTreatment: base[0]?.taxTreatment, legalBasis: base[0]?.legalBasis ?? undefined, source: "RFB TIPI", sourceUrl: snapshot.sources.rfbTipi?.sourceUrl });
 }
 
 export function resolveFederalTaxesFromSnapshot(input: FederalTaxResolutionInput, snapshot: FederalOfficialSnapshot): FederalTaxResolution {
