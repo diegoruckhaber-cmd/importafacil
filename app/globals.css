@@ -879,3 +879,54 @@ h1,h2,h3,h4{font-family:var(--if-font-ui);letter-spacing:-.025em}
   .numericControl{grid-template-columns:minmax(0,1fr) 44px 44px}
   .numericStep{min-width:44px}
 }
+
+
+/* Guided resolution and incomplete-result safety */
+.itemPreflightActions{
+  display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap
+}
+.itemPreflightActions button{
+  border:1px solid #bfdbfe;background:#fff;color:#1d4ed8;border-radius:8px;
+  padding:6px 9px;font-size:10px;font-weight:850;cursor:pointer;white-space:nowrap
+}
+.itemPreflightActions button:hover{background:#eff6ff;border-color:#93c5fd}
+.incompleteProgress{
+  margin:20px 0 6px;padding:16px 18px;border:1px solid #fde68a;border-radius:13px;background:#fffbeb;
+  display:flex;align-items:center;justify-content:space-between;gap:18px
+}
+.incompleteProgress small{display:block;font-size:9px;letter-spacing:.12em;font-weight:900;color:#a16207}
+.incompleteProgress strong{display:block;margin-top:3px;font-size:18px;color:#78350f}
+.incompleteProgress span{display:block;margin-top:4px;color:#92400e;font-size:11px;line-height:1.45}
+.incompleteProgressCount{
+  flex:0 0 auto;padding:8px 11px;border-radius:999px;background:#fef3c7;color:#92400e;
+  font-size:11px;font-weight:850
+}
+.partialResultNotice{
+  margin-bottom:12px;padding:11px 13px;border:1px solid #dbeafe;border-radius:10px;background:#f8fbff;
+  color:#475569;font-size:11px;line-height:1.5
+}
+.preferenceStatus{
+  display:block;margin-top:4px;font-size:9px;font-weight:750;white-space:normal
+}
+.preferenceStatus.pending{color:#9a6700}
+.preferenceStatus.applied{color:#18794e}
+.attentionResolveBtn{
+  display:inline-flex;margin-top:8px;border:1px solid #f0c869;background:#fff;color:#8a5b00;
+  border-radius:8px;padding:6px 9px;font-size:10px;font-weight:850;cursor:pointer
+}
+.attentionResolveBtn:hover{background:#fff7d6}
+.legalTraceList{
+  margin:10px 0 0;padding-left:18px;color:#64748b;font-size:10px;line-height:1.55
+}
+.saveSuccess{
+  display:flex;justify-content:space-between;gap:18px;align-items:center;margin-top:20px;
+  padding:14px 15px;border:1px solid #bbf7d0;border-radius:11px;background:#f0fdf4;color:#166534
+}
+.saveSuccess strong,.saveSuccess span{display:block}
+.saveSuccess span{margin-top:3px;font-size:12px;line-height:1.45}
+.partialResultSection .resultTable td:first-child{min-width:220px}
+[data-treatment-field]{min-width:0}
+@media(max-width:720px){
+  .itemPreflightActions{grid-column:2;justify-content:flex-start}
+  .incompleteProgress{align-items:flex-start;flex-direction:column}
+}
