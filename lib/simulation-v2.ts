@@ -134,6 +134,103 @@ function baseOperation(input: SimulationV2Input) {
   };
 }
 
+function buildPartialIncompleteItems(
+  input: SimulationV2Input,
+  preflight: ReturnType<typeof preflightFederal>,
+  defaultMargin: number,
+) {
+  const exchange = Number(input.exchange || 0);
+  const totalWeight = input.items.reduce((sum, item) => sum + Math.max(0, Number(item.weightKg || 0)), 0);
+  const merchandiseValues = input.items.map((item) => Math.max(0, Number(item.quantity || 0) * Number(item.fobUnit || 0) * exchange));
+  const totalMerchandise = merchandiseValues.reduce((sum, value) => sum + value, 0);
+
+  return preflight.map((entry, index) => {
+    const source = input.items[index];
+    const base = {
+      itemId: entry.itemId,
+      name: source?.name ?? entry.itemId,
+      ncm: normalizeNcm(source?.ncm ?? ""),
+      origin: source?.origin ?? "",
+      status: entry.status,
+      federal: entry.federal,
+      calculation: null as any,
+      commercial: null as any,
+      creditAnalysis: null as any,
+      issues: entry.issues,
+      partial: false,
+      partialNote: null as string | null,
+    };
+
+    if (!source || (entry.status !== "calculated" && entry.status !== "alert")) return base;
+
+    const weightShare = totalWeight > 0 ? Math.max(0, Number(source.weightKg || 0)) / totalWeight : 0;
+    const valueShare = totalMerchandise > 0 ? merchandiseValues[index] / totalMerchandise : 0;
+    const margin = normalizeMargin(source.targetMarginPercent, defaultMargin);
+
+    try {
+      const core = calculateUnifiedImportSimulation({
+        date: input.date,
+        destinationUf: input.destinationUf,
+        exchange: input.exchange,
+        freight: Number(input.freight ?? 0) * weightShare,
+        insurance: Number(input.insurance ?? 0) * valueShare,
+        storage: Number(input.storage ?? 0) * valueShare,
+        otherBrl: Number(input.otherBrl ?? 0) * valueShare,
+        transportMode: input.transportMode,
+        declarationType: input.declarationType,
+        additions: 1,
+        items: [{ ...source, itemId: entry.itemId }],
+      });
+      const row = core.items[0];
+      const calculation = row?.calculation;
+      const defense = row?.federal?.defenseCommercial;
+      if (!row || !calculation || defense?.status === "requires_input") return base;
+
+      const landedCostBrl = Number(calculation.landedCostIncludingDefense ?? 0);
+      const quantity = Number(source.quantity ?? 0);
+      const creditAnalysis = analyzeImportTaxCredits2026({
+        date: input.date,
+        regime: input.companyTaxRegime ?? "nao-informado",
+        application: (source.destination ?? "commercial_resale") as GoodsApplication,
+        icmsTaxpayer: input.icmsTaxpayer,
+        taxes: {
+          icms: Number(calculation?.taxLines?.icms?.payable ?? calculation?.taxLines?.icms?.value ?? 0),
+          ipi: Number(calculation?.taxLines?.ipi?.payable ?? calculation?.taxLines?.ipi?.value ?? 0),
+          pisImport: Number(calculation?.taxLines?.pisImport?.payable ?? calculation?.taxLines?.pisImport?.value ?? 0),
+          cofinsImport: Number(calculation?.taxLines?.cofinsImport?.payable ?? calculation?.taxLines?.cofinsImport?.value ?? 0),
+        },
+      });
+      const economicCostBrl = creditAnalysis.totalRecoverableCredits == null
+        ? landedCostBrl
+        : Math.max(0, landedCostBrl - creditAnalysis.totalRecoverableCredits);
+      const unitCost = quantity > 0 ? economicCostBrl / quantity : economicCostBrl;
+      const targetUnit = unitCost / (1 - margin / 100);
+
+      return {
+        ...base,
+        ...row,
+        status: row.federal?.warnings?.length ? "alert" : "calculated",
+        calculation,
+        creditAnalysis,
+        commercial: {
+          targetMarginPercent: margin,
+          breakEvenPricePerUnitBrl: unitCost,
+          grossImportCostPerUnitBrl: quantity > 0 ? landedCostBrl / quantity : landedCostBrl,
+          economicNetCostBrl: creditAnalysis.totalRecoverableCredits == null ? null : economicCostBrl,
+          targetSalePricePerUnitBrl: targetUnit,
+          targetRevenueBrl: targetUnit * quantity,
+          estimatedProfitBrl: targetUnit * quantity - economicCostBrl,
+          note: "Estimativa parcial do item. Custos compartilhados foram rateados apenas para referência enquanto outros itens permanecem pendentes.",
+        },
+        partial: true,
+        partialNote: "Item calculado isoladamente para referência; o total consolidado da operação permanece indisponível até resolver todos os itens.",
+      };
+    } catch {
+      return base;
+    }
+  });
+}
+
 function responseWithoutCalculation(
   input: SimulationV2Input,
   preflight: ReturnType<typeof preflightFederal>,
@@ -141,23 +238,22 @@ function responseWithoutCalculation(
   forcedStatus?: SimulationV2Status,
 ) {
   const allIssues = uniqueIssues(issues);
+  const defaultMargin = normalizeMargin(input.targetMarginPercent, 0);
+  const partialItems = buildPartialIncompleteItems(input, preflight, defaultMargin);
+  const completedItems = partialItems.filter((item) => item.partial === true).length;
   return {
     contract: "importafacil-simulation-v2" as const,
     engine: "unified-multi-item-v1" as const,
     status: forcedStatus ?? statusFromIssues(allIssues),
     operation: baseOperation(input),
     summary: null,
-    items: preflight.map((entry, index) => ({
-      itemId: entry.itemId,
-      name: input.items[index]?.name ?? entry.itemId,
-      ncm: normalizeNcm(input.items[index]?.ncm ?? ""),
-      origin: input.items[index]?.origin ?? "",
-      status: entry.status,
-      federal: entry.federal,
-      calculation: null,
-      commercial: null,
-      issues: entry.issues,
-    })),
+    items: partialItems,
+    completion: {
+      totalItems: input.items.length,
+      completedItems,
+      pendingItems: Math.max(0, input.items.length - completedItems),
+      consolidatedAvailable: false,
+    },
     calculation: null,
     issues: allIssues,
     attentionPoints: [...new Set(userFacingIssues(allIssues).map((issue) => issue.message))],
@@ -406,6 +502,12 @@ export function runImportSimulationV2(input: SimulationV2Input) {
       estimatedProfitBrl,
     },
     items: resultItems,
+    completion: {
+      totalItems: resultItems.length,
+      completedItems: resultItems.filter((item) => item.status === "calculated" || item.status === "alert").length,
+      pendingItems: resultItems.filter((item) => item.status === "requires_input" || item.status === "blocked" || item.status === "unsupported").length,
+      consolidatedAvailable: true,
+    },
     calculation: core.calculation,
     issues: normalizedIssues,
     attentionPoints: [...new Set(userFacingIssues(normalizedIssues).map((issue) => issue.message))],
