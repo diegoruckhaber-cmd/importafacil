@@ -313,7 +313,9 @@ export default function SimulationV2Page() {
       }
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Não foi possível salvar.");
-      location.href = `/simulacao/${data.id}`;
+      setSaving(false);
+      setSaveMessage("Simulação salva com sucesso. Abrindo o histórico...");
+      window.setTimeout(() => { location.href = `/simulacao/${data.id}`; }, 250);
     } catch (error) {
       setSaveMessage(error instanceof DOMException && error.name === "AbortError" ? "O salvamento demorou mais que o esperado e foi interrompido. Tente novamente." : error instanceof Error ? error.message : "Não foi possível salvar.");
     } finally {
@@ -666,7 +668,7 @@ export default function SimulationV2Page() {
             data-simulation-status={status}
             style={{ background: resultStyle.background, borderColor: resultStyle.border, color: resultStyle.color }}
           >
-            <div className="resultStatusIcon" aria-hidden="true">✓</div>
+            <div className="resultStatusIcon" aria-hidden="true">{status === "calculated" || status === "alert" ? "✓" : "!"}</div>
             <div>
               <b>{statusLabel[status]}</b>
               <p>{statusHelp[status]}</p>
@@ -675,7 +677,7 @@ export default function SimulationV2Page() {
 
           <div className="resultHeader">
             <div>
-              <div className="eyebrow dark">3. RESULTADO</div>
+              <div className="eyebrow dark">{status === "calculated" || status === "alert" ? "3. RESULTADO" : "3. PRÉ-ANÁLISE"}</div>
               <h2>{name}</h2>
               <p className="resultContext">
                 Destino <strong>{result.operation?.destinationUf || destinationUf}</strong>
@@ -691,6 +693,17 @@ export default function SimulationV2Page() {
               </div>
             )}
           </div>
+
+          {!result.summary && result.completion && (
+            <div className="incompleteProgress">
+              <div>
+                <small>PROGRESSO DA SIMULAÇÃO</small>
+                <strong>{result.completion.completedItems} de {result.completion.totalItems} {result.completion.totalItems === 1 ? "item calculado" : "itens calculados"}</strong>
+                <span>O total consolidado ficará disponível quando todas as pendências forem resolvidas.</span>
+              </div>
+              <div className="incompleteProgressCount">{result.completion.pendingItems} pendente{result.completion.pendingItems === 1 ? "" : "s"}</div>
+            </div>
+          )}
 
           {result.summary && (
             <>
@@ -774,6 +787,12 @@ export default function SimulationV2Page() {
                           <td>
                             <strong>{row.name}</strong>
                             <small className="itemStatus">{statusLabel[row.status as Status] || row.status}</small>
+                            {(() => {
+                              const sourceItem = items.find((item) => item.id === row.itemId);
+                              if (!sourceItem || date < "2026-05-01" || !isEuropeanUnionOrigin(sourceItem.origin)) return null;
+                              const applied = row.federal?.mercosurEuPreference?.appliedPreference === true;
+                              return <small className={`preferenceStatus ${applied ? "applied" : "pending"}`}>{applied ? `Mercosul-UE aplicado · II ${pct(row.federal?.ii?.rate)}` : "Preferência Mercosul-UE identificada — não aplicada"}</small>;
+                            })()}
                           </td>
                           <td><span className="ncmPill">{row.ncm}</span></td>
                           <td>{pct(row.federal?.ii?.rate)}</td>
@@ -791,6 +810,47 @@ export default function SimulationV2Page() {
             </>
           )}
 
+          {!result.summary && result.items?.length > 0 && (
+            <section className="resultSection partialResultSection">
+              <div className="resultSectionHead">
+                <div>
+                  <small>POR ITEM</small>
+                  <h3>Resultado parcial e pendências</h3>
+                </div>
+                <span>{result.completion?.completedItems || 0} calculado(s) · {result.completion?.pendingItems || 0} pendente(s)</span>
+              </div>
+              <div className="partialResultNotice">
+                Valores por item são exibidos somente quando puderam ser calculados com segurança. Não existe total consolidado enquanto houver pendências.
+              </div>
+              <div className="resultTableWrap">
+                <table className="importTable resultTable">
+                  <thead><tr><th>Item</th><th>NCM</th><th>II</th><th>IPI</th><th>Status</th><th>Custo/un. parcial</th></tr></thead>
+                  <tbody>
+                    {result.items.map((row: any) => {
+                      const sourceItem = items.find((item) => item.id === row.itemId);
+                      const euPotential = sourceItem && date >= "2026-05-01" && isEuropeanUnionOrigin(sourceItem.origin);
+                      const euApplied = row.federal?.mercosurEuPreference?.appliedPreference === true;
+                      return (
+                        <tr key={row.itemId}>
+                          <td>
+                            <strong>{row.name}</strong>
+                            {row.partial && <small className="itemStatus">Estimativa parcial isolada</small>}
+                            {euPotential && <small className={`preferenceStatus ${euApplied ? "applied" : "pending"}`}>{euApplied ? "Mercosul-UE aplicado" : "Preferência Mercosul-UE identificada — ainda não aplicada ao resultado"}</small>}
+                          </td>
+                          <td><span className="ncmPill">{row.ncm}</span></td>
+                          <td>{row.federal?.ii?.rate == null ? "A validar" : pct(row.federal.ii.rate)}</td>
+                          <td>{row.federal?.ipi?.rate == null ? "A validar" : pct(row.federal.ipi.rate)}</td>
+                          <td>{statusLabel[row.status as Status] || row.status}</td>
+                          <td>{row.commercial?.breakEvenPricePerUnitBrl == null ? "—" : money(row.commercial.breakEvenPricePerUnitBrl)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
           {result.attentionPoints?.length > 0 && (
             <section className="resultSection attentionSection">
               <div className="resultSectionHead">
@@ -804,7 +864,21 @@ export default function SimulationV2Page() {
                 {result.attentionPoints.map((point: string, index: number) => (
                   <div className="attentionItem" key={index}>
                     <div className="attentionNumber">{index + 1}</div>
-                    <div>{renderAttentionPoint(point)}</div>
+                    <div>
+                      {renderAttentionPoint(point)}
+                      {(() => {
+                        const issue = result.issues?.find((candidate: any) => candidate.message === point);
+                        const itemId = issue?.itemId;
+                        if (!itemId) return null;
+                        const lower = point.toLowerCase();
+                        const action = issue.code?.includes("defense") ? "exporter"
+                          : lower.includes("tipi") || lower.includes("ipi") && lower.includes("ex") ? "ipi"
+                          : lower.includes("mercosul") ? "mercosur_eu"
+                          : lower.includes("ii") && (lower.includes("ex") || lower.includes("quota")) ? "ii"
+                          : null;
+                        return action ? <button type="button" className="attentionResolveBtn" onClick={() => focusTreatment(itemId, action)}>Resolver esta pendência</button> : null;
+                      })()}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -817,10 +891,15 @@ export default function SimulationV2Page() {
               Escopo interno: {result.jurisdiction?.scope || (isSC ? "full" : "general_rate_only")}
               {" · "}Motor: {result.engine}
             </p>
+            {result.legalTrace?.length > 0 && (
+              <ul className="legalTraceList">
+                {result.legalTrace.map((entry: any, index: number) => <li key={index}>{entry.itemId ? `${entry.itemId} · ` : ""}{entry.tax ? `${entry.tax} · ` : ""}{entry.status || ""}{entry.legalBasis ? ` · ${entry.legalBasis}` : ""}</li>)}
+              </ul>
+            )}
           </details>
 
           {saveMessage && (
-            <div className="saveError" role="alert">
+            <div className={saveMessage.startsWith("Simulação salva") ? "saveSuccess" : "saveError"} role="status">
               <div>
                 <strong>Não foi possível salvar esta simulação.</strong>
                 <span>{saveMessage}</span>
@@ -833,7 +912,7 @@ export default function SimulationV2Page() {
             <button className="primary" onClick={save} disabled={saving}>
               {saving ? "Salvando..." : status === "calculated" || status === "alert" ? "Salvar no histórico" : "Salvar pré-estudo"}
             </button>
-            <button className="secondaryBtn" onClick={downloadPdf} disabled={pdfGenerating}>{pdfGenerating ? "Gerando PDF..." : "Baixar PDF personalizado"}</button>
+            <button className="secondaryBtn" onClick={downloadPdf} disabled={pdfGenerating}>{pdfGenerating ? "Gerando PDF..." : status === "calculated" || status === "alert" ? "Baixar PDF personalizado" : "Baixar relatório de pendências"}</button>
           </div>
         </section>
       )}
