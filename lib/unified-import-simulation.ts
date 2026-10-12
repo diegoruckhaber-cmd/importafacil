@@ -24,6 +24,7 @@ export type UnifiedImportItemInput = {
   iiExCode?: string;
   iiQuotaConfirmed?: boolean;
   ipiExCode?: string;
+  ipiBaseConfirmed?: boolean;
   aeronauticalEligible?: boolean;
   mercosurEuPreferenceRequested?: boolean;
   mercosurEuOriginProofConfirmed?: boolean;
@@ -142,7 +143,7 @@ export function calculateUnifiedImportSimulation(input: UnifiedImportSimulationI
   const additionalCharges = resolveImportAdditionalCharges({ freightBrl, transportMode: input.transportMode ?? "not_informed", declarationType: input.declarationType ?? "di", additions: Math.max(1, Math.floor(Number(input.additions ?? normalizedItems.length))) });
   const benefitsByItem: Record<string, SCBenefitResolution> = {};
   const itemResolutions = normalizedItems.map((item, index) => {
-    const federal = resolveFederalTaxes({ ncm: item.ncm, date: input.date, iiExCode: item.iiExCode, iiQuotaConfirmed: item.iiQuotaConfirmed, ipiExCode: item.ipiExCode, aeronauticalEligible: item.aeronauticalEligible });
+    const federal = resolveFederalTaxes({ ncm: item.ncm, date: input.date, iiExCode: item.iiExCode, iiQuotaConfirmed: item.iiQuotaConfirmed, ipiExCode: item.ipiExCode, ipiBaseConfirmed: item.ipiBaseConfirmed, aeronauticalEligible: item.aeronauticalEligible });
     assertFederalResolved(item.itemId, federal);
     const mercosurEuPreference = resolveMercosurEuImportPreference({
       date: input.date,
