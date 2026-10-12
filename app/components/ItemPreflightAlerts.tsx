@@ -8,9 +8,10 @@ type Alert = {
   title: string;
   message: string;
   sourceUrl?: string;
+  action?: "ii" | "ipi" | "mercosur_eu" | "exporter";
 };
 
-export default function ItemPreflightAlerts({ ncm, origin, date }: { ncm: string; origin: string; date: string }) {
+export default function ItemPreflightAlerts({ ncm, origin, date, onResolve }: { ncm: string; origin: string; date: string; onResolve?: (action: "ii" | "ipi" | "mercosur_eu" | "exporter") => void }) {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [checking, setChecking] = useState(false);
 
@@ -65,7 +66,7 @@ export default function ItemPreflightAlerts({ ncm, origin, date }: { ncm: string
             <p>{alert.message}</p>
             {alert.code === "defense_commercial" && <small>Abra “Opções avançadas e tratamentos específicos” para informar o produtor/exportador quando necessário.</small>}
           </div>
-          {alert.sourceUrl && <a href={alert.sourceUrl} target="_blank" rel="noreferrer">Fonte oficial ↗</a>}
+          <div className="itemPreflightActions">{alert.action && onResolve && <button type="button" onClick={() => onResolve(alert.action!)}>Resolver agora</button>}{alert.sourceUrl && <a href={alert.sourceUrl} target="_blank" rel="noreferrer">Fonte oficial ↗</a>}</div>
         </div>
       ))}
     </div>
