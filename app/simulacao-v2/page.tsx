@@ -11,6 +11,7 @@ import { SIMULATOR_FIELD_GUIDANCE as HELP } from "../../lib/simulator-field-guid
 import MobileBottomNav from "../components/MobileBottomNav";
 import { isEuropeanUnionOrigin } from "../../lib/mercosur-eu-import-preference";
 import ItemPreflightAlerts from "../components/ItemPreflightAlerts";
+import FederalIpiTreatmentSelector from "../components/FederalIpiTreatmentSelector";
 import { downloadSimulationReportPdf } from "../../lib/simulation-report-pdf";
 
 type TTD = "409" | "410" | "77" | "none";
@@ -32,6 +33,7 @@ type Item = {
   exporter: string;
   iiExCode: string;
   ipiExCode: string;
+  ipiBaseConfirmed: boolean;
   iiQuotaConfirmed: TriState;
   aeronauticalEligible: TriState;
   mercosurEuPreferenceRequested: TriState;
@@ -101,6 +103,7 @@ const makeItem = (n: number, margin = 20): Item => ({
   exporter: "",
   iiExCode: "",
   ipiExCode: "",
+  ipiBaseConfirmed: false,
   iiQuotaConfirmed: "",
   aeronauticalEligible: "",
   mercosurEuPreferenceRequested: "",
@@ -191,6 +194,7 @@ export default function SimulationV2Page() {
       exporter: item.exporter || undefined,
       iiExCode: item.iiExCode || undefined,
       ipiExCode: item.ipiExCode || undefined,
+      ipiBaseConfirmed: item.ipiBaseConfirmed,
       iiQuotaConfirmed: tri(item.iiQuotaConfirmed),
       aeronauticalEligible: tri(item.aeronauticalEligible),
       mercosurEuPreferenceRequested: tri(item.mercosurEuPreferenceRequested),
@@ -246,6 +250,16 @@ export default function SimulationV2Page() {
     return issues;
   }
 
+  function focusTreatment(itemId: string, action: "ii" | "ipi" | "mercosur_eu" | "exporter") {
+    const details = document.getElementById(`advanced-${itemId}`) as HTMLDetailsElement | null;
+    if (details) details.open = true;
+    requestAnimationFrame(() => {
+      const target = document.querySelector(`[data-treatment-field="${itemId}-${action}"] select, [data-treatment-field="${itemId}-${action}"] input`) as HTMLElement | null;
+      target?.focus();
+      target?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
+
   async function calculate() {
     const issues = validateInput();
     setValidationIssues(issues);
@@ -284,16 +298,26 @@ export default function SimulationV2Page() {
         location.href = "/auth";
         return;
       }
-      const response = await fetch("/api/simulations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ mode: "v2", name, input: payload(), result }),
-      });
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 15000);
+      let response: Response;
+      try {
+        response = await fetch("/api/simulations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify({ mode: "v2", name, input: payload(), result }),
+          signal: controller.signal,
+        });
+      } finally {
+        window.clearTimeout(timeout);
+      }
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Não foi possível salvar.");
-      location.href = `/simulacao/${data.id}`;
+      setSaving(false);
+      setSaveMessage("Simulação salva com sucesso. Abrindo o histórico...");
+      window.setTimeout(() => { location.href = `/simulacao/${data.id}`; }, 250);
     } catch (error) {
-      setSaveMessage(error instanceof Error ? error.message : "Não foi possível salvar.");
+      setSaveMessage(error instanceof DOMException && error.name === "AbortError" ? "O salvamento demorou mais que o esperado e foi interrompido. Tente novamente." : error instanceof Error ? error.message : "Não foi possível salvar.");
     } finally {
       setSaving(false);
     }
@@ -532,15 +556,26 @@ export default function SimulationV2Page() {
                 </Field>
               </div>
 
-              <ItemPreflightAlerts ncm={item.ncm} origin={item.origin} date={date} />
+              <ItemPreflightAlerts ncm={item.ncm} origin={item.origin} date={date} onResolve={(action) => focusTreatment(item.id, action)} />
 
-              <details className="advancedPanel">
+              <details className="advancedPanel" id={`advanced-${item.id}`}>
                 <summary>Opções avançadas e tratamentos específicos</summary>
                 <p>Use estes campos apenas quando a sua operação tiver enquadramentos ou informações adicionais.</p>
                 <div className="fields four advancedFields">
-                  <DefenseCommercialExporterSelector ncm={item.ncm} origin={item.origin} date={date} value={item.exporter} onChange={(value) => update(item.id, "exporter", value)} />
-                  <Text label="EX do II" value={item.iiExCode} set={(value) => update(item.id, "iiExCode", value)} />
-                  <Text label="EX do IPI" value={item.ipiExCode} set={(value) => update(item.id, "ipiExCode", value)} />
+                  <div data-treatment-field={`${item.id}-exporter`}><DefenseCommercialExporterSelector ncm={item.ncm} origin={item.origin} date={date} value={item.exporter} onChange={(value) => update(item.id, "exporter", value)} /></div>
+                  <div data-treatment-field={`${item.id}-ii`}><Text label="EX do II" value={item.iiExCode} set={(value) => update(item.id, "iiExCode", value)} /></div>
+                  <div data-treatment-field={`${item.id}-ipi`}>
+                    <FederalIpiTreatmentSelector
+                      ncm={item.ncm}
+                      date={date}
+                      exCode={item.ipiExCode}
+                      baseConfirmed={item.ipiBaseConfirmed}
+                      onChange={({ exCode, baseConfirmed }) => {
+                        setItems((rows) => rows.map((row) => row.id === item.id ? { ...row, ipiExCode: exCode, ipiBaseConfirmed: baseConfirmed } : row));
+                        invalidate();
+                      }}
+                    />
+                  </div>
                   <Field label="Quota II">
                     <select value={item.iiQuotaConfirmed} onChange={(e) => update(item.id, "iiQuotaConfirmed", e.target.value as TriState)}>
                       <option value="">Não informado</option>
@@ -557,13 +592,13 @@ export default function SimulationV2Page() {
                   </Field>
                   {date >= "2026-05-01" && isEuropeanUnionOrigin(item.origin) && (
                     <>
-                      <Field label="Preferência Mercosul-UE">
+                      <div data-treatment-field={`${item.id}-mercosur_eu`}><Field label="Preferência Mercosul-UE">
                         <select value={item.mercosurEuPreferenceRequested} onChange={(e) => update(item.id, "mercosurEuPreferenceRequested", e.target.value as TriState)}>
                           <option value="">Não confirmado — manter TEC</option>
                           <option value="yes">Simular preferência</option>
                           <option value="no">Não aplicar preferência</option>
                         </select>
-                      </Field>
+                      </Field></div>
                       <Field label="Prova de origem preferencial">
                         <select value={item.mercosurEuOriginProofConfirmed} onChange={(e) => update(item.id, "mercosurEuOriginProofConfirmed", e.target.value as TriState)}>
                           <option value="">Não confirmado</option>
@@ -633,7 +668,7 @@ export default function SimulationV2Page() {
             data-simulation-status={status}
             style={{ background: resultStyle.background, borderColor: resultStyle.border, color: resultStyle.color }}
           >
-            <div className="resultStatusIcon" aria-hidden="true">✓</div>
+            <div className="resultStatusIcon" aria-hidden="true">{status === "calculated" || status === "alert" ? "✓" : "!"}</div>
             <div>
               <b>{statusLabel[status]}</b>
               <p>{statusHelp[status]}</p>
@@ -642,7 +677,7 @@ export default function SimulationV2Page() {
 
           <div className="resultHeader">
             <div>
-              <div className="eyebrow dark">3. RESULTADO</div>
+              <div className="eyebrow dark">{status === "calculated" || status === "alert" ? "3. RESULTADO" : "3. PRÉ-ANÁLISE"}</div>
               <h2>{name}</h2>
               <p className="resultContext">
                 Destino <strong>{result.operation?.destinationUf || destinationUf}</strong>
@@ -658,6 +693,17 @@ export default function SimulationV2Page() {
               </div>
             )}
           </div>
+
+          {!result.summary && result.completion && (
+            <div className="incompleteProgress">
+              <div>
+                <small>PROGRESSO DA SIMULAÇÃO</small>
+                <strong>{result.completion.completedItems} de {result.completion.totalItems} {result.completion.totalItems === 1 ? "item calculado" : "itens calculados"}</strong>
+                <span>O total consolidado ficará disponível quando todas as pendências forem resolvidas.</span>
+              </div>
+              <div className="incompleteProgressCount">{result.completion.pendingItems} pendente{result.completion.pendingItems === 1 ? "" : "s"}</div>
+            </div>
+          )}
 
           {result.summary && (
             <>
@@ -741,6 +787,12 @@ export default function SimulationV2Page() {
                           <td>
                             <strong>{row.name}</strong>
                             <small className="itemStatus">{statusLabel[row.status as Status] || row.status}</small>
+                            {(() => {
+                              const sourceItem = items.find((item) => item.id === row.itemId);
+                              if (!sourceItem || date < "2026-05-01" || !isEuropeanUnionOrigin(sourceItem.origin)) return null;
+                              const applied = row.federal?.mercosurEuPreference?.appliedPreference === true;
+                              return <small className={`preferenceStatus ${applied ? "applied" : "pending"}`}>{applied ? `Mercosul-UE aplicado · II ${pct(row.federal?.ii?.rate)}` : "Preferência Mercosul-UE identificada — não aplicada"}</small>;
+                            })()}
                           </td>
                           <td><span className="ncmPill">{row.ncm}</span></td>
                           <td>{pct(row.federal?.ii?.rate)}</td>
@@ -758,6 +810,47 @@ export default function SimulationV2Page() {
             </>
           )}
 
+          {!result.summary && result.items?.length > 0 && (
+            <section className="resultSection partialResultSection">
+              <div className="resultSectionHead">
+                <div>
+                  <small>POR ITEM</small>
+                  <h3>Resultado parcial e pendências</h3>
+                </div>
+                <span>{result.completion?.completedItems || 0} calculado(s) · {result.completion?.pendingItems || 0} pendente(s)</span>
+              </div>
+              <div className="partialResultNotice">
+                Valores por item são exibidos somente quando puderam ser calculados com segurança. Não existe total consolidado enquanto houver pendências.
+              </div>
+              <div className="resultTableWrap">
+                <table className="importTable resultTable">
+                  <thead><tr><th>Item</th><th>NCM</th><th>II</th><th>IPI</th><th>Status</th><th>Custo/un. parcial</th></tr></thead>
+                  <tbody>
+                    {result.items.map((row: any) => {
+                      const sourceItem = items.find((item) => item.id === row.itemId);
+                      const euPotential = sourceItem && date >= "2026-05-01" && isEuropeanUnionOrigin(sourceItem.origin);
+                      const euApplied = row.federal?.mercosurEuPreference?.appliedPreference === true;
+                      return (
+                        <tr key={row.itemId}>
+                          <td>
+                            <strong>{row.name}</strong>
+                            {row.partial && <small className="itemStatus">Estimativa parcial isolada</small>}
+                            {euPotential && <small className={`preferenceStatus ${euApplied ? "applied" : "pending"}`}>{euApplied ? "Mercosul-UE aplicado" : "Preferência Mercosul-UE identificada — ainda não aplicada ao resultado"}</small>}
+                          </td>
+                          <td><span className="ncmPill">{row.ncm}</span></td>
+                          <td>{row.federal?.ii?.rate == null ? "A validar" : pct(row.federal.ii.rate)}</td>
+                          <td>{row.federal?.ipi?.rate == null ? "A validar" : pct(row.federal.ipi.rate)}</td>
+                          <td>{statusLabel[row.status as Status] || row.status}</td>
+                          <td>{row.commercial?.breakEvenPricePerUnitBrl == null ? "—" : money(row.commercial.breakEvenPricePerUnitBrl)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
           {result.attentionPoints?.length > 0 && (
             <section className="resultSection attentionSection">
               <div className="resultSectionHead">
@@ -771,7 +864,21 @@ export default function SimulationV2Page() {
                 {result.attentionPoints.map((point: string, index: number) => (
                   <div className="attentionItem" key={index}>
                     <div className="attentionNumber">{index + 1}</div>
-                    <div>{renderAttentionPoint(point)}</div>
+                    <div>
+                      {renderAttentionPoint(point)}
+                      {(() => {
+                        const issue = result.issues?.find((candidate: any) => candidate.message === point);
+                        const itemId = issue?.itemId;
+                        if (!itemId) return null;
+                        const lower = point.toLowerCase();
+                        const action = issue.code?.includes("defense") ? "exporter"
+                          : lower.includes("tipi") || lower.includes("ipi") && lower.includes("ex") ? "ipi"
+                          : lower.includes("mercosul") ? "mercosur_eu"
+                          : lower.includes("ii") && (lower.includes("ex") || lower.includes("quota")) ? "ii"
+                          : null;
+                        return action ? <button type="button" className="attentionResolveBtn" onClick={() => focusTreatment(itemId, action)}>Resolver esta pendência</button> : null;
+                      })()}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -784,10 +891,15 @@ export default function SimulationV2Page() {
               Escopo interno: {result.jurisdiction?.scope || (isSC ? "full" : "general_rate_only")}
               {" · "}Motor: {result.engine}
             </p>
+            {result.legalTrace?.length > 0 && (
+              <ul className="legalTraceList">
+                {result.legalTrace.map((entry: any, index: number) => <li key={index}>{entry.itemId ? `${entry.itemId} · ` : ""}{entry.tax ? `${entry.tax} · ` : ""}{entry.status || ""}{entry.legalBasis ? ` · ${entry.legalBasis}` : ""}</li>)}
+              </ul>
+            )}
           </details>
 
           {saveMessage && (
-            <div className="saveError" role="alert">
+            <div className={saveMessage.startsWith("Simulação salva") ? "saveSuccess" : "saveError"} role="status">
               <div>
                 <strong>Não foi possível salvar esta simulação.</strong>
                 <span>{saveMessage}</span>
@@ -800,7 +912,7 @@ export default function SimulationV2Page() {
             <button className="primary" onClick={save} disabled={saving}>
               {saving ? "Salvando..." : status === "calculated" || status === "alert" ? "Salvar no histórico" : "Salvar pré-estudo"}
             </button>
-            <button className="secondaryBtn" onClick={downloadPdf} disabled={pdfGenerating}>{pdfGenerating ? "Gerando PDF..." : "Baixar PDF personalizado"}</button>
+            <button className="secondaryBtn" onClick={downloadPdf} disabled={pdfGenerating || !(status === "calculated" || status === "alert")} title={status === "calculated" || status === "alert" ? "Gerar relatório executivo em PDF" : "Resolva as pendências antes de gerar o PDF executivo"}>{pdfGenerating ? "Gerando PDF..." : status === "calculated" || status === "alert" ? "Baixar PDF personalizado" : "PDF disponível após concluir"}</button>
           </div>
         </section>
       )}

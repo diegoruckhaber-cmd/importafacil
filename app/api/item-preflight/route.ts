@@ -9,6 +9,7 @@ type PreflightAlert = {
   title: string;
   message: string;
   sourceUrl?: string;
+  action?: "ii" | "ipi" | "mercosur_eu" | "exporter";
 };
 
 export async function GET(request: Request) {
@@ -31,6 +32,7 @@ export async function GET(request: Request) {
         title: "Tratamento de II exige confirmação",
         message: federal.ii.warnings.join(" ") || "Esta NCM possui tratamento de II condicionado a informação adicional.",
         sourceUrl: federal.ii.sourceUrl,
+        action: "ii",
       });
     } else {
       for (const warning of federal.ii.warnings) {
@@ -51,6 +53,7 @@ export async function GET(request: Request) {
         title: "Tratamento de IPI exige confirmação",
         message: federal.ipi.warnings.join(" ") || "Esta NCM possui tratamento de IPI condicionado a informação adicional.",
         sourceUrl: federal.ipi.sourceUrl,
+        action: "ipi",
       });
     }
   } catch {
@@ -64,6 +67,7 @@ export async function GET(request: Request) {
       title: "Possível preferência Mercosul-UE",
       message: "A origem informada pertence à União Europeia. Verifique a regra de origem, a prova de origem e a alíquota preferencial aplicável antes de concluir a simulação.",
       sourceUrl: "https://www.gov.br/siscomex/pt-br/acordos-comerciais/preferencias-tarifarias",
+      action: "mercosur_eu",
     });
   }
 
@@ -86,6 +90,7 @@ export async function GET(request: Request) {
           title: "Defesa comercial identificada",
           message: `Foi identificada ${label} para esta NCM/origem${measure.product ? ` (${measure.product})` : ""}.${measure.requiresScopeValidation ? ` A aplicação depende da validação do escopo: ${measure.scopeCondition || "consulte a fonte oficial"}.` : needsExporter ? " O produtor/exportador precisa ser confirmado para determinar o direito aplicável." : " Valide o tratamento antes do cálculo final."}`,
           sourceUrl: measure.sourceUrl,
+          action: "exporter",
         });
       }
     } catch {

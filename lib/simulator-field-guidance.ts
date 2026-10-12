@@ -11,5 +11,5 @@ export const SIMULATOR_FIELD_GUIDANCE = {
   origin: "País de origem da mercadoria, não apenas o país de embarque.",
   fobUnit: "Valor unitário da mercadoria no Incoterm FOB, em dólares.",
   weight: "Peso líquido do item. É usado no rateio do frete internacional entre os produtos.",
-  destination: "Informe se a mercadoria será revendida ou utilizada em industrialização.",
+  destination: "Informe se a mercadoria será destinada à revenda/comercialização, industrialização ou uso e consumo.",
 } as const;
