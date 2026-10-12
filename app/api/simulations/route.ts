@@ -72,8 +72,10 @@ export async function POST(req: Request) {
     if (response.status >= 400) return response;
     const payload = await response.json();
     return NextResponse.json({ ...payload, status: "calculated", result });
-  } catch {
-    return NextResponse.json({ error: "Não foi possível processar a simulação." }, { status: 400 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Não foi possível processar a simulação.";
+    const timeout = /tempo limite|timeout/i.test(message);
+    return NextResponse.json({ error: timeout ? "O salvamento demorou mais que o esperado. Tente novamente." : message }, { status: timeout ? 504 : 400 });
   }
 }
 
