@@ -39,7 +39,7 @@ assert.equal(normal.summary.storageBrl,3500);
 assert.equal(normal.summary.otherExpensesBrl,5000);
 assert.equal(normal.summary.grossDisbursementBrl,normal.summary.landedCostBrl);
 assert.equal(normal.summary.economicNetCostBrl,null);
-assert.equal(normal.summary.economicCostStatus,"not_calculated_without_tax_profile");
+assert.equal(normal.summary.economicCostStatus,"requires_tax_profile_validation");
 assert.equal(normal.items[0].federal.ii.rate,12.6);
 assert.ok(normal.attentionPoints.some(x=>x.includes("União Europeia")));
 
