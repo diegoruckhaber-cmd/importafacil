@@ -55,6 +55,22 @@ function uniqueIssues(issues: SimulationV2Issue[]) {
   });
 }
 
+function userFacingIssues(issues: SimulationV2Issue[]) {
+  const normalized = uniqueIssues(issues);
+  return normalized.filter((issue) => {
+    if (issue.code === "federal_requires_input" && issue.itemId) {
+      return !normalized.some((candidate) =>
+        candidate !== issue &&
+        candidate.itemId === issue.itemId &&
+        candidate.level === "validation" &&
+        candidate.code === "federal_attention"
+      );
+    }
+    return true;
+  });
+}
+
+
 function statusFromIssues(issues: SimulationV2Issue[], fallback: SimulationV2Status = "calculated"): SimulationV2Status {
   if (issues.some((issue) => issue.level === "blocking")) return "blocked";
   if (issues.some((issue) => issue.code === "federal_unsupported")) return "unsupported";
@@ -144,7 +160,7 @@ function responseWithoutCalculation(
     })),
     calculation: null,
     issues: allIssues,
-    attentionPoints: [...new Set(allIssues.map((issue) => issue.message))],
+    attentionPoints: [...new Set(userFacingIssues(allIssues).map((issue) => issue.message))],
   };
 }
 
@@ -392,6 +408,6 @@ export function runImportSimulationV2(input: SimulationV2Input) {
     items: resultItems,
     calculation: core.calculation,
     issues: normalizedIssues,
-    attentionPoints: [...new Set(normalizedIssues.map((issue) => issue.message))],
+    attentionPoints: [...new Set(userFacingIssues(normalizedIssues).map((issue) => issue.message))],
   };
 }
