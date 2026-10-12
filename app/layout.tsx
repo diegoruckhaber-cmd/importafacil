@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import TemporaryIIAlertEnhancer from "./TemporaryIIAlertEnhancer";
 import GlobalProductNav from "./components/GlobalProductNav";
 import { getReleaseScope } from "../lib/release-scope";
+
+const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
 
 const PUBLIC_SITE_URL = "https://importafacil-gamma.vercel.app";
 
@@ -34,7 +37,7 @@ export const metadata: Metadata = {
 export default function RootLayout({children}:{children:React.ReactNode}) {
   const release = getReleaseScope();
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className={inter.variable}>
       <body>
         <a className="skipLink" href="#conteudo-principal">Pular para o conteúdo principal</a>
         <TemporaryIIAlertEnhancer />
