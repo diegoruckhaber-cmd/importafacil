@@ -27,7 +27,7 @@ export default function FederalIpiTreatmentSelector({ ncm, date, exCode, baseCon
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
       try {
-        const response = await fetch(\`/api/federal-treatment-options?ncm=\${encodeURIComponent(normalized)}&date=\${encodeURIComponent(date)}\`, { signal: controller.signal, cache: "no-store" });
+        const response = await fetch(`/api/federal-treatment-options?ncm=${encodeURIComponent(normalized)}&date=${encodeURIComponent(date)}`, { signal: controller.signal, cache: "no-store" });
         if (!response.ok) return;
         const data = await response.json();
         setOptions(Array.isArray(data.options) ? data.options : []);
@@ -65,10 +65,10 @@ export default function FederalIpiTreatmentSelector({ ncm, date, exCode, baseCon
         }}
       >
         <option value="">Selecione o enquadramento...</option>
-        <option value="__BASE__">Regra geral da NCM{baseRate != null ? \` — \${baseRate.toLocaleString("pt-BR",{maximumFractionDigits:2})}%\` : ""}</option>
+        <option value="__BASE__">Regra geral da NCM{baseRate != null ? ` — ${baseRate.toLocaleString("pt-BR",{maximumFractionDigits:2})}%` : ""}</option>
         {options.map((option) => (
           <option key={option.exCode} value={option.exCode}>
-            {\`EX \${option.exCode}\${typeof option.rate === "number" ? \` — \${option.rate.toLocaleString("pt-BR",{maximumFractionDigits:2})}%\` : ""}\${option.description ? \` — \${option.description}\` : ""}\`}
+            {`EX ${option.exCode}${typeof option.rate === "number" ? ` — ${option.rate.toLocaleString("pt-BR",{maximumFractionDigits:2})}%` : ""}${option.description ? ` — ${option.description}` : ""}`}
           </option>
         ))}
       </select>
