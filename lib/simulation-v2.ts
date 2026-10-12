@@ -72,6 +72,7 @@ function preflightFederal(input: SimulationV2Input) {
       iiExCode: item.iiExCode,
       iiQuotaConfirmed: item.iiQuotaConfirmed,
       ipiExCode: item.ipiExCode,
+      ipiBaseConfirmed: item.ipiBaseConfirmed,
       aeronauticalEligible: item.aeronauticalEligible,
     });
     const status = federalStatus(federal);
