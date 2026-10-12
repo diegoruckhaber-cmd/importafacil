@@ -59,12 +59,16 @@ export async function buildSimulationReportPdf(sim: Pick<SavedSimulationRecord, 
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   const summary = sim.result?.summary || {};
   const items = Array.isArray(sim.result?.items) ? sim.result.items : [];
-  const attention = Array.isArray(sim.result?.attentionPoints) ? sim.result.attentionPoints : [];
+  const attention = (Array.isArray(sim.result?.attentionPoints) ? sim.result.attentionPoints : []).map((point: unknown) => String(point || "").replace(/https?:\/\/\S+/g, "").trim()).filter((point: string) => point && !/\bresolved\b|Fundamento:/i.test(point));
   const margin = 42;
   const contentWidth = A4.width - margin * 2;
   let page!: PDFPage;
   let y = 0;
   let pageNo = 0;
+  const status = String(sim.result?.status || "requires_input");
+  const statusLabel = status === "calculated" ? "CONCLUÍDO" : status === "alert" ? "CONCLUÍDO COM ALERTAS" : status === "requires_input" ? "INCOMPLETO" : status === "blocked" ? "BLOQUEADO" : "FORA DO ESCOPO";
+  const statusColor = status === "calculated" ? GREEN : status === "alert" || status === "requires_input" ? AMBER : rgb(0.70, 0.12, 0.09);
+  const statusSoft = status === "calculated" ? rgb(0.94, 0.99, 0.95) : status === "alert" || status === "requires_input" ? rgb(1, 0.985, 0.92) : rgb(1, 0.96, 0.95);
 
   const addPage = () => {
     page = pdf.addPage([A4.width, A4.height]);
@@ -106,10 +110,15 @@ export async function buildSimulationReportPdf(sim: Pick<SavedSimulationRecord, 
 
   addPage();
   const title = String(sim.name || sim.input?.scenarioName || "Simulação de importação");
-  drawText("PRÉ-ESTUDO DE IMPORTAÇÃO", margin, 8, BLUE, bold);
+  page.drawText("PRÉ-ESTUDO DE IMPORTAÇÃO", { x: margin, y, size: 8, font: bold, color: BLUE });
+  y -= 24;
   drawText(title, margin, 22, TEXT, bold, contentWidth, 27);
+  y -= 4;
+  page.drawRectangle({ x: margin, y: y - 26, width: contentWidth, height: 26, color: statusSoft, borderColor: statusColor, borderWidth: 0.8 });
+  page.drawText(statusLabel, { x: margin + 11, y: y - 17, size: 8.5, font: bold, color: statusColor });
+  y -= 39;
   const created = new Date(sim.created_at || Date.now()).toLocaleString("pt-BR");
-  drawText("Gerado em " + created + " · Resultado oficial salvo pelo ImportaFácil", margin, 8.5, MUTED, regular, contentWidth);
+  drawText("Gerado em " + created + " pelo ImportaFácil", margin, 8.5, MUTED, regular, contentWidth);
   y -= 9;
 
   const operationBits = [
@@ -165,13 +174,15 @@ export async function buildSimulationReportPdf(sim: Pick<SavedSimulationRecord, 
   for (const item of items) {
     ensure(32);
     const app = item.creditAnalysis?.application || sim.input?.items?.find((x: any) => x.itemId === item.itemId)?.destination;
-    page.drawText(String(item.name || item.itemId || "-").slice(0, 26), { x: cols[0], y, size: 8, font: bold, color: TEXT });
+    const itemNameLines = wrapText(String(item.name || item.itemId || "-"), bold, 8, 165).slice(0, 2);
+    let itemNameY = y;
+    itemNameLines.forEach((line) => { page.drawText(line, { x: cols[0], y: itemNameY, size: 8, font: bold, color: TEXT }); itemNameY -= 10; });
     page.drawText(String(item.ncm || "-"), { x: cols[1], y, size: 8, font: regular, color: TEXT });
     page.drawText(labelApplication(app).slice(0, 18), { x: cols[2], y, size: 7.2, font: regular, color: TEXT });
     page.drawText(pct(item.federal?.ii?.rate), { x: cols[3], y, size: 8, font: regular, color: TEXT });
     page.drawText(pct(item.federal?.ipi?.rate), { x: cols[4], y, size: 8, font: regular, color: TEXT });
-    page.drawText(br(item.commercial?.breakEvenPricePerUnitBrl), { x: cols[5], y, size: 8, font: bold, color: TEXT });
-    y -= 15;
+    page.drawText(item.commercial?.breakEvenPricePerUnitBrl == null ? "A validar" : br(item.commercial?.breakEvenPricePerUnitBrl), { x: cols[5], y, size: 8, font: bold, color: TEXT });
+    y -= Math.max(15, itemNameLines.length * 10 + 5);
     if (item.creditAnalysis?.totalRecoverableCredits != null) {
       page.drawText("Créditos recuperáveis estimados: " + br(item.creditAnalysis.totalRecoverableCredits), { x: cols[0], y, size: 7, font: regular, color: GREEN });
       y -= 13;
@@ -202,7 +213,7 @@ export async function buildSimulationReportPdf(sim: Pick<SavedSimulationRecord, 
   y -= 5;
   heading("Observações", "Premissas e limitações");
   const notes = [
-    "Este documento é um pré-estudo e reproduz os dados e resultados da simulação. Não substitui classificação fiscal, despacho aduaneiro, consulta formal ou validação do tratamento tributário específico da operação.",
+    status === "calculated" || status === "alert" ? "Este documento é um pré-estudo e reproduz os dados e resultados da simulação. Não substitui classificação fiscal, despacho aduaneiro, consulta formal ou validação do tratamento tributário específico da operação." : "Este documento representa uma simulação incompleta e não deve ser tratado como resultado financeiro final.",
     "O desembolso bruto representa o caixa estimado da importação. O custo econômico líquido considera apenas créditos tributários que o motor conseguiu estimar a partir do regime tributário, aplicação da mercadoria e condições informadas.",
     "Em 2026, CBS e IBS na Duimp possuem tratamento transitório/informativo e não foram somados ao desembolso antes de 01/01/2027.",
   ];
