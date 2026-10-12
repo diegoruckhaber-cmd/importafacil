@@ -1,5 +1,5 @@
 import { runImportSimulationV2, type SimulationV2Input } from "./simulation-v2.ts";
-import { buildSimulationV2LegalTrace, formatSimulationV2LegalTrace } from "./simulation-v2-legal-provenance.ts";
+import { buildSimulationV2LegalTrace } from "./simulation-v2-legal-provenance.ts";
 
 export function executeOfficialSimulationV2(body: SimulationV2Input) {
     const result = runImportSimulationV2(body);
