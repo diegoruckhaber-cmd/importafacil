@@ -5,7 +5,7 @@ export type SCTtdSelection = 409 | 410 | 77 | "409/410" | "409+77";
 export type SCItemDecisionInput = {
   id: string;
   ttd?: SCTtdSelection;
-  destination?: "commercial_resale" | "industrialization";
+  destination?: "commercial_resale" | "industrialization" | "use_consumption";
   importEntryInSC?: boolean;
   validConcession?: boolean;
   concessiveActValid?: boolean;
@@ -24,7 +24,7 @@ export type SCItemDecisionInput = {
   mercosurRelevantImportShare?: number;
   notExcludedCatalogItem?: boolean;
   hasSpecificBaseReduction?: boolean;
-  items?: Array<{ id: string; destination?: "commercial_resale" | "industrialization" }>;
+  items?: Array<{ id: string; destination?: "commercial_resale" | "industrialization" | "use_consumption" }>;
   specialRegimeIds?: string[];
   specialRegimeContext?: Record<string, unknown>;
 };
@@ -123,6 +123,8 @@ export function decideSCItem(input: SCItemDecisionInput): SCDecision {
   }
 
   if (input.ttd === undefined) return { itemId: input.id, decision: "conditional", benefit: null, reasons: ["Nenhum regime especial foi selecionado; a operação deve seguir a tributação normal ou outra regra aplicável."], blockingIssues: [] };
+
+  if (input.destination === "use_consumption") return { itemId: input.id, decision: "deny", benefit: null, reasons: ["TTD de importação não foi aplicado automaticamente a mercadoria destinada a uso e consumo."], blockingIssues: ["use_consumption_special_regime_not_supported"] };
 
   if (input.ttd === 409 || input.ttd === 410) {
     if (input.importEntryInSC === false) return { itemId: input.id, decision: "conditional", benefit: null, reasons: ["A entrada/importação não foi caracterizada como elegível em SC."], blockingIssues: ["import_entry_location"] };

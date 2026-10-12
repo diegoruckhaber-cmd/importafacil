@@ -636,3 +636,47 @@ footer a{color:inherit}
   .simulatorHeroInner{grid-template-columns:1fr}
   .simulatorHeroCard{display:none!important}
 }
+
+
+/* Tax profile, application and live preflight */
+.itemPreflight{
+  margin-top:14px;border:1px solid #dbeafe;border-radius:13px;background:#fbfdff;overflow:hidden
+}
+.itemPreflightHeader{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:11px 13px;border-bottom:1px solid #e5edf7;background:#f8fbff
+}
+.itemPreflightHeader small{display:block;font-size:9px;letter-spacing:.12em;font-weight:900;color:#2563eb}
+.itemPreflightHeader b{display:block;margin-top:2px;font-size:11px;color:#334155}
+.itemPreflightSpinner{
+  width:16px;height:16px;border:2px solid #bfdbfe;border-top-color:#2563eb;border-radius:999px;
+  animation:ifSpin .8s linear infinite;flex:0 0 auto
+}
+.itemPreflightAlert{
+  display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:10px;align-items:start;
+  padding:12px 13px;border-top:1px solid #edf2f7
+}
+.itemPreflightAlert:first-of-type{border-top:0}
+.itemPreflightAlert.info{background:#f8fbff}
+.itemPreflightAlert.warning{background:#fffbeb}
+.itemPreflightAlert.critical{background:#fff7ed}
+.itemPreflightIcon{
+  width:24px;height:24px;border-radius:999px;display:grid;place-items:center;font-size:11px;font-weight:900;
+  background:#dbeafe;color:#1d4ed8
+}
+.itemPreflightAlert.warning .itemPreflightIcon{background:#fef3c7;color:#a16207}
+.itemPreflightAlert.critical .itemPreflightIcon{background:#ffedd5;color:#c2410c}
+.itemPreflightAlert b{display:block;font-size:12px;color:#0f172a}
+.itemPreflightAlert p{margin:3px 0 0!important;font-size:10px!important;line-height:1.45!important;color:#64748b!important}
+.itemPreflightAlert small{display:block;margin-top:4px;color:#7c2d12;font-size:9px;line-height:1.4}
+.itemPreflightAlert a{color:#1d4ed8;font-size:10px;font-weight:800;text-decoration:none;white-space:nowrap}
+.itemPreflightAlert a:hover{text-decoration:underline}
+.costBreakdown.detailed .costBreakdownTotal.net{
+  background:#f0fdf4;border-top:1px solid #bbf7d0
+}
+.costBreakdown.detailed .costBreakdownTotal.net span,
+.costBreakdown.detailed .costBreakdownTotal.net strong{color:#166534}
+@media(max-width:720px){
+  .itemPreflightAlert{grid-template-columns:24px 1fr}
+  .itemPreflightAlert a{grid-column:2;white-space:normal}
+}

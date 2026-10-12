@@ -31,7 +31,7 @@ export type UnifiedImportItemInput = {
   mercosurEuQuotaRequired?: boolean;
   mercosurEuQuotaAvailable?: boolean;
   ttd?: "none" | "77" | "409" | "410";
-  destination?: "commercial_resale" | "industrialization";
+  destination?: "commercial_resale" | "industrialization" | "use_consumption";
   validConcession?: boolean;
   importEntryInSC?: boolean;
   industrializationInSC?: boolean;

@@ -1,4 +1,5 @@
 import { resolveFederalTaxes, type FederalTaxResolution } from "./federal-tax-resolution.ts";
+import { analyzeImportTaxCredits2026, type CompanyTaxRegime, type GoodsApplication } from "./tax-profile.ts";
 import {
   calculateUnifiedImportSimulation,
   type UnifiedImportItemInput,
@@ -15,6 +16,8 @@ export type SimulationV2ItemInput = UnifiedImportItemInput & {
 export type SimulationV2Input = Omit<UnifiedImportSimulationInput, "items"> & {
   scenarioName?: string;
   targetMarginPercent?: number;
+  companyTaxRegime?: CompanyTaxRegime;
+  icmsTaxpayer?: boolean;
   items: SimulationV2ItemInput[];
 };
 
@@ -247,22 +250,42 @@ export function runImportSimulationV2(input: SimulationV2Input) {
 
     const landedCostBrl = Number(calculation?.landedCostIncludingDefense ?? 0);
     const quantity = Number(row.quantity ?? source?.quantity ?? 0);
-    const landedCostPerUnitBrl = quantity > 0 ? landedCostBrl / quantity : landedCostBrl;
+    const creditAnalysis = analyzeImportTaxCredits2026({
+      date: input.date,
+      regime: input.companyTaxRegime ?? "nao-informado",
+      application: (source?.destination ?? "commercial_resale") as GoodsApplication,
+      icmsTaxpayer: input.icmsTaxpayer,
+      taxes: {
+        icms: Number(calculation?.taxLines?.icms?.payable ?? calculation?.taxLines?.icms?.value ?? 0),
+        ipi: Number(calculation?.taxLines?.ipi?.payable ?? calculation?.taxLines?.ipi?.value ?? 0),
+        pisImport: Number(calculation?.taxLines?.pisImport?.payable ?? calculation?.taxLines?.pisImport?.value ?? 0),
+        cofinsImport: Number(calculation?.taxLines?.cofinsImport?.payable ?? calculation?.taxLines?.cofinsImport?.value ?? 0),
+      },
+    });
+    const economicCostBrl = creditAnalysis.totalRecoverableCredits == null
+      ? landedCostBrl
+      : Math.max(0, landedCostBrl - creditAnalysis.totalRecoverableCredits);
+    const economicCostPerUnitBrl = quantity > 0 ? economicCostBrl / quantity : economicCostBrl;
     const margin = normalizeMargin(source?.targetMarginPercent, defaultMargin);
-    const targetSalePricePerUnitBrl = landedCostPerUnitBrl / (1 - margin / 100);
+    const targetSalePricePerUnitBrl = economicCostPerUnitBrl / (1 - margin / 100);
     const targetRevenueBrl = targetSalePricePerUnitBrl * quantity;
-    const estimatedProfitBrl = targetRevenueBrl - landedCostBrl;
+    const estimatedProfitBrl = targetRevenueBrl - economicCostBrl;
 
     return {
       ...row,
       status: statusFromIssues(normalizedItemIssues),
+      creditAnalysis,
       commercial: {
         targetMarginPercent: margin,
-        breakEvenPricePerUnitBrl: landedCostPerUnitBrl,
+        breakEvenPricePerUnitBrl: economicCostPerUnitBrl,
+        grossImportCostPerUnitBrl: quantity > 0 ? landedCostBrl / quantity : landedCostBrl,
+        economicNetCostBrl: creditAnalysis.totalRecoverableCredits == null ? null : economicCostBrl,
         targetSalePricePerUnitBrl,
         targetRevenueBrl,
         estimatedProfitBrl,
-        note: "Preço de equilíbrio e margem calculados sobre o custo nacionalizado da importação, antes dos tributos e efeitos da venda.",
+        note: creditAnalysis.totalRecoverableCredits == null
+          ? "Preço de equilíbrio provisório calculado sobre o desembolso bruto porque os créditos tributários ainda exigem validação."
+          : "Preço de equilíbrio calculado sobre o custo econômico líquido estimado, após créditos recuperáveis da importação e antes dos tributos e efeitos da venda.",
       },
       issues: normalizedItemIssues,
     };
@@ -306,6 +329,19 @@ export function runImportSimulationV2(input: SimulationV2Input) {
     acc.icmsImportBrl += Number(lines?.icms?.payable ?? lines?.icms?.value ?? 0);
     return acc;
   }, { iiBrl: 0, ipiBrl: 0, pisImportBrl: 0, cofinsImportBrl: 0, icmsImportBrl: 0 });
+  const creditTotals = resultItems.reduce((acc, item) => {
+    const credit = item.creditAnalysis;
+    acc.icmsCreditBrl += Number(credit?.icmsCredit ?? 0);
+    acc.ipiCreditBrl += Number(credit?.ipiCredit ?? 0);
+    acc.pisImportCreditBrl += Number(credit?.pisImportCredit ?? 0);
+    acc.cofinsImportCreditBrl += Number(credit?.cofinsImportCredit ?? 0);
+    if (credit?.totalRecoverableCredits == null) acc.complete = false;
+    return acc;
+  }, { icmsCreditBrl: 0, ipiCreditBrl: 0, pisImportCreditBrl: 0, cofinsImportCreditBrl: 0, complete: true });
+  const totalRecoverableCreditsBrl = creditTotals.complete
+    ? creditTotals.icmsCreditBrl + creditTotals.ipiCreditBrl + creditTotals.pisImportCreditBrl + creditTotals.cofinsImportCreditBrl
+    : null;
+  const economicNetCostBrl = totalRecoverableCreditsBrl == null ? null : Math.max(0, landedCostBrl - totalRecoverableCreditsBrl);
 
   return {
     contract: "importafacil-simulation-v2" as const,
@@ -317,6 +353,8 @@ export function runImportSimulationV2(input: SimulationV2Input) {
       ...core.operation,
       scenarioName: String(input.scenarioName ?? "Simulação V2"),
       targetMarginPercent: defaultMargin,
+      companyTaxRegime: input.companyTaxRegime ?? "nao-informado",
+      icmsTaxpayer: input.icmsTaxpayer,
     },
     summary: {
       merchandiseBrl: totalMerchandiseBrl,
@@ -340,9 +378,13 @@ export function runImportSimulationV2(input: SimulationV2Input) {
       pisImportBrl: taxTotals.pisImportBrl,
       cofinsImportBrl: taxTotals.cofinsImportBrl,
       icmsImportBrl: taxTotals.icmsImportBrl,
-      economicNetCostBrl: null,
-      recoverableTaxCreditsBrl: null,
-      economicCostStatus: "not_calculated_without_tax_profile" as const,
+      economicNetCostBrl,
+      recoverableTaxCreditsBrl: totalRecoverableCreditsBrl,
+      icmsCreditBrl: creditTotals.icmsCreditBrl,
+      ipiCreditBrl: creditTotals.ipiCreditBrl,
+      pisImportCreditBrl: creditTotals.pisImportCreditBrl,
+      cofinsImportCreditBrl: creditTotals.cofinsImportCreditBrl,
+      economicCostStatus: economicNetCostBrl == null ? "requires_tax_profile_validation" as const : "calculated" as const,
       targetRevenueBrl,
       estimatedProfitBrl,
     },
