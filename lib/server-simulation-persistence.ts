@@ -12,12 +12,23 @@ export async function persistOfficialSimulation(userId: string, name: string, in
     inputSha256: createHash("sha256").update(JSON.stringify(input)).digest("hex"),
     resultSha256: createHash("sha256").update(JSON.stringify(result)).digest("hex"),
   };
-  const response = await fetch(`${url}/rest/v1/rpc/save_official_simulation`, {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+  let response: Response;
+  try {
+    response = await fetch(`${url}/rest/v1/rpc/save_official_simulation`, {
     method: "POST",
     headers: { ...supabaseAdminHeaders(supabaseElevatedKeyFromEnv()), "Content-Type": "application/json" },
     body: JSON.stringify({ p_user_id: userId, p_name: name, p_input: input, p_result: result, p_execution: execution }),
     cache: "no-store",
-  });
+    signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") throw new Error("Tempo limite excedido ao salvar a simulação.");
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
     if (payload.code === "P0001" && payload.message === "simulation_limit_reached") return { limited: true as const };
