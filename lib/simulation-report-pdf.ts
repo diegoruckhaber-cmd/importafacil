@@ -62,7 +62,7 @@ export async function buildSimulationReportPdf(sim: Pick<SavedSimulationRecord, 
   const attention = Array.isArray(sim.result?.attentionPoints) ? sim.result.attentionPoints : [];
   const margin = 42;
   const contentWidth = A4.width - margin * 2;
-  let page: PDFPage;
+  let page!: PDFPage;
   let y = 0;
   let pageNo = 0;
 
