@@ -4,9 +4,6 @@ import { buildSimulationV2LegalTrace, formatSimulationV2LegalTrace } from "./sim
 export function executeOfficialSimulationV2(body: SimulationV2Input) {
     const result = runImportSimulationV2(body);
     const legalTrace = buildSimulationV2LegalTrace(result);
-    const attentionPoints = [
-      ...(Array.isArray(result.attentionPoints) ? result.attentionPoints : []),
-      ...legalTrace.map(formatSimulationV2LegalTrace),
-    ];
+    const attentionPoints = Array.isArray(result.attentionPoints) ? result.attentionPoints : [];
     return { ...result, legalTrace, attentionPoints: [...new Set(attentionPoints)] };
 }
