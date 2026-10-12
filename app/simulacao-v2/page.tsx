@@ -11,6 +11,7 @@ import { SIMULATOR_FIELD_GUIDANCE as HELP } from "../../lib/simulator-field-guid
 import MobileBottomNav from "../components/MobileBottomNav";
 import { isEuropeanUnionOrigin } from "../../lib/mercosur-eu-import-preference";
 import ItemPreflightAlerts from "../components/ItemPreflightAlerts";
+import FederalIpiTreatmentSelector from "../components/FederalIpiTreatmentSelector";
 import { downloadSimulationReportPdf } from "../../lib/simulation-report-pdf";
 
 type TTD = "409" | "410" | "77" | "none";
@@ -32,6 +33,7 @@ type Item = {
   exporter: string;
   iiExCode: string;
   ipiExCode: string;
+  ipiBaseConfirmed: boolean;
   iiQuotaConfirmed: TriState;
   aeronauticalEligible: TriState;
   mercosurEuPreferenceRequested: TriState;
@@ -101,6 +103,7 @@ const makeItem = (n: number, margin = 20): Item => ({
   exporter: "",
   iiExCode: "",
   ipiExCode: "",
+  ipiBaseConfirmed: false,
   iiQuotaConfirmed: "",
   aeronauticalEligible: "",
   mercosurEuPreferenceRequested: "",
@@ -191,6 +194,7 @@ export default function SimulationV2Page() {
       exporter: item.exporter || undefined,
       iiExCode: item.iiExCode || undefined,
       ipiExCode: item.ipiExCode || undefined,
+      ipiBaseConfirmed: item.ipiBaseConfirmed,
       iiQuotaConfirmed: tri(item.iiQuotaConfirmed),
       aeronauticalEligible: tri(item.aeronauticalEligible),
       mercosurEuPreferenceRequested: tri(item.mercosurEuPreferenceRequested),
@@ -246,6 +250,16 @@ export default function SimulationV2Page() {
     return issues;
   }
 
+  function focusTreatment(itemId: string, action: "ii" | "ipi" | "mercosur_eu" | "exporter") {
+    const details = document.getElementById(`advanced-${itemId}`) as HTMLDetailsElement | null;
+    if (details) details.open = true;
+    requestAnimationFrame(() => {
+      const target = document.querySelector(`[data-treatment-field="${itemId}-${action}"] select, [data-treatment-field="${itemId}-${action}"] input`) as HTMLElement | null;
+      target?.focus();
+      target?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
+
   async function calculate() {
     const issues = validateInput();
     setValidationIssues(issues);
@@ -284,16 +298,24 @@ export default function SimulationV2Page() {
         location.href = "/auth";
         return;
       }
-      const response = await fetch("/api/simulations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ mode: "v2", name, input: payload(), result }),
-      });
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 15000);
+      let response: Response;
+      try {
+        response = await fetch("/api/simulations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify({ mode: "v2", name, input: payload(), result }),
+          signal: controller.signal,
+        });
+      } finally {
+        window.clearTimeout(timeout);
+      }
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Não foi possível salvar.");
       location.href = `/simulacao/${data.id}`;
     } catch (error) {
-      setSaveMessage(error instanceof Error ? error.message : "Não foi possível salvar.");
+      setSaveMessage(error instanceof DOMException && error.name === "AbortError" ? "O salvamento demorou mais que o esperado e foi interrompido. Tente novamente." : error instanceof Error ? error.message : "Não foi possível salvar.");
     } finally {
       setSaving(false);
     }
@@ -532,15 +554,26 @@ export default function SimulationV2Page() {
                 </Field>
               </div>
 
-              <ItemPreflightAlerts ncm={item.ncm} origin={item.origin} date={date} />
+              <ItemPreflightAlerts ncm={item.ncm} origin={item.origin} date={date} onResolve={(action) => focusTreatment(item.id, action)} />
 
-              <details className="advancedPanel">
+              <details className="advancedPanel" id={`advanced-${item.id}`}>
                 <summary>Opções avançadas e tratamentos específicos</summary>
                 <p>Use estes campos apenas quando a sua operação tiver enquadramentos ou informações adicionais.</p>
                 <div className="fields four advancedFields">
-                  <DefenseCommercialExporterSelector ncm={item.ncm} origin={item.origin} date={date} value={item.exporter} onChange={(value) => update(item.id, "exporter", value)} />
-                  <Text label="EX do II" value={item.iiExCode} set={(value) => update(item.id, "iiExCode", value)} />
-                  <Text label="EX do IPI" value={item.ipiExCode} set={(value) => update(item.id, "ipiExCode", value)} />
+                  <div data-treatment-field={`${item.id}-exporter`}><DefenseCommercialExporterSelector ncm={item.ncm} origin={item.origin} date={date} value={item.exporter} onChange={(value) => update(item.id, "exporter", value)} /></div>
+                  <div data-treatment-field={`${item.id}-ii`}><Text label="EX do II" value={item.iiExCode} set={(value) => update(item.id, "iiExCode", value)} /></div>
+                  <div data-treatment-field={`${item.id}-ipi`}>
+                    <FederalIpiTreatmentSelector
+                      ncm={item.ncm}
+                      date={date}
+                      exCode={item.ipiExCode}
+                      baseConfirmed={item.ipiBaseConfirmed}
+                      onChange={({ exCode, baseConfirmed }) => {
+                        setItems((rows) => rows.map((row) => row.id === item.id ? { ...row, ipiExCode: exCode, ipiBaseConfirmed: baseConfirmed } : row));
+                        invalidate();
+                      }}
+                    />
+                  </div>
                   <Field label="Quota II">
                     <select value={item.iiQuotaConfirmed} onChange={(e) => update(item.id, "iiQuotaConfirmed", e.target.value as TriState)}>
                       <option value="">Não informado</option>
@@ -557,13 +590,13 @@ export default function SimulationV2Page() {
                   </Field>
                   {date >= "2026-05-01" && isEuropeanUnionOrigin(item.origin) && (
                     <>
-                      <Field label="Preferência Mercosul-UE">
+                      <div data-treatment-field={`${item.id}-mercosur_eu`}><Field label="Preferência Mercosul-UE">
                         <select value={item.mercosurEuPreferenceRequested} onChange={(e) => update(item.id, "mercosurEuPreferenceRequested", e.target.value as TriState)}>
                           <option value="">Não confirmado — manter TEC</option>
                           <option value="yes">Simular preferência</option>
                           <option value="no">Não aplicar preferência</option>
                         </select>
-                      </Field>
+                      </Field></div>
                       <Field label="Prova de origem preferencial">
                         <select value={item.mercosurEuOriginProofConfirmed} onChange={(e) => update(item.id, "mercosurEuOriginProofConfirmed", e.target.value as TriState)}>
                           <option value="">Não confirmado</option>
