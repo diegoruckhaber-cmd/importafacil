@@ -66,8 +66,8 @@ assert.match(preflight, /Defesa comercial identificada/);
 assert.match(preflight, /Tratamento de II exige confirmação/);
 
 const report = fs.readFileSync("lib/simulation-report-pdf.ts", "utf8");
-assert.match(report, /RELATÓRIO EXECUTIVO DE IMPORTAÇÃO/);
-assert.match(report, /Desembolso bruto estimado/);
+assert.match(report, /SIMULAÇÃO DE IMPORTAÇÃO/);
+assert.match(report, /Desembolso bruto/);
 assert.match(report, /Custo econômico líquido/);
 assert.match(report, /Pontos de atenção/);
 

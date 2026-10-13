@@ -17,7 +17,8 @@ assert.match(saveApi, /server_execution/);
 assert.match(saveApi, /hasMore/);
 
 assert.match(simulator, /Salvar no histórico/);
-assert.match(simulator, /Authorization: `Bearer \$\{session\.access_token\}`/);
+assert.match(simulator, /Authorization: `Bearer \$\{accessToken\}`/);
+assert.match(simulator, /cachedSupabaseAccessToken/);
 assert.match(simulator, /mode: "v2"/);
 assert.match(dashboard, /location\.href = "\/auth"/);
 assert.match(dashboard, /items\.slice\(0, 3\)/);

@@ -80,7 +80,8 @@ assert.match(page, /Resolver esta pendência/);
 assert.match(page, /PDF disponível após concluir/);
 assert.match(page, /Resultado parcial e pendências/);
 assert.match(page, /Preferência Mercosul-UE identificada/);
-assert.match(page, /15000/);
+assert.match(page, /timeout\(10000/);
+assert.match(page, /timeout\(5000/);
 
 const preflight = fs.readFileSync("app/components/ItemPreflightAlerts.tsx", "utf8");
 assert.match(preflight, /Resolver agora/);
@@ -91,12 +92,12 @@ assert.match(ipiSelector, /EX /);
 assert.equal(ipiSelector.includes(String.fromCharCode(92, 96)), false);
 
 const pdf = fs.readFileSync("lib/simulation-report-pdf.ts", "utf8");
-assert.match(pdf, /CONCLUÍDO COM ALERTAS/);
+assert.match(pdf, /Concluído com alertas/);
 assert.match(pdf, /PDF executivo só pode ser gerado após a conclusão/);
-assert.match(pdf, /itemNameLines/);
+assert.match(pdf, /nameLines/);
 
 const persistence = fs.readFileSync("lib/server-simulation-persistence.ts", "utf8");
-assert.match(persistence, /12000/);
+assert.match(persistence, /8000/);
 assert.match(persistence, /Tempo limite excedido/);
 
 console.log("Stage 88 incomplete-flow guided resolution regression passed.");

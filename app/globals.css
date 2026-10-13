@@ -930,3 +930,36 @@ h1,h2,h3,h4{font-family:var(--if-font-ui);letter-spacing:-.025em}
   .itemPreflightActions{grid-column:2;justify-content:flex-start}
   .incompleteProgress{align-items:flex-start;flex-direction:column}
 }
+
+
+/* Result rates and compact punctuation */
+.costBreakdown.detailed span em{
+  margin-left:5px;
+  color:#2563eb;
+  font-style:normal;
+  font-size:10px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.resultTable th{
+  white-space:nowrap;
+}
+.resultTable td{
+  vertical-align:top;
+}
+.resultTable td:nth-child(3),
+.resultTable td:nth-child(4),
+.resultTable td:nth-child(5),
+.resultTable td:nth-child(6),
+.resultTable td:nth-child(7),
+.resultTable td:nth-child(8){
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.resultTable td:nth-child(8){
+  max-width:120px;
+  white-space:normal;
+}
+@media(max-width:1100px){
+  .resultTable{min-width:1080px}
+}
