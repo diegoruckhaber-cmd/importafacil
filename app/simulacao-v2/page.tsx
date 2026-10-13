@@ -136,6 +136,19 @@ const makeItem = (n: number, margin = 20): Item => ({
 
 const tri = (value: TriState) => value === "yes" ? true : value === "no" ? false : undefined;
 
+const cachedSupabaseAccessToken = () => {
+  if (typeof window === "undefined") return "";
+  try {
+    const raw = window.localStorage.getItem("sb-fagjbhhmbpdsmoyjcood-auth-token");
+    if (!raw) return "";
+    const parsed = JSON.parse(raw);
+    return String(parsed?.access_token || parsed?.session?.access_token || parsed?.currentSession?.access_token || "");
+  } catch {
+    return "";
+  }
+};
+
+
 export default function SimulationV2Page() {
   const next = useRef(2);
   const resultRef = useRef<HTMLElement | null>(null);
@@ -315,14 +328,17 @@ export default function SimulationV2Page() {
         }, ms);
       });
 
-      const sessionResult = await Promise.race([
-        supabase.auth.getSession(),
-        timeout(5000, "Não foi possível validar sua sessão em tempo hábil. Tente novamente."),
-      ]);
-      if (timeoutId != null) { window.clearTimeout(timeoutId); timeoutId = null; }
+      let accessToken = cachedSupabaseAccessToken();
+      if (!accessToken) {
+        const sessionResult = await Promise.race([
+          supabase.auth.getSession(),
+          timeout(5000, "Não foi possível validar sua sessão em tempo hábil. Tente novamente."),
+        ]);
+        if (timeoutId != null) { window.clearTimeout(timeoutId); timeoutId = null; }
+        accessToken = String(sessionResult.data.session?.access_token || "");
+      }
 
-      const session = sessionResult.data.session;
-      if (!session) {
+      if (!accessToken) {
         setSaving(false);
         location.href = "/auth";
         return;
@@ -330,7 +346,7 @@ export default function SimulationV2Page() {
 
       const request = fetch("/api/simulations", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
         body: JSON.stringify({ mode: "v2", name, input: payload(), result }),
         signal: controller.signal,
       }).then(async (response) => {
