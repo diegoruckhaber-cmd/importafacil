@@ -59,6 +59,19 @@ const localDate = () => {
 const today = localDate();
 const money = (value: number) => Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const pct = (value: number) => `${Number(value || 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
+const taxLineRatePct = (line: any) => {
+  if (!line) return null;
+  if (Number.isFinite(Number(line.displayRate))) return Number(line.displayRate);
+  if (Number.isFinite(Number(line.rate))) return Number(line.rate) * 100;
+  return null;
+};
+const sameRateLabel = (rows: any[], getter: (row: any) => number | null | undefined) => {
+  const values = rows.map(getter).filter((value): value is number => Number.isFinite(Number(value))).map((value) => Number(Number(value).toFixed(6)));
+  const unique = [...new Set(values)];
+  if (!unique.length) return "";
+  if (unique.length === 1) return `(${pct(unique[0])})`;
+  return "(alíquotas por item)";
+};
 const statusLabel: Record<Status, string> = {
   calculated: "Cálculo concluído",
   alert: "Cálculo concluído com alertas",
@@ -289,36 +302,63 @@ export default function SimulationV2Page() {
   }
 
   async function save() {
-    if (!result) return;
+    if (!result || saving) return;
     setSaving(true);
     setSaveMessage("");
+    const controller = new AbortController();
+    let timeoutId: number | null = null;
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const timeout = (ms: number, message: string) => new Promise<never>((_, reject) => {
+        timeoutId = window.setTimeout(() => {
+          controller.abort();
+          reject(new Error(message));
+        }, ms);
+      });
+
+      const sessionResult = await Promise.race([
+        supabase.auth.getSession(),
+        timeout(5000, "Não foi possível validar sua sessão em tempo hábil. Tente novamente."),
+      ]);
+      if (timeoutId != null) { window.clearTimeout(timeoutId); timeoutId = null; }
+
+      const session = sessionResult.data.session;
       if (!session) {
+        setSaving(false);
         location.href = "/auth";
         return;
       }
-      const controller = new AbortController();
-      const timeout = window.setTimeout(() => controller.abort(), 15000);
-      let response: Response;
-      try {
-        response = await fetch("/api/simulations", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
-          body: JSON.stringify({ mode: "v2", name, input: payload(), result }),
-          signal: controller.signal,
-        });
-      } finally {
-        window.clearTimeout(timeout);
-      }
-      const data = await response.json();
+
+      const request = fetch("/api/simulations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ mode: "v2", name, input: payload(), result }),
+        signal: controller.signal,
+      }).then(async (response) => {
+        const raw = await response.text();
+        let data: any = {};
+        try { data = raw ? JSON.parse(raw) : {}; } catch { data = {}; }
+        return { response, data };
+      });
+
+      const { response, data } = await Promise.race([
+        request,
+        timeout(10000, "O salvamento ultrapassou 10 segundos e foi interrompido. Tente novamente."),
+      ]);
+      if (timeoutId != null) { window.clearTimeout(timeoutId); timeoutId = null; }
+
       if (!response.ok) throw new Error(data.error || "Não foi possível salvar.");
-      setSaving(false);
+      if (!data.id) throw new Error("A simulação foi processada, mas o histórico não retornou um identificador válido.");
+
       setSaveMessage("Simulação salva com sucesso. Abrindo o histórico...");
-      window.setTimeout(() => { location.href = `/simulacao/${data.id}`; }, 250);
+      setSaving(false);
+      window.setTimeout(() => { location.assign(`/simulacao/${data.id}`); }, 350);
     } catch (error) {
-      setSaveMessage(error instanceof DOMException && error.name === "AbortError" ? "O salvamento demorou mais que o esperado e foi interrompido. Tente novamente." : error instanceof Error ? error.message : "Não foi possível salvar.");
+      const aborted = controller.signal.aborted;
+      setSaveMessage(aborted
+        ? "O salvamento demorou mais que o esperado e foi interrompido. Você pode tentar novamente sem recarregar a página."
+        : error instanceof Error ? error.message : "Não foi possível salvar.");
     } finally {
+      if (timeoutId != null) window.clearTimeout(timeoutId);
       setSaving(false);
     }
   }
@@ -431,7 +471,7 @@ export default function SimulationV2Page() {
                 invalidate();
               }}
             >
-              {BRAZILIAN_UFS.map((uf) => <option key={uf} value={uf}>{uf} — {UF_NAMES[uf]}</option>)}
+              {BRAZILIAN_UFS.map((uf) => <option key={uf} value={uf}>{uf} - {UF_NAMES[uf]}</option>)}
             </select>
           </Field>
           <Num label="Câmbio R$/US$" hint={HELP.exchange} value={exchange} set={setExchange} invalidate={invalidate} step={0.01} />
@@ -469,7 +509,7 @@ export default function SimulationV2Page() {
           </Field>
           <Field label="Modal" hint={HELP.transportMode}>
             <select value={transportMode} onChange={(e) => { setTransportMode(e.target.value); invalidate(); }}>
-              <option value="maritime_long_course">Marítimo — longo curso</option>
+              <option value="maritime_long_course">Marítimo - longo curso</option>
               <option value="cabotage">Cabotagem</option>
               <option value="air">Aéreo</option>
               <option value="road">Rodoviário</option>
@@ -594,7 +634,7 @@ export default function SimulationV2Page() {
                     <>
                       <div data-treatment-field={`${item.id}-mercosur_eu`}><Field label="Preferência Mercosul-UE">
                         <select value={item.mercosurEuPreferenceRequested} onChange={(e) => update(item.id, "mercosurEuPreferenceRequested", e.target.value as TriState)}>
-                          <option value="">Não confirmado — manter TEC</option>
+                          <option value="">Não confirmado - manter TEC</option>
                           <option value="yes">Simular preferência</option>
                           <option value="no">Não aplicar preferência</option>
                         </select>
@@ -632,7 +672,7 @@ export default function SimulationV2Page() {
                   {isSC && (
                     <Field label="Regime tributário SC">
                       <select value={item.ttd} onChange={(e) => update(item.id, "ttd", e.target.value as TTD)}>
-                        <option value="none">Sem TTD — tributação normal</option>
+                        <option value="none">Sem TTD - tributação normal</option>
                         <option value="77">TTD 77</option>
                         <option value="409">TTD 409</option>
                         <option value="410">TTD 410</option>
@@ -740,11 +780,11 @@ export default function SimulationV2Page() {
                 <div><span>Mercadorias</span><strong>{money(result.summary.merchandiseBrl)}</strong></div>
                 <div><span>Frete internacional</span><strong>{money(result.summary.freightBrl)}</strong></div>
                 <div><span>Seguro internacional</span><strong>{money(result.summary.insuranceBrl)}</strong></div>
-                <div><span>II</span><strong>{money(result.summary.iiBrl)}</strong></div>
-                <div><span>IPI</span><strong>{money(result.summary.ipiBrl)}</strong></div>
-                <div><span>PIS-Importação</span><strong>{money(result.summary.pisImportBrl)}</strong></div>
-                <div><span>Cofins-Importação</span><strong>{money(result.summary.cofinsImportBrl)}</strong></div>
-                <div><span>ICMS-Importação</span><strong>{money(result.summary.icmsImportBrl)}</strong></div>
+                <div><span>II <em>{sameRateLabel(result.items, (row) => row.federal?.ii?.rate)}</em></span><strong>{money(result.summary.iiBrl)}</strong></div>
+                <div><span>IPI <em>{sameRateLabel(result.items, (row) => row.federal?.ipi?.rate)}</em></span><strong>{money(result.summary.ipiBrl)}</strong></div>
+                <div><span>PIS-Importação <em>{sameRateLabel(result.items, (row) => taxLineRatePct(row.calculation?.taxLines?.pisImport))}</em></span><strong>{money(result.summary.pisImportBrl)}</strong></div>
+                <div><span>Cofins-Importação <em>{sameRateLabel(result.items, (row) => taxLineRatePct(row.calculation?.taxLines?.cofinsImport))}</em></span><strong>{money(result.summary.cofinsImportBrl)}</strong></div>
+                <div><span>ICMS-Importação <em>{sameRateLabel(result.items, (row) => row.state?.icmsGeneralRate ?? row.calculation?.icmsNormalRate ?? taxLineRatePct(row.calculation?.taxLines?.icms))}</em></span><strong>{money(result.summary.icmsImportBrl)}</strong></div>
                 <div><span>AFRMM</span><strong>{money(result.summary.afrmmBrl)}</strong></div>
                 <div><span>Taxa Siscomex</span><strong>{money(result.summary.siscomexBrl)}</strong></div>
                 <div><span>Armazenagem</span><strong>{money(result.summary.storageBrl)}</strong></div>
@@ -775,9 +815,11 @@ export default function SimulationV2Page() {
                         <th>NCM</th>
                         <th>II</th>
                         <th>IPI</th>
+                        <th>PIS-Imp.</th>
+                        <th>Cofins-Imp.</th>
                         <th>ICMS</th>
+                        <th>Defesa comercial</th>
                         <th>Custo/un.</th>
-                        <th>Margem</th>
                         <th>Preço alvo/un.</th>
                       </tr>
                     </thead>
@@ -791,16 +833,18 @@ export default function SimulationV2Page() {
                               const sourceItem = items.find((item) => item.id === row.itemId);
                               if (!sourceItem || date < "2026-05-01" || !isEuropeanUnionOrigin(sourceItem.origin)) return null;
                               const applied = row.federal?.mercosurEuPreference?.appliedPreference === true;
-                              return <small className={`preferenceStatus ${applied ? "applied" : "pending"}`}>{applied ? `Mercosul-UE aplicado · II ${pct(row.federal?.ii?.rate)}` : "Preferência Mercosul-UE identificada — não aplicada"}</small>;
+                              return <small className={`preferenceStatus ${applied ? "applied" : "pending"}`}>{applied ? `Mercosul-UE aplicado · II ${pct(row.federal?.ii?.rate)}` : "Preferência Mercosul-UE identificada - não aplicada"}</small>;
                             })()}
                           </td>
                           <td><span className="ncmPill">{row.ncm}</span></td>
                           <td>{pct(row.federal?.ii?.rate)}</td>
                           <td>{pct(row.federal?.ipi?.rate)}</td>
-                          <td>{pct(row.state?.icmsGeneralRate ?? row.calculation?.icmsNormalRate)}</td>
+                          <td>{taxLineRatePct(row.calculation?.taxLines?.pisImport) == null ? "-" : pct(taxLineRatePct(row.calculation?.taxLines?.pisImport)!)}</td>
+                          <td>{taxLineRatePct(row.calculation?.taxLines?.cofinsImport) == null ? "-" : pct(taxLineRatePct(row.calculation?.taxLines?.cofinsImport)!)}</td>
+                          <td>{pct(row.state?.icmsGeneralRate ?? row.calculation?.icmsNormalRate ?? taxLineRatePct(row.calculation?.taxLines?.icms))}</td>
+                          <td>{row.federal?.defenseCommercial?.rate == null ? "-" : `${Number(row.federal.defenseCommercial.rate).toLocaleString("pt-BR",{maximumFractionDigits:2})}${row.federal.defenseCommercial.unit === "AD_VALOREM" ? "%" : " " + String(row.federal.defenseCommercial.unit || "")}`}</td>
                           <td>{money(row.commercial?.breakEvenPricePerUnitBrl)}</td>
-                          <td>{pct(row.commercial?.targetMarginPercent)}</td>
-                          <td><strong>{money(row.commercial?.targetSalePricePerUnitBrl)}</strong></td>
+                          <td><strong>{money(row.commercial?.targetSalePricePerUnitBrl)}</strong><small className="itemStatus">Margem {pct(row.commercial?.targetMarginPercent)}</small></td>
                         </tr>
                       ))}
                     </tbody>
@@ -835,13 +879,13 @@ export default function SimulationV2Page() {
                           <td>
                             <strong>{row.name}</strong>
                             {row.partial && <small className="itemStatus">Estimativa parcial isolada</small>}
-                            {euPotential && <small className={`preferenceStatus ${euApplied ? "applied" : "pending"}`}>{euApplied ? "Mercosul-UE aplicado" : "Preferência Mercosul-UE identificada — ainda não aplicada ao resultado"}</small>}
+                            {euPotential && <small className={`preferenceStatus ${euApplied ? "applied" : "pending"}`}>{euApplied ? "Mercosul-UE aplicado" : "Preferência Mercosul-UE identificada - ainda não aplicada ao resultado"}</small>}
                           </td>
                           <td><span className="ncmPill">{row.ncm}</span></td>
                           <td>{row.federal?.ii?.rate == null ? "A validar" : pct(row.federal.ii.rate)}</td>
                           <td>{row.federal?.ipi?.rate == null ? "A validar" : pct(row.federal.ipi.rate)}</td>
                           <td>{statusLabel[row.status as Status] || row.status}</td>
-                          <td>{row.commercial?.breakEvenPricePerUnitBrl == null ? "—" : money(row.commercial.breakEvenPricePerUnitBrl)}</td>
+                          <td>{row.commercial?.breakEvenPricePerUnitBrl == null ? "-" : money(row.commercial.breakEvenPricePerUnitBrl)}</td>
                         </tr>
                       );
                     })}
@@ -901,7 +945,7 @@ export default function SimulationV2Page() {
           {saveMessage && (
             <div className={saveMessage.startsWith("Simulação salva") ? "saveSuccess" : "saveError"} role="status">
               <div>
-                <strong>Não foi possível salvar esta simulação.</strong>
+                <strong>{saveMessage.startsWith("Simulação salva") ? "Simulação salva." : "Não foi possível salvar esta simulação."}</strong>
                 <span>{saveMessage}</span>
               </div>
               {saveMessage.includes("limite") && <a href="/upgrade">Conhecer o PRO</a>}
