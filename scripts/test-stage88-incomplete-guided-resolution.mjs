@@ -80,7 +80,7 @@ assert.match(page, /Resolver esta pendência/);
 assert.match(page, /PDF disponível após concluir/);
 assert.match(page, /Resultado parcial e pendências/);
 assert.match(page, /Preferência Mercosul-UE identificada/);
-assert.match(page, /15000/);
+assert.match(page, /timeout\(10000/);\nassert.match(page, /timeout\(5000/);
 
 const preflight = fs.readFileSync("app/components/ItemPreflightAlerts.tsx", "utf8");
 assert.match(preflight, /Resolver agora/);
