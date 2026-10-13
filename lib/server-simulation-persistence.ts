@@ -13,7 +13,7 @@ export async function persistOfficialSimulation(userId: string, name: string, in
     resultSha256: createHash("sha256").update(JSON.stringify(result)).digest("hex"),
   };
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12000);
+  const timeout = setTimeout(() => controller.abort(), 8000);
   let response: Response;
   try {
     response = await fetch(`${url}/rest/v1/rpc/save_official_simulation`, {
