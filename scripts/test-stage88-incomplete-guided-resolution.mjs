@@ -96,7 +96,7 @@ assert.match(pdf, /PDF executivo só pode ser gerado após a conclusão/);
 assert.match(pdf, /itemNameLines/);
 
 const persistence = fs.readFileSync("lib/server-simulation-persistence.ts", "utf8");
-assert.match(persistence, /12000/);
+assert.match(persistence, /8000/);
 assert.match(persistence, /Tempo limite excedido/);
 
 console.log("Stage 88 incomplete-flow guided resolution regression passed.");
