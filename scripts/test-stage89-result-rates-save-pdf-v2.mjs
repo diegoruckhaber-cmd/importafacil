@@ -13,7 +13,7 @@ assert.match(page, /Cofins-Imp\./);
 assert.match(page, /Defesa comercial/);
 assert.match(page, /sameRateLabel/);
 assert.match(page, /taxLineRatePct/);
-assert.match(page, /timeout\(5000/);
+assert.match(page, /timeout\(5000/);\nassert.match(page, /cachedSupabaseAccessToken/);\nassert.match(page, /sb-fagjbhhmbpdsmoyjcood-auth-token/);
 assert.match(page, /timeout\(10000/);
 assert.match(page, /response\.text\(\)/);
 assert.match(page, /Você pode tentar novamente sem recarregar a página/);
