@@ -92,9 +92,9 @@ assert.match(ipiSelector, /EX /);
 assert.equal(ipiSelector.includes(String.fromCharCode(92, 96)), false);
 
 const pdf = fs.readFileSync("lib/simulation-report-pdf.ts", "utf8");
-assert.match(pdf, /CONCLUÍDO COM ALERTAS/);
+assert.match(pdf, /Concluído com alertas/);
 assert.match(pdf, /PDF executivo só pode ser gerado após a conclusão/);
-assert.match(pdf, /itemNameLines/);
+assert.match(pdf, /nameLines/);
 
 const persistence = fs.readFileSync("lib/server-simulation-persistence.ts", "utf8");
 assert.match(persistence, /8000/);
